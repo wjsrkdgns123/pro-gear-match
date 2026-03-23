@@ -1,7 +1,33 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { GearSettings, ProGamer } from "../types";
+import { db, OperationType, handleFirestoreError, auth, googleProvider } from "../firebase";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+
+const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
+
+async function syncProGamerToDb(pro: ProGamer) {
+  try {
+    // Only attempt sync if logged in as admin
+    if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+      return;
+    }
+
+    const gamerId = `${pro.game}_${pro.name}`.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const gamerRef = doc(db, "pro-gamers", gamerId);
+    await setDoc(gamerRef, {
+      ...pro,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+  } catch (error) {
+    // Silently fail for regular users, log for admin
+    if (auth.currentUser?.email === ADMIN_EMAIL) {
+      console.error("Admin Sync error:", error);
+    }
+  }
+}
 
 export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]> {
   const prompt = `
@@ -20,14 +46,13 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
     - Sensitivity: ${settings.sensitivity}
     - eDPI: ${settings.dpi * settings.sensitivity}
 
-    Search ONLY ProSettings.net (https://prosettings.net) for gear and settings data.
     CRITICAL CONSTRAINTS:
-    1. PROSETTINGS.NET DATA ONLY: All gear and settings information MUST be sourced from prosettings.net.
-    2. IMAGE SOURCE: For imageUrl and teamLogoUrl, you MUST provide a direct, hotlinkable image URL. 
-       - Prioritize Liquipedia (https://liquipedia.net) for player photos and team logos as they are more reliable for hotlinking.
-       - If no real image is found, use a high-quality placeholder: https://picsum.photos/seed/{playerName}/200/200
-    3. DO NOT hallucinate or make up gear data. If you are not 100% sure about a player's gear or settings on ProSettings.net, do not return them.
-    4. Provide a direct URL to their profile on ProSettings.net.
+    1. EXISTENCE CHECK: Every pro gamer returned MUST have a valid, existing profile on ProSettings.net (https://prosettings.net). If a player is not on ProSettings.net, DO NOT include them.
+    2. DATA SOURCE: While the player must exist on ProSettings.net, you MUST search the ENTIRE INTERNET (Liquipedia, Twitter/X, official team announcements, etc.) to provide the ABSOLUTE LATEST gear and settings. ProSettings.net can sometimes be outdated; your goal is to provide the most current information available as of today.
+    3. NO HALLUCINATION: If the latest information for a specific gear item or setting cannot be found anywhere, use the data from ProSettings.net. If even that is missing, use an empty string ("") or 0.
+    4. IMAGE SOURCE: Use the best available high-quality image URLs from the internet (Liquipedia is often best). If no image is found, use: https://picsum.photos/seed/{playerName}/200/200
+    5. Provide a direct URL to their profile on ProSettings.net for reference.
+    6. SOURCE FIELD: In the "source" field, list the primary sources used (e.g., "ProSettings.net, Liquipedia, Twitter").
   `;
 
   const response = await ai.models.generateContent({
@@ -78,31 +103,48 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
     throw new Error("Failed to get match from AI");
   }
 
-  return JSON.parse(response.text);
+  const results = JSON.parse(response.text);
+  // Sync matches to DB in background
+  results.forEach((pro: ProGamer) => syncProGamerToDb(pro));
+  
+  return results;
 }
 
 export async function getProGamerList(game: string): Promise<ProGamer[]> {
+  try {
+    const q = query(collection(db, "pro-gamers"), where("game", "==", game));
+    const querySnapshot = await getDocs(q);
+    
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs.map(doc => doc.data() as ProGamer);
+    }
+  } catch (error) {
+    console.error("Firestore fetch error:", error);
+  }
+
   const prompt = `
     List at least 100 famous professional gamers for the game: ${game}.
     
     CRITICAL CONSTRAINTS:
-    1. PROSETTINGS.NET DATA ONLY: All gear and settings information MUST be sourced from prosettings.net.
-    2. IMAGE SOURCE: For imageUrl and teamLogoUrl, you MAY use Liquipedia (https://liquipedia.net) if ProSettings.net does not provide a direct, hotlinkable image URL. This is to ensure images are not broken.
-    3. QUANTITY: Provide at least 100 unique professional gamers from ProSettings.net if the data exists.
-    4. TEAM PRIORITY: Prioritize active players from famous teams listed on ProSettings.net.
-    5. SORTING: Return the list SORTED BY TEAM NAME alphabetically.
-    6. NO HALLUCINATION: Do not guess or estimate settings. Use only factual data from the source.
+    1. EXISTENCE CHECK: Every pro gamer returned MUST have a valid, existing profile on ProSettings.net (https://prosettings.net). If a player is not on ProSettings.net, DO NOT include them.
+    2. DATA SOURCE: While the player must exist on ProSettings.net, you MUST search the ENTIRE INTERNET (Liquipedia, Twitter/X, official team announcements, etc.) to provide the ABSOLUTE LATEST gear and settings. ProSettings.net can sometimes be outdated; your goal is to provide the most current information available as of today.
+    3. NO HALLUCINATION: If the latest information for a specific gear item or setting cannot be found anywhere, use the data from ProSettings.net. If even that is missing, use an empty string ("") or 0.
+    4. IMAGE SOURCE: Use the best available high-quality image URLs from the internet (Liquipedia is often best). If no image is found, use: https://picsum.photos/seed/{playerName}/200/200
+    5. QUANTITY: Provide at least 100 unique professional gamers who meet the existence criteria.
+    6. TEAM PRIORITY: Prioritize active players from famous teams.
+    7. SORTING: Return the list SORTED BY TEAM NAME alphabetically.
+    8. SOURCE FIELD: In the "source" field, list the primary sources used (e.g., "ProSettings.net, Liquipedia, Twitter").
     
     For each gamer, provide:
     - name
     - team
     - game
-    - imageUrl (Direct link to profile photo - prioritize Liquipedia for reliability)
-    - teamLogoUrl (Direct link to team logo - prioritize Liquipedia for reliability)
+    - imageUrl (Direct link to profile photo)
+    - teamLogoUrl (Direct link to team logo)
     - profileUrl (ProSettings.net profile URL)
     - gear (mouse, keyboard, monitor, mousepad)
     - settings (dpi, sensitivity, edpi)
-    - source (MUST be "ProSettings.net")
+    - source (e.g., "ProSettings.net, Liquipedia")
   `;
 
   const response = await ai.models.generateContent({
@@ -153,5 +195,9 @@ export async function getProGamerList(game: string): Promise<ProGamer[]> {
     throw new Error("Failed to get list from AI");
   }
 
-  return JSON.parse(response.text);
+  const list = JSON.parse(response.text);
+  // Sync list to DB in background
+  list.forEach((pro: ProGamer) => syncProGamerToDb(pro));
+
+  return list;
 }

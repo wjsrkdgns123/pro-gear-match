@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "ProGamer": {
+      "title": "ProGamer",
+      "description": "Professional gamer gear and settings data",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Gamer's handle" },
+        "team": { "type": "string", "description": "Current team name" },
+        "game": { "type": "string", "description": "Game title (e.g., Valorant)" },
+        "imageUrl": { "type": "string", "format": "uri", "description": "Profile image URL" },
+        "teamLogoUrl": { "type": "string", "format": "uri", "description": "Team logo URL" },
+        "profileUrl": { "type": "string", "format": "uri", "description": "ProSettings.net profile URL" },
+        "gear": {
+          "type": "object",
+          "properties": {
+            "mouse": { "type": "string" },
+            "keyboard": { "type": "string" },
+            "monitor": { "type": "string" },
+            "mousepad": { "type": "string" }
+          }
+        },
+        "settings": {
+          "type": "object",
+          "properties": {
+            "dpi": { "type": "number" },
+            "sensitivity": { "type": "number" },
+            "edpi": { "type": "number" }
+          }
+        },
+        "source": { "type": "string", "description": "Data sources" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "team", "game"]
+    }
+  },
+  "firestore": {
+    "/pro-gamers/{gamerId}": {
+      "schema": "ProGamer",
+      "description": "Collection of professional gamers"
+    }
+  }
+}

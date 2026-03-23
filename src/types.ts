@@ -8,6 +8,11 @@ export interface GearSettings {
   game: string;
 }
 
+export interface Highlight {
+  title: string;
+  url: string;
+}
+
 export interface ProGamer {
   name: string;
   team: string;
@@ -27,4 +32,5 @@ export interface ProGamer {
     edpi: number;
   };
   source: string;
+  highlights?: Highlight[];
 }

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft } from 'lucide-react';
+import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
 import { matchProGamer, getProGamerList } from './services/geminiService';
 import { translations, getLanguage, Language } from './translations';
+import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from './constants';
+import { auth, googleProvider } from './firebase';
+import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
 
 const GAMES = [
   { name: 'Valorant', emoji: '🎯' },
@@ -36,8 +39,33 @@ export default function App() {
   const [matches, setMatches] = useState<ProGamer[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showList, setShowList] = useState(false);
+  const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
   const [proList, setProList] = useState<ProGamer[]>([]);
   const [listLoading, setListLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleMatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,30 +100,11 @@ export default function App() {
     }
   };
 
-  const fetchProList = async (forceRefresh = false) => {
+  const fetchProList = async () => {
     setShowList(true);
     
-    const cacheKey = `pro_list_${settings.game}`;
-    
-    if (!forceRefresh) {
-      // Check memory first
-      if (proList.length > 0 && proList[0].game === settings.game) return;
-
-      // Check localStorage cache
-      const cachedData = localStorage.getItem(cacheKey);
-      if (cachedData) {
-        try {
-          const { list, timestamp } = JSON.parse(cachedData);
-          // Cache for 24 hours
-          if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-            setProList(list);
-            return;
-          }
-        } catch (e) {
-          console.error("Cache parse error", e);
-        }
-      }
-    }
+    // Check memory first
+    if (proList.length > 0 && proList[0].game === settings.game) return;
     
     setListLoading(true);
     try {
@@ -103,12 +112,6 @@ export default function App() {
       // Sort by team name alphabetically
       const sortedList = [...list].sort((a, b) => a.team.localeCompare(b.team));
       setProList(sortedList);
-      
-      // Save to localStorage
-      localStorage.setItem(cacheKey, JSON.stringify({
-        list: sortedList,
-        timestamp: Date.now()
-      }));
     } catch (err) {
       console.error(err);
     } finally {
@@ -175,6 +178,9 @@ export default function App() {
                     icon={<Mouse size={18} />} 
                     value={settings.mouse}
                     placeholder="e.g. G Pro X Superlight"
+                    hint={t.enterGear}
+                    listId="mice-list"
+                    options={PRO_MICE}
                     onChange={(val) => setSettings({ ...settings, mouse: val })}
                   />
                   <InputGroup 
@@ -182,6 +188,9 @@ export default function App() {
                     icon={<Keyboard size={18} />} 
                     value={settings.keyboard}
                     placeholder="e.g. Wooting 60HE"
+                    hint={t.enterGear}
+                    listId="keyboards-list"
+                    options={PRO_KEYBOARDS}
                     onChange={(val) => setSettings({ ...settings, keyboard: val })}
                   />
                   <InputGroup 
@@ -189,6 +198,9 @@ export default function App() {
                     icon={<Monitor size={18} />} 
                     value={settings.monitor}
                     placeholder="e.g. Zowie XL2566K"
+                    hint={t.enterGear}
+                    listId="monitors-list"
+                    options={PRO_MONITORS}
                     onChange={(val) => setSettings({ ...settings, monitor: val })}
                   />
                   <InputGroup 
@@ -196,6 +208,9 @@ export default function App() {
                     icon={<Layers size={18} />} 
                     value={settings.mousepad}
                     placeholder="e.g. Artisan Zero"
+                    hint={t.enterGear}
+                    listId="mousepads-list"
+                    options={PRO_MOUSEPADS}
                     onChange={(val) => setSettings({ ...settings, mousepad: val })}
                   />
                 </div>
@@ -289,8 +304,23 @@ export default function App() {
                         <span className="text-emerald-400">{matches[1].settings.sensitivity}</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-[#555] font-mono uppercase truncate">
-                      {matches[1].gear.mouse}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Mouse size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[1].gear.mouse}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Keyboard size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[1].gear.keyboard}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Monitor size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[1].gear.monitor}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Layers size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[1].gear.mousepad}</span>
+                      </div>
                     </div>
                     <a 
                       href={matches[1].profileUrl} 
@@ -379,8 +409,23 @@ export default function App() {
                         <span className="text-emerald-400">{matches[2].settings.sensitivity}</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-[#555] font-mono uppercase truncate">
-                      {matches[2].gear.mouse}
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Mouse size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[2].gear.mouse}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Keyboard size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[2].gear.keyboard}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Monitor size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[2].gear.monitor}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Layers size={10} className="text-emerald-500/50" />
+                        <span className="truncate">{matches[2].gear.mousepad}</span>
+                      </div>
                     </div>
                     <a 
                       href={matches[2].profileUrl} 
@@ -410,6 +455,20 @@ export default function App() {
                       <div className="text-right">
                         <span className="text-[#555] font-mono text-[10px] block uppercase">eDPI</span>
                         <span className="text-emerald-400 font-mono text-xs">{m!.settings.edpi}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 py-2 border-y border-[#333]/50">
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Mouse size={10} /> <span className="truncate">{m!.gear.mouse}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Keyboard size={10} /> <span className="truncate">{m!.gear.keyboard}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Monitor size={10} /> <span className="truncate">{m!.gear.monitor}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-[#555] font-mono uppercase truncate">
+                        <Layers size={10} /> <span className="truncate">{m!.gear.mousepad}</span>
                       </div>
                     </div>
                     <a 
@@ -449,6 +508,115 @@ export default function App() {
         </div>
       )}
 
+      {/* High Quality Content Sections for AdSense */}
+      <div className="max-w-4xl mx-auto mt-20 space-y-16 pb-20">
+        {/* About Section */}
+        <section className="bg-[#151619] border border-[#333] rounded-2xl p-8">
+          <h2 className="text-2xl font-bold text-emerald-400 mb-4 uppercase tracking-wider flex items-center gap-2">
+            <Shield size={24} /> {t.aboutTitle}
+          </h2>
+          <p className="text-[#aaa] leading-relaxed">
+            {t.aboutDesc}
+          </p>
+        </section>
+
+        {/* Gear Guide Section */}
+        <section className="space-y-8">
+          <h2 className="text-2xl font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2 px-2">
+            <Flame size={24} /> {t.guideTitle}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-[#151619] border border-[#333] rounded-2xl p-6 hover:border-emerald-500/50 transition-colors">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-400 mb-4">
+                <Target size={20} />
+              </div>
+              <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">DPI</h3>
+              <p className="text-xs text-[#888] leading-relaxed">{t.guideDpi}</p>
+            </div>
+            <div className="bg-[#151619] border border-[#333] rounded-2xl p-6 hover:border-emerald-500/50 transition-colors">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-400 mb-4">
+                <Zap size={20} />
+              </div>
+              <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">Sensitivity</h3>
+              <p className="text-xs text-[#888] leading-relaxed">{t.guideSens}</p>
+            </div>
+            <div className="bg-[#151619] border border-[#333] rounded-2xl p-6 hover:border-emerald-500/50 transition-colors">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-400 mb-4">
+                <Layers size={20} />
+              </div>
+              <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">eDPI</h3>
+              <p className="text-xs text-[#888] leading-relaxed">{t.guideEdpi}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-[#333] bg-[#0a0a0a] py-12 px-4">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="text-center md:text-left">
+            <h3 className="text-xl font-black text-emerald-400 tracking-tighter uppercase mb-2">ProGear Match</h3>
+            <p className="text-[#555] text-xs font-mono uppercase tracking-widest">{t.footerRights}</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-6 text-[10px] font-mono text-[#888] uppercase tracking-widest">
+            <button onClick={() => setActivePolicy('privacy')} className="hover:text-emerald-400 transition-colors">{t.privacyPolicy}</button>
+            <button onClick={() => setActivePolicy('terms')} className="hover:text-emerald-400 transition-colors">{t.termsOfService}</button>
+            <button onClick={() => setActivePolicy('contact')} className="hover:text-emerald-400 transition-colors">{t.contactUs}</button>
+            {user ? (
+              <button onClick={handleLogout} className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors">
+                <LogOut size={10} /> {user.email === "wjsrkdgns123a@gmail.com" ? "ADMIN LOGOUT" : "LOGOUT"}
+              </button>
+            ) : (
+              <button onClick={handleLogin} className="flex items-center gap-1 hover:text-emerald-400 transition-colors">
+                <LogIn size={10} /> ADMIN LOGIN
+              </button>
+            )}
+          </div>
+        </div>
+      </footer>
+
+      {/* Policy Modals */}
+      <AnimatePresence>
+        {activePolicy && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#151619] border border-[#333] w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-[#333] flex items-center justify-between">
+                <h2 className="text-xl font-black text-emerald-400 uppercase tracking-tighter">
+                  {activePolicy === 'privacy' ? t.privacyPolicy : activePolicy === 'terms' ? t.termsOfService : t.contactUs}
+                </h2>
+                <button 
+                  onClick={() => setActivePolicy(null)}
+                  className="p-2 hover:bg-[#333] rounded-full transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-8">
+                <p className="text-[#aaa] leading-relaxed text-sm whitespace-pre-wrap">
+                  {activePolicy === 'privacy' ? t.privacyPolicyContent : activePolicy === 'terms' ? t.termsOfServiceContent : t.contactUsContent}
+                </p>
+                <button 
+                  onClick={() => setActivePolicy(null)}
+                  className="mt-8 w-full py-3 bg-emerald-500 text-black font-black uppercase tracking-widest rounded-xl hover:bg-emerald-400 transition-colors"
+                >
+                  {t.close}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Pro List Modal */}
       <AnimatePresence>
         {showList && (
@@ -462,14 +630,6 @@ export default function App() {
               <div className="p-4 border-b border-[#333] flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <h3 className="font-mono uppercase tracking-widest text-emerald-400">{t.proList}: {settings.game}</h3>
-                  <button 
-                    onClick={() => fetchProList(true)} 
-                    disabled={listLoading}
-                    className="p-1.5 text-[#555] hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all disabled:opacity-50"
-                    title={t.refresh}
-                  >
-                    <RefreshCcw size={14} className={listLoading ? 'animate-spin' : ''} />
-                  </button>
                 </div>
                 <button onClick={() => setShowList(false)} className="text-[#888] hover:text-white transition-colors">
                   <X size={20} />
@@ -489,9 +649,24 @@ export default function App() {
                         <h4 className="font-bold tracking-tight truncate">{pro.name}</h4>
                         <p className="text-[10px] font-mono text-[#888] uppercase">{pro.team}</p>
                       </div>
-                      <div className="text-right hidden sm:block">
-                        <p className="text-[10px] font-mono text-emerald-400">{pro.settings.edpi} eDPI</p>
-                        <p className="text-[9px] text-[#555] truncate max-w-[100px]">{pro.gear.mouse}</p>
+                      <div className="text-right hidden sm:block space-y-0.5">
+                        <p className="text-[10px] font-mono text-emerald-400 mb-1">{pro.settings.edpi} eDPI</p>
+                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
+                          <span className="truncate max-w-[120px]">{pro.gear.mouse}</span>
+                          <Mouse size={10} className="shrink-0" />
+                        </div>
+                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
+                          <span className="truncate max-w-[120px]">{pro.gear.keyboard}</span>
+                          <Keyboard size={10} className="shrink-0" />
+                        </div>
+                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
+                          <span className="truncate max-w-[120px]">{pro.gear.monitor}</span>
+                          <Monitor size={10} className="shrink-0" />
+                        </div>
+                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
+                          <span className="truncate max-w-[120px]">{pro.gear.mousepad}</span>
+                          <Layers size={10} className="shrink-0" />
+                        </div>
                       </div>
                       <a 
                         href={pro.profileUrl} 
@@ -513,19 +688,28 @@ export default function App() {
   );
 }
 
-function InputGroup({ label, icon, value, placeholder, onChange }: { label: string, icon: React.ReactNode, value: string, placeholder: string, onChange: (val: string) => void }) {
+function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, options }: { label: string, icon: React.ReactNode, value: string, placeholder: string, hint?: string, onChange: (val: string) => void, listId?: string, options?: string[] }) {
   return (
     <div className="space-y-2">
-      <label className="text-xs font-mono text-[#888] uppercase tracking-wider flex items-center gap-2">
-        {icon} {label}
-      </label>
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-mono text-[#888] uppercase tracking-wider flex items-center gap-2">
+          {icon} {label}
+        </label>
+        {hint && <span className="text-[10px] font-sans text-[#777] font-medium italic">{hint}</span>}
+      </div>
       <input 
         type="text"
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
+        list={listId}
         className="w-full bg-[#0a0a0a] border border-[#333] rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-[#444]"
       />
+      {listId && options && (
+        <datalist id={listId}>
+          {options.map(opt => <option key={opt} value={opt} />)}
+        </datalist>
+      )}
     </div>
   );
 }
