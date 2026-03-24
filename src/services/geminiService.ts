@@ -110,17 +110,70 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
   return results;
 }
 
+const VALORANT_FALLBACK: ProGamer[] = [
+  {
+    name: "Asuna", team: "100 Thieves", game: "Valorant",
+    imageUrl: "https://prosettings.net/wp-content/uploads/asuna.png",
+    teamLogoUrl: "https://prosettings.net/wp-content/uploads/100-thieves-logo.png",
+    profileUrl: "https://prosettings.net/players/asuna/",
+    gear: { mouse: "RAZER DEATHADDER V3", keyboard: "SteelSeries Apex Pro TKL", monitor: "ZOWIE XL2546K", mousepad: "Artisan Hayate Otsu Soft" },
+    settings: { dpi: 1400, sensitivity: 0.24, edpi: 336 },
+    source: "ProSettings.net"
+  },
+  {
+    name: "bang", team: "100 Thieves", game: "Valorant",
+    imageUrl: "https://prosettings.net/wp-content/uploads/bang.png",
+    teamLogoUrl: "https://prosettings.net/wp-content/uploads/100-thieves-logo.png",
+    profileUrl: "https://prosettings.net/players/bang/",
+    gear: { mouse: "LOGITECH G PRO X SUPERLIGHT", keyboard: "SteelSeries Apex Pro TKL", monitor: "ZOWIE XL2566K", mousepad: "Artisan Hayate Otsu Soft" },
+    settings: { dpi: 800, sensitivity: 0.32, edpi: 256 },
+    source: "ProSettings.net"
+  },
+  {
+    name: "TenZ", team: "Sentinels", game: "Valorant",
+    imageUrl: "https://prosettings.net/wp-content/uploads/tenz.png",
+    teamLogoUrl: "https://prosettings.net/wp-content/uploads/sentinels-logo.png",
+    profileUrl: "https://prosettings.net/players/tenz/",
+    gear: { mouse: "PULSAR TENZ EDITION", keyboard: "Wooting 60HE", monitor: "SONY INZONE M10S", mousepad: "Artisan Ninja FX Zero XSoft" },
+    settings: { dpi: 1600, sensitivity: 0.1, edpi: 160 },
+    source: "ProSettings.net"
+  },
+  {
+    name: "aspas", team: "Leviatán", game: "Valorant",
+    imageUrl: "https://prosettings.net/wp-content/uploads/aspas.png",
+    teamLogoUrl: "https://prosettings.net/wp-content/uploads/leviatan-logo.png",
+    profileUrl: "https://prosettings.net/players/aspas/",
+    gear: { mouse: "LOGITECH G PRO X SUPERLIGHT 2", keyboard: "Wooting 60HE", monitor: "ZOWIE XL2566K", mousepad: "Artisan Ninja FX Zero Soft" },
+    settings: { dpi: 800, sensitivity: 0.4, edpi: 320 },
+    source: "ProSettings.net"
+  }
+  // ... adding more from the list
+];
+
 export async function getProGamerList(game: string): Promise<ProGamer[]> {
   try {
     const q = query(collection(db, "pro-gamers"), where("game", "==", game));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
-      return querySnapshot.docs.map(doc => doc.data() as ProGamer);
+      const dbList = querySnapshot.docs.map(doc => doc.data() as ProGamer);
+      if (game === 'Valorant') {
+        // Merge with fallback to ensure we have the latest extracted data
+        const merged = [...dbList];
+        VALORANT_FALLBACK.forEach(fallback => {
+          if (!merged.some(p => p.name.toLowerCase() === fallback.name.toLowerCase())) {
+            merged.push(fallback);
+          }
+        });
+        return merged;
+      }
+      return dbList;
     }
   } catch (error) {
     console.error("Firestore fetch error:", error);
   }
+
+  if (game === 'Valorant') return VALORANT_FALLBACK;
 
   const prompt = `
     List at least 100 famous professional gamers for the game: ${game}.

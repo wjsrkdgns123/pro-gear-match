@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut } from 'lucide-react';
+import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
@@ -42,7 +42,131 @@ export default function App() {
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
   const [proList, setProList] = useState<ProGamer[]>([]);
   const [listLoading, setListLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [excelStatus, setExcelStatus] = useState<{ loading: boolean, success?: boolean, proFound?: boolean, photoFound?: boolean, error?: string } | null>(null);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'MICROSOFT_AUTH_SUCCESS') {
+        checkExcelFile();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const connectMicrosoft = async () => {
+    try {
+      const response = await fetch('/api/auth/microsoft/url');
+      const { url } = await response.json();
+      window.open(url, 'microsoft_auth', 'width=600,height=700');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const checkExcelFile = async () => {
+    setExcelStatus({ loading: true });
+    try {
+      const shareUrl = "https://1drv.ms/x/c/8819c799fb366e54/IQCtppRk-l_NT6BEWOmCWoJ1AdpT1oy2DBNq6scY1gfjsrI?e=GdUs8r";
+      const response = await fetch(`/api/excel/data?url=${encodeURIComponent(shareUrl)}`);
+      if (!response.ok) {
+        if (response.status === 401) {
+          connectMicrosoft();
+          return;
+        }
+        throw new Error('Failed to fetch data');
+      }
+      const { data } = await response.json();
+      
+      // Basic analysis: check for common pro gamer names or image URLs
+      const flatData = data.flat().map((v: any) => String(v).toLowerCase());
+      const hasPhoto = flatData.some((v: string) => v.includes('http') && (v.includes('.jpg') || v.includes('.png') || v.includes('.jpeg') || v.includes('image')));
+      const hasPro = flatData.some((v: string) => 
+        ['faker', 's1mple', 'tenz', 'asuna', 'yay', 'shroud', 'bang', 'aspas', 'demon1', 'zywoo'].some(name => v.includes(name))
+      );
+
+      setExcelStatus({
+        loading: false,
+        success: true,
+        proFound: hasPro,
+        photoFound: hasPhoto
+      });
+    } catch (err) {
+      console.error(err);
+      setExcelStatus({ loading: false, error: t.excelError });
+    }
+  };
+
+  const filteredProList = proList.filter(pro => 
+    pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pro.team.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pro.gear.mouse.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pro.gear.keyboard.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedProList = [...filteredProList].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    
+    let aValue: any = a;
+    let bValue: any = b;
+
+    if (key.includes('.')) {
+      const keys = key.split('.');
+      aValue = keys.reduce((o, i) => o[i], a);
+      bValue = keys.reduce((o, i) => o[i], b);
+    } else {
+      aValue = a[key as keyof ProGamer];
+      bValue = b[key as keyof ProGamer];
+    }
+
+    if (aValue < bValue) return direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const downloadCSV = () => {
+    const headers = ['Name', 'Team', 'Game', 'Mouse', 'Keyboard', 'Monitor', 'Mousepad', 'DPI', 'Sensitivity', 'eDPI', 'Profile URL'];
+    const rows = sortedProList.map(pro => [
+      pro.name,
+      pro.team,
+      pro.game,
+      pro.gear.mouse,
+      pro.gear.keyboard,
+      pro.gear.monitor,
+      pro.gear.mousepad,
+      pro.settings.dpi,
+      pro.settings.sensitivity,
+      pro.settings.edpi,
+      pro.profileUrl
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pro_gamers_${settings.game.toLowerCase()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -128,17 +252,92 @@ export default function App() {
             <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent uppercase">
               {t.title}
             </h1>
-            <p className="text-[#888] font-mono text-sm uppercase tracking-widest">
-              {t.subtitle}
-            </p>
+            <div className="flex items-center gap-4 justify-center md:justify-start">
+              <p className="text-[#888] font-mono text-sm uppercase tracking-widest">
+                {t.subtitle}
+              </p>
+              {excelStatus?.success && (
+                <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded text-[10px] text-emerald-400 font-mono uppercase animate-pulse">
+                  <FileSpreadsheet size={10} /> Excel Linked
+                </div>
+              )}
+            </div>
           </div>
-          <button 
-            onClick={() => fetchProList()}
-            className="flex items-center gap-2 px-4 py-2 bg-[#151619] border border-[#333] rounded-lg text-xs font-mono uppercase tracking-wider hover:border-emerald-500 transition-colors"
-          >
-            <Users size={14} /> {t.proList}
-          </button>
+          <div className="flex items-center gap-2 self-center md:self-end">
+            <button 
+              onClick={() => fetchProList()}
+              className="flex items-center gap-2 px-4 py-2 bg-[#151619] border border-[#333] rounded-lg text-xs font-mono uppercase tracking-wider hover:border-emerald-500 transition-colors"
+            >
+              <Users size={14} /> {t.proList}
+            </button>
+          </div>
         </header>
+
+        {/* Excel Status Card */}
+        <AnimatePresence>
+          {excelStatus && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8 overflow-hidden"
+            >
+              <div className="bg-[#151619] border border-[#333] rounded-2xl p-6 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                    <FileSpreadsheet size={16} /> {t.excelStatus}
+                  </h3>
+                  <button onClick={() => setExcelStatus(null)} className="text-[#555] hover:text-white">
+                    <X size={14} />
+                  </button>
+                </div>
+                
+                {excelStatus.loading ? (
+                  <div className="flex items-center gap-3 text-[#888] font-mono text-xs">
+                    <Loader2 size={14} className="animate-spin" /> {t.excelChecking}
+                  </div>
+                ) : excelStatus.error ? (
+                  <div className="flex items-center gap-3 text-red-400 font-mono text-xs">
+                    <AlertCircle size={14} /> {excelStatus.error}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-emerald-400 font-mono text-xs">
+                      <CheckCircle2 size={14} /> {t.excelSuccess}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <div className={`p-3 rounded-xl border ${excelStatus.proFound ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-[#0a0a0a] border-[#333] text-[#555]'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] uppercase tracking-widest">Players</span>
+                          <Users size={12} />
+                        </div>
+                        <p className="text-xs font-bold">{excelStatus.proFound ? t.excelProFound : t.excelNoProFound}</p>
+                      </div>
+                      <div className={`p-3 rounded-xl border ${excelStatus.photoFound ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-[#0a0a0a] border-[#333] text-[#555]'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] uppercase tracking-widest">Photos</span>
+                          <Monitor size={12} />
+                        </div>
+                        <p className="text-xs font-bold">{excelStatus.photoFound ? t.excelPhotoFound : t.excelNoPhotoFound}</p>
+                      </div>
+                    </div>
+                    {excelStatus.success && (
+                      <div className="mt-4 pt-4 border-t border-[#333]">
+                        <a 
+                          href="/valorant_pros.csv" 
+                          download="valorant_pros.csv"
+                          className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors"
+                        >
+                          <FileSpreadsheet size={16} /> {t.downloadExtracted}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 gap-8">
           {/* Input Section */}
@@ -555,22 +754,13 @@ export default function App() {
       <footer className="border-t border-[#333] bg-[#0a0a0a] py-12 px-4">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
-            <h3 className="text-xl font-black text-emerald-400 tracking-tighter uppercase mb-2">ProGear Match</h3>
+            <h3 className="text-xl font-black text-emerald-400 tracking-tighter uppercase mb-2">Pro Gear Match</h3>
             <p className="text-[#555] text-xs font-mono uppercase tracking-widest">{t.footerRights}</p>
           </div>
           <div className="flex flex-wrap justify-center gap-6 text-[10px] font-mono text-[#888] uppercase tracking-widest">
             <button onClick={() => setActivePolicy('privacy')} className="hover:text-emerald-400 transition-colors">{t.privacyPolicy}</button>
             <button onClick={() => setActivePolicy('terms')} className="hover:text-emerald-400 transition-colors">{t.termsOfService}</button>
             <button onClick={() => setActivePolicy('contact')} className="hover:text-emerald-400 transition-colors">{t.contactUs}</button>
-            {user ? (
-              <button onClick={handleLogout} className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors">
-                <LogOut size={10} /> {user.email === "wjsrkdgns123a@gmail.com" ? "ADMIN LOGOUT" : "LOGOUT"}
-              </button>
-            ) : (
-              <button onClick={handleLogin} className="flex items-center gap-1 hover:text-emerald-400 transition-colors">
-                <LogIn size={10} /> ADMIN LOGIN
-              </button>
-            )}
           </div>
         </div>
       </footer>
@@ -622,63 +812,138 @@ export default function App() {
         {showList && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-[#151619] border border-[#333] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col"
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#151619] border border-[#333] rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
             >
-              <div className="p-4 border-b border-[#333] flex items-center justify-between">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-[#333] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#1a1b1e]">
                 <div className="flex items-center gap-4">
-                  <h3 className="font-mono uppercase tracking-widest text-emerald-400">{t.proList}: {settings.game}</h3>
+                  <div className="p-2 bg-emerald-500/10 rounded-lg">
+                    <Users className="text-emerald-400" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black uppercase tracking-tighter text-white">{t.proList}</h3>
+                    <p className="text-[10px] font-mono text-[#888] uppercase tracking-widest">{settings.game} Athletes</p>
+                  </div>
                 </div>
-                <button onClick={() => setShowList(false)} className="text-[#888] hover:text-white transition-colors">
-                  <X size={20} />
-                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555]" size={14} />
+                    <input 
+                      type="text"
+                      placeholder="Search players, teams, gear..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="bg-[#0a0a0a] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 w-full md:w-64 transition-all"
+                    />
+                  </div>
+                  <a 
+                    href="/valorant_pros.csv" 
+                    download="valorant_pros.csv"
+                    className="p-2 bg-[#151619] border border-[#333] rounded-lg text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-2 px-3"
+                    title={t.downloadExcel}
+                  >
+                    <FileSpreadsheet size={18} />
+                    <span className="text-[10px] font-mono uppercase font-bold">{t.downloadExcel}</span>
+                  </a>
+                  <button 
+                    onClick={downloadCSV}
+                    className="p-2 bg-[#0a0a0a] border border-[#333] rounded-lg text-[#888] hover:text-emerald-400 hover:border-emerald-500/50 transition-all"
+                    title={t.downloadCsv}
+                  >
+                    <Layers size={18} />
+                  </button>
+                  <button 
+                    onClick={() => setShowList(false)} 
+                    className="p-2 bg-[#0a0a0a] border border-[#333] rounded-lg text-[#888] hover:text-white transition-all"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
               
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Modal Body - Table */}
+              <div className="flex-1 overflow-auto bg-[#0a0a0a]">
                 {listLoading ? (
-                  <div className="h-40 flex flex-col items-center justify-center gap-4">
-                    <Loader2 size={32} className="text-emerald-500 animate-spin" />
-                    <p className="font-mono text-xs text-[#888]">{t.fetching}</p>
+                  <div className="h-64 flex flex-col items-center justify-center gap-4">
+                    <Loader2 size={48} className="text-emerald-500 animate-spin" />
+                    <p className="font-mono text-sm text-[#888] animate-pulse uppercase tracking-widest">{t.fetching}</p>
                   </div>
                 ) : (
-                  proList.map((pro, idx) => (
-                    <div key={idx} className="bg-[#0a0a0a] border border-[#333] rounded-xl p-4 flex items-center gap-4 hover:border-emerald-500/50 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold tracking-tight truncate">{pro.name}</h4>
-                        <p className="text-[10px] font-mono text-[#888] uppercase">{pro.team}</p>
+                  <div className="min-w-[1000px]">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 z-10 bg-[#151619] border-b border-[#333]">
+                        <tr className="text-[10px] font-mono text-[#555] uppercase tracking-widest">
+                          <th className="p-4 cursor-pointer hover:text-emerald-400" onClick={() => handleSort('name')}>Player {sortConfig?.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                          <th className="p-4 cursor-pointer hover:text-emerald-400" onClick={() => handleSort('team')}>Team {sortConfig?.key === 'team' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                          <th className="p-4 cursor-pointer hover:text-emerald-400" onClick={() => handleSort('gear.mouse')}>Mouse</th>
+                          <th className="p-4 cursor-pointer hover:text-emerald-400" onClick={() => handleSort('gear.keyboard')}>Keyboard</th>
+                          <th className="p-4 cursor-pointer hover:text-emerald-400" onClick={() => handleSort('gear.monitor')}>Monitor</th>
+                          <th className="p-4 cursor-pointer hover:text-emerald-400" onClick={() => handleSort('settings.edpi')}>eDPI</th>
+                          <th className="p-4 text-center">Link</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#1a1b1e]">
+                        {sortedProList.map((pro, idx) => (
+                          <tr key={idx} className="group hover:bg-[#151619] transition-colors">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#151619] border border-[#333] overflow-hidden shrink-0">
+                                  <img src={pro.imageUrl} alt={pro.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                </div>
+                                <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{pro.name}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                {pro.teamLogoUrl && <img src={pro.teamLogoUrl} alt={pro.team} className="w-4 h-4 object-contain opacity-50" referrerPolicy="no-referrer" />}
+                                <span className="text-xs font-mono text-[#888] uppercase">{pro.team}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-xs text-[#aaa] group-hover:text-white transition-colors">{pro.gear.mouse}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-xs text-[#aaa] group-hover:text-white transition-colors">{pro.gear.keyboard}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-xs text-[#aaa] group-hover:text-white transition-colors">{pro.gear.monitor}</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-xs font-mono text-emerald-400">{pro.settings.edpi}</span>
+                            </td>
+                            <td className="p-4 text-center">
+                              <a 
+                                href={pro.profileUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="inline-flex p-2 bg-[#151619] rounded-lg text-[#555] hover:text-emerald-400 hover:border-emerald-500/50 border border-transparent transition-all"
+                              >
+                                <ExternalLink size={14} />
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {sortedProList.length === 0 && (
+                      <div className="p-20 text-center">
+                        <p className="text-[#555] font-mono text-sm uppercase tracking-widest">No players found matching your search.</p>
                       </div>
-                      <div className="text-right hidden sm:block space-y-0.5">
-                        <p className="text-[10px] font-mono text-emerald-400 mb-1">{pro.settings.edpi} eDPI</p>
-                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
-                          <span className="truncate max-w-[120px]">{pro.gear.mouse}</span>
-                          <Mouse size={10} className="shrink-0" />
-                        </div>
-                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
-                          <span className="truncate max-w-[120px]">{pro.gear.keyboard}</span>
-                          <Keyboard size={10} className="shrink-0" />
-                        </div>
-                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
-                          <span className="truncate max-w-[120px]">{pro.gear.monitor}</span>
-                          <Monitor size={10} className="shrink-0" />
-                        </div>
-                        <div className="flex items-center justify-end gap-1.5 text-[9px] text-[#555]">
-                          <span className="truncate max-w-[120px]">{pro.gear.mousepad}</span>
-                          <Layers size={10} className="shrink-0" />
-                        </div>
-                      </div>
-                      <a 
-                        href={pro.profileUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="p-2 bg-[#151619] rounded-lg text-[#888] hover:text-emerald-400 transition-colors"
-                      >
-                        <ExternalLink size={16} />
-                      </a>
-                    </div>
-                  ))
+                    )}
+                  </div>
                 )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-[#333] bg-[#1a1b1e] flex items-center justify-between text-[10px] font-mono text-[#555] uppercase tracking-widest">
+                <span>{t.showingPlayers.replace('{count}', sortedProList.length.toString())}</span>
+                <span className="flex items-center gap-2">
+                  <Shield size={10} /> {t.verifiedData}
+                </span>
               </div>
             </motion.div>
           </div>
