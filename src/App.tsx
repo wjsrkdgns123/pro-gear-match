@@ -414,7 +414,7 @@ export default function App() {
               <div className="space-y-4">
                 <div>
                   <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-3 block`}>{t.selectGame}</span>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {GAMES.map(game => (
                       <button
                         key={game.name}
