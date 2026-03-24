@@ -45,6 +45,60 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [excelStatus, setExcelStatus] = useState<{ loading: boolean, success?: boolean, proFound?: boolean, photoFound?: boolean, error?: string } | null>(null);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'MICROSOFT_AUTH_SUCCESS') {
+        checkExcelFile();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const connectMicrosoft = async () => {
+    try {
+      const response = await fetch('/api/auth/microsoft/url');
+      const { url } = await response.json();
+      window.open(url, 'microsoft_auth', 'width=600,height=700');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const checkExcelFile = async () => {
+    setExcelStatus({ loading: true });
+    try {
+      const shareUrl = "https://1drv.ms/x/c/8819c799fb366e54/IQCtppRk-l_NT6BEWOmCWoJ1AdpT1oy2DBNq6scY1gfjsrI?e=GdUs8r";
+      const response = await fetch(`/api/excel/data?url=${encodeURIComponent(shareUrl)}`);
+      if (!response.ok) {
+        if (response.status === 401) {
+          connectMicrosoft();
+          return;
+        }
+        throw new Error('Failed to fetch data');
+      }
+      const { data } = await response.json();
+      
+      // Basic analysis: check for common pro gamer names or image URLs
+      const flatData = data.flat().map((v: any) => String(v).toLowerCase());
+      const hasPhoto = flatData.some((v: string) => v.includes('http') && (v.includes('.jpg') || v.includes('.png') || v.includes('.jpeg') || v.includes('image')));
+      const hasPro = flatData.some((v: string) => 
+        ['faker', 's1mple', 'tenz', 'asuna', 'yay', 'shroud', 'bang', 'aspas', 'demon1', 'zywoo'].some(name => v.includes(name))
+      );
+
+      setExcelStatus({
+        loading: false,
+        success: true,
+        proFound: hasPro,
+        photoFound: hasPhoto
+      });
+    } catch (err) {
+      console.error(err);
+      setExcelStatus({ loading: false, error: t.excelError });
+    }
+  };
 
   const filteredProList = proList.filter(pro => 
     pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -202,6 +256,11 @@ export default function App() {
               <p className="text-[#888] font-mono text-sm uppercase tracking-widest">
                 {t.subtitle}
               </p>
+              {excelStatus?.success && (
+                <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded text-[10px] text-emerald-400 font-mono uppercase animate-pulse">
+                  <FileSpreadsheet size={10} /> Excel Linked
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 self-center md:self-end">
@@ -213,6 +272,72 @@ export default function App() {
             </button>
           </div>
         </header>
+
+        {/* Excel Status Card */}
+        <AnimatePresence>
+          {excelStatus && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8 overflow-hidden"
+            >
+              <div className="bg-[#151619] border border-[#333] rounded-2xl p-6 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                    <FileSpreadsheet size={16} /> {t.excelStatus}
+                  </h3>
+                  <button onClick={() => setExcelStatus(null)} className="text-[#555] hover:text-white">
+                    <X size={14} />
+                  </button>
+                </div>
+                
+                {excelStatus.loading ? (
+                  <div className="flex items-center gap-3 text-[#888] font-mono text-xs">
+                    <Loader2 size={14} className="animate-spin" /> {t.excelChecking}
+                  </div>
+                ) : excelStatus.error ? (
+                  <div className="flex items-center gap-3 text-red-400 font-mono text-xs">
+                    <AlertCircle size={14} /> {excelStatus.error}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-emerald-400 font-mono text-xs">
+                      <CheckCircle2 size={14} /> {t.excelSuccess}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                      <div className={`p-3 rounded-xl border ${excelStatus.proFound ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-[#0a0a0a] border-[#333] text-[#555]'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] uppercase tracking-widest">Players</span>
+                          <Users size={12} />
+                        </div>
+                        <p className="text-xs font-bold">{excelStatus.proFound ? t.excelProFound : t.excelNoProFound}</p>
+                      </div>
+                      <div className={`p-3 rounded-xl border ${excelStatus.photoFound ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-[#0a0a0a] border-[#333] text-[#555]'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] uppercase tracking-widest">Photos</span>
+                          <Monitor size={12} />
+                        </div>
+                        <p className="text-xs font-bold">{excelStatus.photoFound ? t.excelPhotoFound : t.excelNoPhotoFound}</p>
+                      </div>
+                    </div>
+                    {excelStatus.success && (
+                      <div className="mt-4 pt-4 border-t border-[#333]">
+                        <a 
+                          href="/valorant_pros.csv" 
+                          download="valorant_pros.csv"
+                          className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors"
+                        >
+                          <FileSpreadsheet size={16} /> {t.downloadExtracted}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 gap-8">
           {/* Input Section */}
