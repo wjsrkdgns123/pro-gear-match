@@ -56,6 +56,8 @@ export const translations = {
     excelPhotoFound: "Photos/Image URLs found in file.",
     excelNoProFound: "No pro gamer names detected.",
     excelNoPhotoFound: "No photos/image URLs detected.",
+    toggleLanguage: "Switch to Korean",
+    toggleTheme: "Toggle Theme",
   },
   ko: {
     title: "PRO GEAR MATCH",
@@ -114,6 +116,8 @@ export const translations = {
     excelPhotoFound: "파일에서 사진/이미지 URL을 발견했습니다.",
     excelNoProFound: "프로게이머 이름을 찾을 수 없습니다.",
     excelNoPhotoFound: "사진/이미지 URL을 찾을 수 없습니다.",
+    toggleLanguage: "영어 버전으로 전환",
+    toggleTheme: "테마 전환",
   }
 };
 
