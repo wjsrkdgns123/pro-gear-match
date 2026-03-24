@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
@@ -19,20 +19,30 @@ const GAMES = [
 
 // AdSense Component
 const GoogleAd = ({ slot }: { slot?: string }) => {
+  const adRef = useRef<HTMLModElement>(null);
+
   useEffect(() => {
-    try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error('AdSense error:', e);
-    }
+    // Small delay to ensure the container has width and is fully rendered
+    const timeoutId = setTimeout(() => {
+      try {
+        if (adRef.current && !adRef.current.getAttribute('data-adsbygoogle-status')) {
+          // @ts-ignore
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      } catch (e) {
+        console.error('AdSense error:', e);
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   return (
-    <div className="my-8 flex justify-center overflow-hidden">
+    <div className="my-8 flex justify-center overflow-hidden min-h-[100px] w-full">
       <ins
+        ref={adRef}
         className="adsbygoogle"
-        style={{ display: 'block' }}
+        style={{ display: 'block', minWidth: '250px' }}
         data-ad-client="ca-pub-6219520263101018"
         data-ad-slot={slot || ""}
         data-ad-format="auto"
