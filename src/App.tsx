@@ -840,22 +840,6 @@ export default function App() {
                       className="bg-[#0a0a0a] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 w-full md:w-64 transition-all"
                     />
                   </div>
-                  <a 
-                    href="/valorant_pros.csv" 
-                    download="valorant_pros.csv"
-                    className="p-2 bg-[#151619] border border-[#333] rounded-lg text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-2 px-3"
-                    title={t.downloadExcel}
-                  >
-                    <FileSpreadsheet size={18} />
-                    <span className="text-[10px] font-mono uppercase font-bold">{t.downloadExcel}</span>
-                  </a>
-                  <button 
-                    onClick={downloadCSV}
-                    className="p-2 bg-[#0a0a0a] border border-[#333] rounded-lg text-[#888] hover:text-emerald-400 hover:border-emerald-500/50 transition-all"
-                    title={t.downloadCsv}
-                  >
-                    <Layers size={18} />
-                  </button>
                   <button 
                     onClick={() => setShowList(false)} 
                     className="p-2 bg-[#0a0a0a] border border-[#333] rounded-lg text-[#888] hover:text-white transition-all"
@@ -890,18 +874,10 @@ export default function App() {
                         {sortedProList.map((pro, idx) => (
                           <tr key={idx} className="group hover:bg-[#151619] transition-colors">
                             <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-[#151619] border border-[#333] overflow-hidden shrink-0">
-                                  <img src={pro.imageUrl} alt={pro.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                                </div>
-                                <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{pro.name}</span>
-                              </div>
+                              <span className="font-bold text-white group-hover:text-emerald-400 transition-colors">{pro.name}</span>
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                {pro.teamLogoUrl && <img src={pro.teamLogoUrl} alt={pro.team} className="w-4 h-4 object-contain opacity-50" referrerPolicy="no-referrer" />}
-                                <span className="text-xs font-mono text-[#888] uppercase">{pro.team}</span>
-                              </div>
+                              <span className="text-xs font-mono text-[#888] uppercase">{pro.team}</span>
                             </td>
                             <td className="p-4">
                               <span className="text-xs text-[#aaa] group-hover:text-white transition-colors">{pro.gear.mouse}</span>
