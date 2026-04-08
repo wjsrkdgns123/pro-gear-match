@@ -2,6 +2,8 @@ import { GearSettings, ProGamer } from "../types";
 import { db, OperationType, handleFirestoreError, auth } from "../firebase";
 import { collection, query, where, getDocs, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 
+import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from "../constants";
+
 /**
  * Scrapes pro gamer information from a URL using server-side Gemini API.
  */
@@ -33,24 +35,29 @@ export async function scrapeProGamerInfo(url: string): Promise<Partial<ProGamer>
 }
 
 /**
- * Provides gear suggestions based on a partial query using server-side Gemini API.
+ * Provides gear suggestions based on a partial query using local constants (No AI).
  */
 export async function getGearSuggestions(queryStr: string, category: 'mouse' | 'keyboard' | 'monitor' | 'mousepad' | 'controller'): Promise<string[]> {
-  if (!queryStr || queryStr.length < 2) return [];
+  if (!queryStr || queryStr.length < 1) return [];
 
-  try {
-    const response = await fetch("/api/gemini/suggestions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: queryStr, category })
-    });
+  const search = queryStr.toLowerCase().trim();
+  let source: string[] = [];
 
-    if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
-    return await response.json();
-  } catch (error) {
-    console.error("Suggestion error:", error);
-    return [];
+  switch (category) {
+    case 'mouse': source = PRO_MICE; break;
+    case 'keyboard': source = PRO_KEYBOARDS; break;
+    case 'monitor': source = PRO_MONITORS; break;
+    case 'mousepad': source = PRO_MOUSEPADS; break;
+    case 'controller': source = ["DualSense Edge", "DualSense", "Xbox Elite Series 2", "Xbox Wireless Controller", "SCUF Envision Pro", "SCUF Reflex", "Battle Beaver Custom"]; break;
+    default: source = [];
   }
+
+  // Filter and sort alphabetically
+  const results = source
+    .filter(item => item.toLowerCase().includes(search))
+    .sort((a, b) => a.localeCompare(b));
+
+  return results.slice(0, 10); // Return top 10 matches
 }
 
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
@@ -119,14 +126,17 @@ export async function syncProGamerToDb(pro: ProGamer) {
   }
 }
 
+/**
+ * Matches pro gamers based on user settings using a deterministic algorithm (No AI).
+ */
 export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]> {
-  // OPTIMIZATION: Fetch existing pros from Firestore to provide as context
+  // Fetch existing pros from Firestore to provide as context
   let localPros: ProGamer[] = [];
   try {
     const q = query(collection(db, "pro-gamers"), where("game", "==", settings.game));
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-      localPros = querySnapshot.docs.map(doc => doc.data() as ProGamer);
+      localPros = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as ProGamer));
     }
   } catch (error) {
     console.error("Firestore fetch error during matchmaking:", error);
@@ -141,39 +151,56 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
     throw new Error("No pro gamer data available in the database. Please upload data first.");
   }
 
-  try {
-    const response = await fetch("/api/gemini/match", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings, localPros })
+  const userEdpi = settings.dpi * settings.sensitivity;
+
+  const scoredPros = localPros.map(pro => {
+    let score = 0;
+    const proEdpi = pro.settings.edpi || (pro.settings.dpi * pro.settings.sensitivity);
+
+    // 1. eDPI Similarity (Weight: 60%)
+    // Calculate how close the eDPI is. 1.0 means exact match, 0.0 means very far.
+    const edpiDiff = Math.abs(userEdpi - proEdpi);
+    const edpiScore = Math.max(0, 1 - (edpiDiff / (userEdpi || 1)));
+    score += edpiScore * 60;
+
+    // 2. Gear Similarity (Weight: 40%)
+    let gearMatches = 0;
+    const userGear = [
+      settings.mouse?.toLowerCase().trim(),
+      settings.keyboard?.toLowerCase().trim(),
+      settings.monitor?.toLowerCase().trim(),
+      settings.mousepad?.toLowerCase().trim()
+    ].filter(Boolean);
+
+    const proGear = [
+      pro.gear.mouse?.toLowerCase().trim(),
+      pro.gear.keyboard?.toLowerCase().trim(),
+      pro.gear.monitor?.toLowerCase().trim(),
+      pro.gear.mousepad?.toLowerCase().trim()
+    ].filter(Boolean);
+
+    userGear.forEach(ug => {
+      if (proGear.some(pg => pg.includes(ug) || ug.includes(pg))) {
+        gearMatches++;
+      }
     });
 
-    if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.error || `Server error: ${response.statusText}`);
-    }
+    const gearScore = (gearMatches / 4) * 40;
+    score += gearScore;
 
-    const results = await response.json();
-    if (!Array.isArray(results) || results.length === 0) {
-      if (settings.game === 'Valorant') return VALORANT_FALLBACK.slice(0, 3);
-      throw new Error("No matches found");
-    }
-    
-    // Clean names just in case
-    const cleanedResults = results.map((pro: ProGamer) => ({
-      ...pro,
-      name: cleanPlayerName(pro.name)
+    return { pro, score };
+  });
+
+  // Sort by score descending and take top 3
+  const topMatches = scoredPros
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(item => ({
+      ...item.pro,
+      name: cleanPlayerName(item.pro.name)
     }));
-    
-    return cleanedResults;
-  } catch (error) {
-    console.error("Matchmaking error:", error);
-    if (settings.game === 'Valorant') {
-      console.log("Returning fallback data for Valorant");
-      return VALORANT_FALLBACK.slice(0, 3);
-    }
-    throw error;
-  }
+
+  return topMatches;
 }
 
 export const VALORANT_FALLBACK: ProGamer[] = [

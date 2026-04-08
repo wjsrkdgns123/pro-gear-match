@@ -2544,7 +2544,7 @@ function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, o
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
-    if (val.length < 2) {
+    if (val.length < 1) {
       setSuggestions([]);
       setShowDropdown(false);
       return;
@@ -2561,7 +2561,7 @@ function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, o
       } finally {
         setLoading(false);
       }
-    }, 500);
+    }, 100);
   };
 
   return (
