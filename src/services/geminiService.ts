@@ -40,7 +40,7 @@ export async function scrapeProGamerInfo(url: string): Promise<Partial<ProGamer>
 export async function getGearSuggestions(queryStr: string, category: 'mouse' | 'keyboard' | 'monitor' | 'mousepad' | 'controller'): Promise<string[]> {
   if (!queryStr || queryStr.length < 1) return [];
 
-  const search = queryStr.toLowerCase().trim();
+  const search = queryStr.toLowerCase().replace(/\s+/g, '');
   let source: string[] = [];
 
   switch (category) {
@@ -54,7 +54,7 @@ export async function getGearSuggestions(queryStr: string, category: 'mouse' | '
 
   // Filter and sort alphabetically
   const results = source
-    .filter(item => item.toLowerCase().includes(search))
+    .filter(item => item.toLowerCase().replace(/\s+/g, '').includes(search))
     .sort((a, b) => a.localeCompare(b));
 
   return results.slice(0, 10); // Return top 10 matches
