@@ -1656,13 +1656,6 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button 
-                    onClick={downloadCSV}
-                    className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
-                    title={t.downloadCsv}
-                  >
-                    <FileSpreadsheet size={12} /> {t.downloadCsv}
-                  </button>
                   {user?.email === ADMIN_EMAIL && (
                     <button 
                       onClick={handleSeedDatabase}
