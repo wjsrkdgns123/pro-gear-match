@@ -1,100 +1,31 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { GearSettings, ProGamer } from "../types";
-import { db, OperationType, handleFirestoreError, auth, googleProvider } from "../firebase";
-import { signInWithPopup, signOut } from "firebase/auth";
+import { db, OperationType, handleFirestoreError, auth } from "../firebase";
 import { collection, query, where, getDocs, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 
-const getApiKey = () => {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    console.warn("GEMINI_API_KEY is missing in environment variables.");
-  }
-  return key || "";
-};
-
-const ai = new GoogleGenAI({ apiKey: getApiKey() });
-
 /**
- * Helper to execute an AI call with exponential backoff on 429 errors.
- */
-async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
-  let lastError: any;
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error: any) {
-      lastError = error;
-      const errorStr = JSON.stringify(error);
-      const isRateLimit = errorStr.includes("429") || errorStr.includes("RESOURCE_EXHAUSTED");
-      
-      if (isRateLimit && i < maxRetries - 1) {
-        const delay = Math.pow(2, i) * 2000 + Math.random() * 1000;
-        console.warn(`Rate limit hit. Retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      throw error;
-    }
-  }
-  throw lastError;
-}
-
-/**
- * Scrapes pro gamer information from a URL using Gemini's URL Context tool.
+ * Scrapes pro gamer information from a URL using server-side Gemini API.
  */
 export async function scrapeProGamerInfo(url: string): Promise<Partial<ProGamer> | null> {
   if (!url) return null;
   
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Extract pro gamer information from ${url}. 
-      Return a JSON object with: name (use ONLY the player's nickname/in-game name, e.g., 'TenZ' instead of 'Tyson Ngo'), team, game, gear (mouse, keyboard, monitor, mousepad, controller), and settings (dpi, sensitivity).
-      If a field is not found, leave it empty or null.`,
-      config: {
-        tools: [{ urlContext: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            team: { type: Type.STRING },
-            game: { type: Type.STRING },
-            gear: {
-              type: Type.OBJECT,
-              properties: {
-                mouse: { type: Type.STRING },
-                keyboard: { type: Type.STRING },
-                monitor: { type: Type.STRING },
-                mousepad: { type: Type.STRING },
-                controller: { type: Type.STRING },
-              }
-            },
-            settings: {
-              type: Type.OBJECT,
-              properties: {
-                dpi: { type: Type.NUMBER },
-                sensitivity: { type: Type.NUMBER },
-              }
-            }
-          }
-        }
-      }
-    }));
+    const response = await fetch("/api/gemini/scrape", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url })
+    });
 
-    if (response.text) {
-      const data = JSON.parse(response.text);
-      
-      // Logic: If mouse is missing but controller exists, populate mouse, keyboard, mousepad with controller info
-      if (data.gear && !data.gear.mouse && data.gear.controller) {
-        data.gear.mouse = data.gear.controller;
-        data.gear.keyboard = data.gear.controller;
-        data.gear.mousepad = data.gear.controller;
-      }
-      
-      return data;
+    if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+    const data = await response.json();
+    
+    // Logic: If mouse is missing but controller exists, populate mouse, keyboard, mousepad with controller info
+    if (data.gear && !data.gear.mouse && data.gear.controller) {
+      data.gear.mouse = data.gear.controller;
+      data.gear.keyboard = data.gear.controller;
+      data.gear.mousepad = data.gear.controller;
     }
-    return null;
+    
+    return data;
   } catch (error) {
     console.error("Scraping error:", error);
     return null;
@@ -102,29 +33,20 @@ export async function scrapeProGamerInfo(url: string): Promise<Partial<ProGamer>
 }
 
 /**
- * Provides gear suggestions based on a partial query.
+ * Provides gear suggestions based on a partial query using server-side Gemini API.
  */
 export async function getGearSuggestions(queryStr: string, category: 'mouse' | 'keyboard' | 'monitor' | 'mousepad' | 'controller'): Promise<string[]> {
   if (!queryStr || queryStr.length < 2) return [];
 
   try {
-    const response = await withRetry(() => ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: `Provide 5 popular ${category} models that match or are similar to "${queryStr}". 
-      Return only a JSON array of strings.`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING }
-        }
-      }
-    }));
+    const response = await fetch("/api/gemini/suggestions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: queryStr, category })
+    });
 
-    if (response.text) {
-      return JSON.parse(response.text);
-    }
-    return [];
+    if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+    return await response.json();
   } catch (error) {
     console.error("Suggestion error:", error);
     return [];
@@ -198,15 +120,6 @@ export async function syncProGamerToDb(pro: ProGamer) {
 }
 
 export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]> {
-  // Check if API key is present
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("Matchmaking failed: GEMINI_API_KEY is not set.");
-    if (settings.game === 'Valorant') {
-      return VALORANT_FALLBACK.slice(0, 3);
-    }
-    throw new Error("API configuration error. Please contact the administrator.");
-  }
-
   // OPTIMIZATION: Fetch existing pros from Firestore to provide as context
   let localPros: ProGamer[] = [];
   try {
@@ -228,82 +141,19 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
     throw new Error("No pro gamer data available in the database. Please upload data first.");
   }
 
-  const prompt = `
-    Match 3 professional gamers for the game: ${settings.game} from the provided list.
-    User settings:
-    - Mouse: ${settings.mouse}
-    - Keyboard: ${settings.keyboard}
-    - Monitor: ${settings.monitor}
-    - Mousepad: ${settings.mousepad}
-    - DPI: ${settings.dpi}
-    - Sensitivity: ${settings.sensitivity}
-    - eDPI: ${(settings.dpi * settings.sensitivity).toFixed(1)}
-
-    DATA SOURCE (ONLY USE THIS DATA):
-    ${JSON.stringify(localPros)}
-
-    MATCHING LOGIC:
-    1. eDPI TOLERANCE: Identify players whose eDPI is within a +/- 15% range of the user's eDPI.
-    2. GEAR PRIORITY: Prioritize matching those who use the SAME or VERY SIMILAR gear.
-    3. RANKING: The first result should be the best match.
-
-    CRITICAL: DO NOT use Google Search. DO NOT invent new players. ONLY use the players provided in the DATA SOURCE above.
-    IMPORTANT: Use ONLY the player's nickname for the 'name' field (e.g., 'TenZ' instead of 'Tyson "TenZ" Ngo').
-    
-    Return the data in the specified JSON format.
-  `;
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              team: { type: Type.STRING },
-              game: { type: Type.STRING },
-              imageUrl: { type: Type.STRING },
-              teamLogoUrl: { type: Type.STRING },
-              profileUrl: { type: Type.STRING },
-              gear: {
-                type: Type.OBJECT,
-                properties: {
-                  mouse: { type: Type.STRING },
-                  keyboard: { type: Type.STRING },
-                  monitor: { type: Type.STRING },
-                  mousepad: { type: Type.STRING },
-                },
-                required: ["mouse", "keyboard", "monitor", "mousepad"],
-              },
-              settings: {
-                type: Type.OBJECT,
-                properties: {
-                  dpi: { type: Type.NUMBER },
-                  sensitivity: { type: Type.NUMBER },
-                  edpi: { type: Type.NUMBER },
-                },
-                required: ["dpi", "sensitivity", "edpi"],
-              },
-              source: { type: Type.STRING },
-            },
-            required: ["name", "team", "game", "profileUrl", "gear", "settings", "source"],
-          },
-        },
-      },
+    const response = await fetch("/api/gemini/match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings, localPros })
     });
 
-    if (!response.text) {
-      console.error("Gemini API returned empty response text.");
-      if (settings.game === 'Valorant') return VALORANT_FALLBACK.slice(0, 3);
-      throw new Error("Empty response from AI");
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.error || `Server error: ${response.statusText}`);
     }
 
-    const results = JSON.parse(response.text);
+    const results = await response.json();
     if (!Array.isArray(results) || results.length === 0) {
       if (settings.game === 'Valorant') return VALORANT_FALLBACK.slice(0, 3);
       throw new Error("No matches found");

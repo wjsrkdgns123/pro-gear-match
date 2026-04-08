@@ -6,6 +6,7 @@ import cookieSession from "cookie-session";
 import axios from "axios";
 import dotenv from "dotenv";
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, Type } from "@google/genai";
 
 dotenv.config();
 
@@ -33,6 +34,9 @@ async function startServer() {
     apiKey: process.env.ANTHROPIC_API_KEY || "",
   });
 
+  // Gemini Client
+  const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+
   // Microsoft OAuth Config
   const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID;
   const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CLIENT_SECRET;
@@ -41,6 +45,165 @@ async function startServer() {
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Gemini Scrape Endpoint
+  app.post("/api/gemini/scrape", async (req, res) => {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "No URL provided" });
+    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+
+    try {
+      const result = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: "user", parts: [{ text: `Extract pro gamer information from ${url}. 
+        Return a JSON object with: name (use ONLY the player's nickname/in-game name, e.g., 'TenZ' instead of 'Tyson Ngo'), team, game, gear (mouse, keyboard, monitor, mousepad, controller), and settings (dpi, sensitivity).
+        If a field is not found, leave it empty or null.` }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              team: { type: Type.STRING },
+              game: { type: Type.STRING },
+              gear: {
+                type: Type.OBJECT,
+                properties: {
+                  mouse: { type: Type.STRING },
+                  keyboard: { type: Type.STRING },
+                  monitor: { type: Type.STRING },
+                  mousepad: { type: Type.STRING },
+                  controller: { type: Type.STRING },
+                }
+              },
+              settings: {
+                type: Type.OBJECT,
+                properties: {
+                  dpi: { type: Type.NUMBER },
+                  sensitivity: { type: Type.NUMBER },
+                }
+              }
+            }
+          },
+          tools: [{ urlContext: {} }] as any
+        }
+      });
+
+      res.json(JSON.parse(result.text || "{}"));
+    } catch (error: any) {
+      console.error("Gemini Scrape Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Gemini Suggestions Endpoint
+  app.post("/api/gemini/suggestions", async (req, res) => {
+    const { query, category } = req.body;
+    if (!query || !category) return res.status(400).json({ error: "Missing query or category" });
+    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+
+    try {
+      const result = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: "user", parts: [{ text: `Provide 5 popular ${category} models that match or are similar to "${query}". 
+        Return only a JSON array of strings.` }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          }
+        }
+      });
+
+      res.json(JSON.parse(result.text || "[]"));
+    } catch (error: any) {
+      console.error("Gemini Suggestion Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Gemini Match Endpoint
+  app.post("/api/gemini/match", async (req, res) => {
+    const { settings, localPros } = req.body;
+    if (!settings || !localPros) return res.status(400).json({ error: "Missing settings or localPros" });
+    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+
+    const prompt = `
+      Match 3 professional gamers for the game: ${settings.game} from the provided list.
+      User settings:
+      - Mouse: ${settings.mouse}
+      - Keyboard: ${settings.keyboard}
+      - Monitor: ${settings.monitor}
+      - Mousepad: ${settings.mousepad}
+      - DPI: ${settings.dpi}
+      - Sensitivity: ${settings.sensitivity}
+      - eDPI: ${(settings.dpi * settings.sensitivity).toFixed(1)}
+
+      DATA SOURCE (ONLY USE THIS DATA):
+      ${JSON.stringify(localPros)}
+
+      MATCHING LOGIC:
+      1. eDPI TOLERANCE: Identify players whose eDPI is within a +/- 15% range of the user's eDPI.
+      2. GEAR PRIORITY: Prioritize matching those who use the SAME or VERY SIMILAR gear.
+      3. RANKING: The first result should be the best match.
+
+      CRITICAL: DO NOT use Google Search. DO NOT invent new players. ONLY use the players provided in the DATA SOURCE above.
+      IMPORTANT: Use ONLY the player's nickname for the 'name' field (e.g., 'TenZ' instead of 'Tyson "TenZ" Ngo').
+      
+      Return the data in the specified JSON format.
+    `;
+
+    try {
+      const result = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING },
+                team: { type: Type.STRING },
+                game: { type: Type.STRING },
+                imageUrl: { type: Type.STRING },
+                teamLogoUrl: { type: Type.STRING },
+                profileUrl: { type: Type.STRING },
+                gear: {
+                  type: Type.OBJECT,
+                  properties: {
+                    mouse: { type: Type.STRING },
+                    keyboard: { type: Type.STRING },
+                    monitor: { type: Type.STRING },
+                    mousepad: { type: Type.STRING },
+                  },
+                  required: ["mouse", "keyboard", "monitor", "mousepad"],
+                },
+                settings: {
+                  type: Type.OBJECT,
+                  properties: {
+                    dpi: { type: Type.NUMBER },
+                    sensitivity: { type: Type.NUMBER },
+                    edpi: { type: Type.NUMBER },
+                  },
+                  required: ["dpi", "sensitivity", "edpi"],
+                },
+                source: { type: Type.STRING },
+              },
+              required: ["name", "team", "game", "profileUrl", "gear", "settings", "source"],
+            },
+          }
+        }
+      });
+
+      res.json(JSON.parse(result.text || "[]"));
+    } catch (error: any) {
+      console.error("Gemini Match Error:", error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Claude API Endpoint

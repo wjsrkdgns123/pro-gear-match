@@ -97,6 +97,10 @@ export const translations = {
     edit: "Edit",
     imageUrl: "Image URL",
     teamLogoUrl: "Team Logo URL",
+    gameStats: "Game Statistics",
+    avgDpi: "Avg DPI",
+    avgSens: "Avg Sensitivity",
+    mostUsed: "Most Used Gear",
   },
   ko: {
     title: "PRO GEAR MATCH",
@@ -196,6 +200,10 @@ export const translations = {
     edit: "수정",
     imageUrl: "이미지 URL",
     teamLogoUrl: "팀 로고 URL",
+    gameStats: "게임 통계",
+    avgDpi: "평균 DPI",
+    avgSens: "평균 인게임 감도",
+    mostUsed: "가장 많이 쓰이는 장비",
   }
 };
 

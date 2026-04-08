@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
@@ -19,8 +19,9 @@ const GAMES = [
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
 
 const formatEdpi = (val: number) => {
+  if (!val) return "0";
   if (Number.isInteger(val)) return val.toString();
-  return val.toFixed(1);
+  return val.toFixed(2);
 };
 
 // AdSense Component
@@ -87,6 +88,39 @@ export default function App() {
   const [showList, setShowList] = useState(false);
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
   const [proList, setProList] = useState<ProGamer[]>([]);
+
+  const gameStats = useMemo(() => {
+    if (proList.length === 0) return null;
+
+    const validDpis = proList.map(p => p.settings.dpi).filter(d => d > 0);
+    const avgDpi = validDpis.length > 0 ? Math.round(validDpis.reduce((a, b) => a + b, 0) / validDpis.length) : 0;
+
+    const validSens = proList.map(p => p.settings.sensitivity).filter(s => s > 0);
+    const avgSens = validSens.length > 0 ? (validSens.reduce((a, b) => a + b, 0) / validSens.length).toFixed(3) : "0";
+
+    const getMostUsed = (items: string[]) => {
+      const counts: Record<string, number> = {};
+      items.filter(i => {
+        if (!i) return false;
+        const val = i.toLowerCase().trim();
+        return val !== '-' && val !== '' && val !== 'null' && val !== 'none' && val !== 'undefined';
+      }).forEach(i => {
+        let cleaned = i.trim();
+        if (cleaned) counts[cleaned] = (counts[cleaned] || 0) + 1;
+      });
+      const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      return sorted.length > 0 ? sorted[0][0] : '-';
+    };
+
+    return {
+      avgDpi,
+      avgSens,
+      mostUsedMouse: getMostUsed(proList.map(p => p.gear.mouse)),
+      mostUsedKeyboard: getMostUsed(proList.map(p => p.gear.keyboard)),
+      mostUsedMonitor: getMostUsed(proList.map(p => p.gear.monitor)),
+      mostUsedMousepad: getMostUsed(proList.map(p => p.gear.mousepad))
+    };
+  }, [proList]);
   const [listLoading, setListLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
@@ -804,6 +838,18 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    const updateStats = async () => {
+      try {
+        const list = await getProGamerList(settings.game);
+        setProList(list);
+      } catch (err) {
+        console.error("Failed to update stats for", settings.game, err);
+      }
+    };
+    updateStats();
+  }, [settings.game]);
+
   const fetchProList = async (force = false) => {
     setShowList(true);
     setSearchTerm(''); // Reset search when opening
@@ -1014,6 +1060,70 @@ export default function App() {
                     ))}
                   </div>
                 </div>
+
+                {/* Game Statistics Section */}
+                {gameStats && (
+                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} space-y-4`}>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest font-bold`}>{t.gameStats}</span>
+                      <div className="flex items-center gap-1 text-[10px] font-mono text-[#888] uppercase">
+                        <Users size={10} /> {proList.length} Pros
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase font-mono`}>{t.avgDpi}</span>
+                        <p className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{gameStats.avgDpi}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase font-mono`}>{t.avgSens}</span>
+                        <p className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{gameStats.avgSens}</p>
+                      </div>
+                    </div>
+
+                    <div className={`pt-3 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#f3f4f6]'} space-y-2`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase font-mono block`}>{t.mostUsed}</span>
+                        <span className="text-[8px] font-mono text-emerald-500/50 uppercase tracking-tighter">Click to apply</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                        <div 
+                          onClick={() => setSettings({ ...settings, mouse: gameStats.mostUsedMouse })}
+                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
+                          title="Click to apply to your settings"
+                        >
+                          <Mouse size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedMouse}</span>
+                        </div>
+                        <div 
+                          onClick={() => setSettings({ ...settings, keyboard: gameStats.mostUsedKeyboard })}
+                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
+                          title="Click to apply to your settings"
+                        >
+                          <Keyboard size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedKeyboard}</span>
+                        </div>
+                        <div 
+                          onClick={() => setSettings({ ...settings, monitor: gameStats.mostUsedMonitor })}
+                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
+                          title="Click to apply to your settings"
+                        >
+                          <Monitor size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedMonitor}</span>
+                        </div>
+                        <div 
+                          onClick={() => setSettings({ ...settings, mousepad: gameStats.mostUsedMousepad })}
+                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
+                          title="Click to apply to your settings"
+                        >
+                          <Layers size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
+                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedMousepad}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <InputGroup 
