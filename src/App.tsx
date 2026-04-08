@@ -899,81 +899,78 @@ export default function App() {
     <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans p-4 md:p-8`}>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="text-center md:text-left">
-            <h1 className={`text-4xl md:text-6xl font-bold tracking-tighter mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent uppercase`}>
-              {t.title}
-            </h1>
-            <div className="flex items-center gap-4 justify-center md:justify-start">
-              <p className={`${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} font-mono text-sm uppercase tracking-widest`}>
-                {t.subtitle}
-              </p>
-              {excelStatus?.success && (
-                <div className={`flex items-center gap-2 px-2 py-0.5 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600/30 text-emerald-600'} rounded text-[10px] font-mono uppercase animate-pulse`}>
-                  <FileSpreadsheet size={10} /> Excel Linked
-                </div>
-              )}
+        <header className="mb-12 flex flex-col items-center justify-center gap-8 border-b border-emerald-500/10 pb-10">
+          <div className="flex flex-col items-center gap-4 group cursor-default">
+            <div className="relative">
+              <img 
+                src="/favicon.svg" 
+                alt="Pro Gear Match Logo" 
+                className="w-16 h-16 md:w-20 md:h-20" 
+                referrerPolicy="no-referrer" 
+              />
+            </div>
+            <div className="text-center">
+              <h1 className={`text-3xl md:text-5xl font-black tracking-tighter bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent uppercase leading-none mb-3`}>
+                {t.title}
+              </h1>
+              <div className="flex flex-col items-center gap-3">
+                <p className={`${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'} font-mono text-xs md:text-sm uppercase tracking-[0.3em]`}>
+                  {t.subtitle}
+                </p>
+                {excelStatus?.success && (
+                  <div className={`flex items-center gap-1.5 px-3 py-1 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400/80' : 'bg-emerald-600/10 border-emerald-600/20 text-emerald-600/80'} border rounded-full text-[10px] font-mono uppercase tracking-widest mt-2`}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    {t.excelStatus}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 self-center md:self-end">
-            <button 
-              onClick={toggleLanguage}
-              className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:border-emerald-500 transition-colors`}
-              title={t.toggleLanguage}
-            >
-              <Languages size={14} /> {lang.toUpperCase()}
-            </button>
-            <button 
-              onClick={toggleTheme}
-              className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:border-emerald-500 transition-colors`}
-              title={t.toggleTheme}
-            >
-              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
+
+          <div className="flex flex-wrap items-center gap-3 justify-center w-full">
+            <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-black/20 border border-white/5">
+              <button 
+                onClick={toggleLanguage}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${theme === 'dark' ? 'hover:bg-white/5 text-[#888] hover:text-white' : 'hover:bg-black/5 text-[#4b5563] hover:text-black'}`}
+                title={t.toggleLanguage}
+              >
+                <Languages size={14} /> {lang.toUpperCase()}
+              </button>
+              <div className="w-px h-5 bg-white/10" />
+              <button 
+                onClick={toggleTheme}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${theme === 'dark' ? 'hover:bg-white/5 text-[#888] hover:text-white' : 'hover:bg-black/5 text-[#4b5563] hover:text-black'}`}
+                title={t.toggleTheme}
+              >
+                {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+              </button>
+            </div>
+
             <button 
               onClick={() => fetchProList()}
-              className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:border-emerald-500 transition-colors`}
+              className={`flex items-center gap-2 px-6 py-3 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black' : 'bg-white border-[#d1d5db] text-[#1a1a1a] hover:border-emerald-500'} border rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/5`}
             >
-              <Users size={14} /> {t.proList}
+              <Users size={16} /> {t.proList}
             </button>
+
             {user?.email === ADMIN_EMAIL && (
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={handleMigrate}
-                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-orange-500 hover:text-black transition-all`}
-                  title="Move today's Valorant/CS2 entries to Apex Legends"
-                >
-                  <Sword size={14} /> Migrate
-                </button>
-                <button 
-                  onClick={handleFixLinks}
-                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-blue-500 hover:text-black transition-all`}
-                  title="Fix Overwatch 2 links (ProSettings -> Liquipedia)"
-                >
-                  <ExternalLink size={14} /> Fix Links
-                </button>
-                <button 
-                  onClick={handleRevertLinks}
-                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-red-500 hover:text-black transition-all`}
-                  title="Revert Overwatch 2 links to ProSettings"
-                >
-                  <RefreshCcw size={14} /> Revert
-                </button>
-                <button 
                   onClick={() => setShowAddModal(true)}
-                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600/30 text-emerald-600'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-emerald-500 hover:text-black transition-all`}
+                  className={`flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20`}
                 >
-                  <Zap size={14} /> {t.addPro}
+                  <Zap size={16} /> {t.addPro}
                 </button>
               </div>
             )}
+            
             {user && (
               <button 
                 onClick={handleLogout}
-                className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:border-red-500 text-red-400 transition-colors`}
+                className={`flex items-center gap-2 px-6 py-3 ${theme === 'dark' ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500 hover:text-black' : 'bg-white border-red-200 text-red-600 hover:bg-red-50'} border rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all`}
                 title={user.email || ''}
               >
-                <LogOut size={14} /> {t.logout}
+                <LogOut size={16} /> {t.logout}
               </button>
             )}
           </div>
