@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import cookieSession from "cookie-session";
 import axios from "axios";
 import dotenv from "dotenv";
+import Anthropic from "@anthropic-ai/sdk";
 
 dotenv.config();
 
@@ -27,6 +28,11 @@ async function startServer() {
     })
   );
 
+  // Anthropic (Claude) Client
+  const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY || "",
+  });
+
   // Microsoft OAuth Config
   const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID;
   const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CLIENT_SECRET;
@@ -35,6 +41,29 @@ async function startServer() {
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
+  });
+
+  // Claude API Endpoint
+  app.post("/api/claude/chat", async (req, res) => {
+    const { messages, system } = req.body;
+
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured in Secrets" });
+    }
+
+    try {
+      const response = await anthropic.messages.create({
+        model: "claude-3-5-sonnet-20241022",
+        max_tokens: 1024,
+        system: system || "You are a helpful assistant.",
+        messages: messages || [],
+      });
+
+      res.json(response);
+    } catch (error: any) {
+      console.error("Claude API Error:", error);
+      res.status(500).json({ error: error.message || "Failed to call Claude API" });
+    }
   });
 
   // Microsoft OAuth URL
@@ -143,10 +172,51 @@ async function startServer() {
     }
   });
 
+  // URL Status Checker (to detect 404s on third-party sites)
+  app.get("/api/check-url", async (req, res) => {
+    const url = req.query.url as string;
+    if (!url) return res.status(400).json({ error: "No URL provided" });
+
+    try {
+      // We use a HEAD request first as it's faster and uses less bandwidth
+      // If HEAD fails or isn't supported, we fall back to GET
+      let status = 0;
+      try {
+        const headResponse = await axios.head(url, { 
+          timeout: 5000,
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+        });
+        status = headResponse.status;
+      } catch (e: any) {
+        if (e.response) {
+          status = e.response.status;
+        } else {
+          // Fallback to GET if HEAD is blocked or fails
+          const getResponse = await axios.get(url, { 
+            timeout: 5000,
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+          });
+          status = getResponse.status;
+        }
+      }
+      res.json({ status });
+    } catch (error: any) {
+      if (error.response) {
+        res.json({ status: error.response.status });
+      } else {
+        res.json({ status: 500, error: error.message });
+      }
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        hmr: false,
+        watch: null
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);

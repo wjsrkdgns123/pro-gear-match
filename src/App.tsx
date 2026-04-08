@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages } from 'lucide-react';
+import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
-import { matchProGamer, getProGamerList } from './services/geminiService';
+import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, cleanPlayerName, scrapeProGamerInfo, getGearSuggestions, seedDatabase, migrateProsToOverwatch, fixOverwatchLinks, revertOverwatchLinks } from './services/geminiService';
 import { translations, getLanguage, Language } from './translations';
 import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from './constants';
 import { auth, googleProvider } from './firebase';
@@ -16,6 +16,13 @@ const GAMES = [
   { name: 'Apex Legends', emoji: '🏃' }
 ];
 
+const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
+
+const formatEdpi = (val: number) => {
+  if (Number.isInteger(val)) return val.toString();
+  return val.toFixed(1);
+};
+
 // AdSense Component
 const GoogleAd = ({ slot }: { slot?: string }) => {
   const adRef = useRef<HTMLModElement>(null);
@@ -25,13 +32,18 @@ const GoogleAd = ({ slot }: { slot?: string }) => {
     const timeoutId = setTimeout(() => {
       try {
         if (adRef.current && !adRef.current.getAttribute('data-adsbygoogle-status')) {
-          // @ts-ignore
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          // Check if the container actually has width to avoid "availableWidth=0" error
+          if (adRef.current.offsetWidth > 0) {
+            // @ts-ignore
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          } else {
+            console.warn('AdSense: availableWidth is 0, skipping push.');
+          }
         }
       } catch (e) {
         console.error('AdSense error:', e);
       }
-    }, 500);
+    }, 1000); // Increased delay slightly
 
     return () => clearTimeout(timeoutId);
   }, []);
@@ -81,6 +93,43 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [excelStatus, setExcelStatus] = useState<{ loading: boolean, success?: boolean, proFound?: boolean, photoFound?: boolean, error?: string } | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPro, setEditingPro] = useState<ProGamer | null>(null);
+  const [showBulkAuditModal, setShowBulkAuditModal] = useState(false);
+  const [fetchingData, setFetchingData] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ current: number, total: number } | null>(null);
+  const [updatingProId, setUpdatingProId] = useState<string | null>(null);
+  const [tempUrls, setTempUrls] = useState<{[key: string]: string}>({});
+  const [showClaudeModal, setShowClaudeModal] = useState(false);
+  const [showMigrateConfirm, setShowMigrateConfirm] = useState(false);
+  const [showFixLinksConfirm, setShowFixLinksConfirm] = useState(false);
+  const [showRevertConfirm, setShowRevertConfirm] = useState(false);
+  const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [claudeMessages, setClaudeMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+  const [claudeInput, setClaudeInput] = useState('');
+  const [claudeLoading, setClaudeLoading] = useState(false);
+  const [newPro, setNewPro] = useState<ProGamer>({
+    name: '',
+    team: '',
+    game: 'Valorant',
+    profileUrl: '',
+    imageUrl: '',
+    teamLogoUrl: '',
+    gear: {
+      mouse: '',
+      keyboard: '',
+      monitor: '',
+      mousepad: '',
+      controller: '',
+    },
+    settings: {
+      dpi: 800,
+      sensitivity: 0.5,
+      edpi: 400,
+    },
+    source: 'Manual Entry'
+  });
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
@@ -96,6 +145,13 @@ export default function App() {
   const toggleLanguage = () => {
     setLang(lang === 'en' ? 'ko' : 'en');
   };
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -150,10 +206,83 @@ export default function App() {
     }
   };
 
+  const handleDeletePro = async (pro: ProGamer) => {
+    console.log("Delete button clicked for:", pro.name, pro.id);
+    
+    // Optimistic update: remove from UI immediately
+    const originalList = [...proList];
+    setProList(prev => {
+      const filtered = prev.filter(p => {
+        // If both have IDs, compare IDs
+        if (pro.id && p.id) return p.id !== pro.id;
+        // Otherwise fallback to name + team + game comparison for accuracy
+        return !(p.name === pro.name && p.team === pro.team && p.game === pro.game);
+      });
+      console.log(`Filtering: ${prev.length} -> ${filtered.length}`);
+      return filtered;
+    });
+
+    try {
+      await deleteProGamer(pro);
+      console.log("Delete successful in database");
+    } catch (err: any) {
+      console.error("Delete failed in database:", err);
+      // Rollback if failed
+      setProList(originalList);
+      alert(`Failed to delete: ${err.message || "Unknown error"}`);
+    }
+  };
+
+  const handleCleanAllNames = async () => {
+    if (!window.confirm("Clean all player names (remove full names)?")) return;
+    setListLoading(true);
+    try {
+      for (const pro of proList) {
+        // If _rawName is different from name, it means it was a full name
+        const rawName = pro._rawName || pro.name;
+        const cleanedName = cleanPlayerName(rawName);
+        
+        if (cleanedName !== rawName) {
+          // Delete old one (using ID if available)
+          await deleteProGamer(pro);
+          // Sync new one (syncProGamerToDb will clean it again and use new ID)
+          await syncProGamerToDb({ ...pro, name: cleanedName });
+        }
+      }
+      // Refresh list
+      const updatedList = await getProGamerList(settings.game);
+      setProList(updatedList);
+      alert("Database cleaned successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during cleanup.");
+    } finally {
+      setListLoading(false);
+    }
+  };
+
+  const handleSeedDatabase = async () => {
+    if (!window.confirm("Initialize database with default pro gamer data? (bang, TenZ, aspas will be saved to DB)")) return;
+    setListLoading(true);
+    try {
+      await seedDatabase();
+      // Refresh list
+      const updatedList = await getProGamerList(settings.game);
+      setProList(updatedList);
+      alert("Database initialized successfully! You can now delete or edit these players.");
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to initialize: ${err.message || "Unknown error"}`);
+    } finally {
+      setListLoading(false);
+    }
+  };
+
   const filteredProList = proList.filter(pro => 
     pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pro.team.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pro.gear.mouse.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (pro.gear.controller && pro.gear.controller.toLowerCase().includes(searchTerm.toLowerCase())) ||
     pro.gear.keyboard.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -184,6 +313,273 @@ export default function App() {
       direction = 'desc';
     }
     setSortConfig({ key, direction });
+  };
+
+  const handleFetchFromUrl = async () => {
+    if (!newPro.profileUrl) {
+      alert("Please enter a URL first.");
+      return;
+    }
+
+    const urls = newPro.profileUrl.split(/\s+/).filter(u => u.trim().startsWith('http'));
+    if (urls.length > 1) {
+      handleAutoFetchAndSave(newPro.profileUrl);
+      return;
+    }
+
+    setFetchingData(true);
+    try {
+      const scraped = await scrapeProGamerInfo(newPro.profileUrl);
+      if (scraped) {
+        setNewPro(prev => ({
+          ...prev,
+          name: scraped.name || prev.name,
+          team: scraped.team || prev.team,
+          game: scraped.game || prev.game,
+          gear: {
+            ...prev.gear,
+            ...scraped.gear
+          },
+          settings: {
+            ...prev.settings,
+            ...scraped.settings,
+            edpi: Number(((scraped.settings?.dpi || prev.settings.dpi) * (scraped.settings?.sensitivity || prev.settings.sensitivity)).toFixed(1))
+          }
+        }));
+        alert(t.fetchSuccess);
+      } else {
+        alert(t.fetchError);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(t.fetchError);
+    } finally {
+      setFetchingData(false);
+    }
+  };
+
+  const handleAutoFetchAndSave = async (pastedText: string) => {
+    const urls = pastedText.split(/\s+/).filter(u => u.trim().startsWith('http'));
+    if (urls.length === 0) return;
+    
+    setFetchingData(true);
+    setLoading(true);
+    setBulkProgress({ current: 0, total: urls.length });
+    
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < urls.length; i++) {
+      setBulkProgress({ current: i + 1, total: urls.length });
+      if (i > 0) await new Promise(r => setTimeout(r, 1500)); // Increased delay between multiple fetches
+      
+      const url = urls[i];
+      // Update the UI immediately so the user sees the URL being processed
+      setNewPro(prev => ({ ...prev, profileUrl: `[${i + 1}/${urls.length}] ${url}` }));
+      
+      try {
+        const scraped = await scrapeProGamerInfo(url);
+        if (scraped && scraped.name && scraped.team) {
+          const edpi = Number(((scraped.settings?.dpi || 800) * (scraped.settings?.sensitivity || 0.5)).toFixed(1));
+          const proToSave = {
+            ...newPro,
+            ...scraped,
+            profileUrl: url,
+            settings: { 
+              ...newPro.settings, 
+              ...scraped.settings,
+              edpi 
+            },
+            source: 'Auto-Scraped'
+          };
+          
+          await syncProGamerToDb(proToSave);
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        console.error(`Failed to fetch/save ${url}:`, err);
+        failCount++;
+      }
+    }
+
+    setBulkProgress(null);
+    if (successCount > 0) {
+      // Success feedback
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#10b981', '#34d399', '#059669']
+      });
+
+      alert(`Successfully added ${successCount} players!${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+    } else if (failCount > 0) {
+      alert(`Failed to add ${failCount} players.`);
+    }
+
+    // Reset form but keep the game selection
+    setNewPro({
+      name: '',
+      team: '',
+      game: newPro.game,
+      profileUrl: '',
+      gear: { mouse: '', keyboard: '', monitor: '', mousepad: '' },
+      settings: { dpi: 800, sensitivity: 0.5, edpi: 400 },
+      source: 'Manual Entry'
+    });
+    
+    // Refresh list
+    const list = await getProGamerList(settings.game);
+    const sortedList = [...list].sort((a, b) => a.team.localeCompare(b.team));
+    setProList(sortedList);
+    
+    setFetchingData(false);
+    setLoading(false);
+  };
+
+  const handleUpdatePro = async (pro: ProGamer, customUrl?: string) => {
+    const urlToUse = customUrl || pro.profileUrl;
+    if (!urlToUse) {
+      alert("No profile URL available for this player.");
+      return;
+    }
+
+    setUpdatingProId(pro.id || pro.name);
+    try {
+      const scraped = await scrapeProGamerInfo(urlToUse);
+      if (scraped) {
+        const updatedPro = {
+          ...pro,
+          ...scraped,
+          profileUrl: urlToUse, // Update the URL as well
+          gear: { ...pro.gear, ...scraped.gear },
+          settings: { 
+            ...pro.settings, 
+            ...scraped.settings,
+            edpi: Number(((scraped.settings?.dpi || pro.settings.dpi) * (scraped.settings?.sensitivity || pro.settings.sensitivity)).toFixed(1))
+          },
+          source: 'Auto-Updated'
+        };
+        await syncProGamerToDb(updatedPro);
+        
+        // Refresh the list
+        const list = await getProGamerList(settings.game);
+        const sortedList = [...list].sort((a, b) => a.team.localeCompare(b.team));
+        setProList(sortedList);
+        
+        alert(t.successUpdate);
+      } else {
+        alert(t.fetchError);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(t.errorUpdate);
+    } finally {
+      setUpdatingProId(null);
+    }
+  };
+
+  const handleGearChange = (category: 'mouse' | 'keyboard' | 'monitor' | 'mousepad' | 'controller', value: string) => {
+    setNewPro(prev => ({
+      ...prev,
+      gear: { ...prev.gear, [category]: value }
+    }));
+  };
+
+  const handleSaveNewPro = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPro.name || !newPro.team) {
+      alert("Please enter at least name and team.");
+      return;
+    }
+
+    setLoading(true);
+    if (!newPro.name.trim()) {
+      alert("Please enter a name for the pro gamer.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const edpi = Number((newPro.settings.dpi * newPro.settings.sensitivity).toFixed(1));
+      const proToSave = {
+        ...newPro,
+        settings: { ...newPro.settings, edpi }
+      };
+      
+      await syncProGamerToDb(proToSave);
+      alert(t.successAdd);
+      // Reset form but keep the game selection for convenience
+      setNewPro({
+        name: '',
+        team: '',
+        game: newPro.game, // Keep the current game
+        profileUrl: '',
+        gear: { mouse: '', keyboard: '', monitor: '', mousepad: '' },
+        settings: { dpi: 800, sensitivity: 0.5, edpi: 400 },
+        source: 'Manual Entry'
+      });
+      
+      // Force refresh the list data in the background if it matches current game
+      if (proToSave.game === settings.game) {
+        try {
+          const list = await getProGamerList(settings.game);
+          const sortedList = [...list].sort((a, b) => a.team.localeCompare(b.team));
+          setProList(sortedList);
+          console.log(`Refreshed pro list for ${settings.game}. New count: ${sortedList.length}`);
+        } catch (fetchErr) {
+          console.error("Background refresh failed:", fetchErr);
+        }
+      } else {
+        console.log(`Pro added for ${proToSave.game}, but current view is ${settings.game}. Switch game to see the new entry.`);
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      let errorMsg = t.errorAdd;
+      if (err instanceof Error) {
+        try {
+          const parsed = JSON.parse(err.message);
+          if (parsed.error) errorMsg = `${t.errorAdd}: ${parsed.error}`;
+        } catch {
+          errorMsg = `${t.errorAdd}: ${err.message}`;
+        }
+      }
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveEditPro = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPro) return;
+    
+    setLoading(true);
+    try {
+      const proToSave = {
+        ...editingPro,
+        settings: {
+          ...editingPro.settings
+        }
+      };
+      
+      await syncProGamerToDb(proToSave);
+      alert(t.successUpdate);
+      setShowEditModal(false);
+      setEditingPro(null);
+      
+      // Refresh list
+      const list = await getProGamerList(settings.game);
+      const sortedList = [...list].sort((a, b) => a.team.localeCompare(b.team));
+      setProList(sortedList);
+    } catch (err) {
+      console.error(err);
+      alert(t.errorUpdate);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const downloadCSV = () => {
@@ -218,6 +614,30 @@ export default function App() {
     document.body.removeChild(link);
   };
 
+  const exportLinksOnly = () => {
+    const headers = ['Name', 'Team', 'Profile URL'];
+    const rows = sortedProList.map(pro => [
+      pro.name,
+      pro.team,
+      pro.profileUrl
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pro_links_${settings.game.toLowerCase()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -238,6 +658,68 @@ export default function App() {
       await signOut(auth);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleMigrate = async () => {
+    setShowMigrateConfirm(true);
+  };
+
+  const executeMigration = async () => {
+    setShowMigrateConfirm(false);
+    setLoading(true);
+    try {
+      console.log("Migration started...");
+      const count = await migrateProsToOverwatch();
+      if (count === 0) {
+        setNotification({ message: "오늘 추가된 대상 선수가 없습니다. (날짜 형식을 확인해 주세요)", type: 'error' });
+      } else {
+        setNotification({ message: `성공적으로 ${count}명의 선수를 Overwatch 2로 옮겼습니다!`, type: 'success' });
+        fetchProList(true);
+      }
+    } catch (err: any) {
+      console.error("Migration UI Error:", err);
+      setNotification({ message: "이전 실패: " + err.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFixLinks = async () => {
+    setShowFixLinksConfirm(true);
+  };
+
+  const executeFixLinks = async () => {
+    setShowFixLinksConfirm(false);
+    setLoading(true);
+    try {
+      const count = await fixOverwatchLinks();
+      setNotification({ message: `성공적으로 ${count}명의 링크를 Liquipedia로 수정했습니다!`, type: 'success' });
+      fetchProList(true);
+    } catch (err: any) {
+      console.error(err);
+      setNotification({ message: "링크 수정 실패: " + err.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRevertLinks = async () => {
+    setShowRevertConfirm(true);
+  };
+
+  const executeRevertLinks = async () => {
+    setShowRevertConfirm(false);
+    setLoading(true);
+    try {
+      const count = await revertOverwatchLinks();
+      setNotification({ message: `성공적으로 ${count}명의 링크를 ProSettings로 복구했습니다!`, type: 'success' });
+      fetchProList(true);
+    } catch (err: any) {
+      console.error(err);
+      setNotification({ message: "링크 복구 실패: " + err.message, type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -266,28 +748,86 @@ export default function App() {
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
       }, 250);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Failed to find a match. Please try again.');
+      const errorMessage = err.message || 'Failed to find a match. Please try again.';
+      setError(errorMessage.includes('Empty response') ? 'The AI returned an empty response. Please try again.' : errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchProList = async () => {
+  const handleClaudeChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!claudeInput.trim() || claudeLoading) return;
+
+    const userMsg = { role: 'user' as const, content: claudeInput };
+    setClaudeMessages(prev => [...prev, userMsg]);
+    setClaudeInput('');
+    setClaudeLoading(true);
+
+    try {
+      const response = await fetch('/api/claude/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...claudeMessages, userMsg].map(m => ({
+            role: m.role,
+            content: m.content
+          }))
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+
+      const assistantMsg = { 
+        role: 'assistant' as const, 
+        content: data.content[0].text 
+      };
+      setClaudeMessages(prev => [...prev, assistantMsg]);
+    } catch (err: any) {
+      console.error(err);
+      let errorMsg = `Error: ${err.message}`;
+      
+      // Handle specific Claude low balance error
+      if (err.message && err.message.includes('credit balance is too low')) {
+        errorMsg = "Claude API credit balance is too low. Please top up your Anthropic account (Plans & Billing).";
+      }
+      
+      setClaudeMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: errorMsg
+      }]);
+    } finally {
+      setClaudeLoading(false);
+    }
+  };
+
+  const fetchProList = async (force = false) => {
     setShowList(true);
+    setSearchTerm(''); // Reset search when opening
     
-    // Check memory first
-    if (proList.length > 0 && proList[0].game === settings.game) return;
+    // Check if we need to fetch: 
+    // 1. Forced refresh
+    // 2. List is empty
+    // 3. List is for a different game
+    const needsFetch = force || proList.length === 0 || (proList.length > 0 && proList[0].game !== settings.game);
+    
+    if (!needsFetch) {
+      console.log("Using cached pro list for", settings.game);
+      return;
+    }
     
     setListLoading(true);
     try {
+      console.log(`Fetching fresh pro list for ${settings.game} (force=${force})`);
       const list = await getProGamerList(settings.game);
       // Sort by team name alphabetically
       const sortedList = [...list].sort((a, b) => a.team.localeCompare(b.team));
       setProList(sortedList);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch pro list:", err);
     } finally {
       setListLoading(false);
     }
@@ -334,6 +874,46 @@ export default function App() {
             >
               <Users size={14} /> {t.proList}
             </button>
+            {user?.email === ADMIN_EMAIL && (
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleMigrate}
+                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-600'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-orange-500 hover:text-black transition-all`}
+                  title="Move today's Valorant/CS2 entries to Apex Legends"
+                >
+                  <Sword size={14} /> Migrate
+                </button>
+                <button 
+                  onClick={handleFixLinks}
+                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-blue-500 hover:text-black transition-all`}
+                  title="Fix Overwatch 2 links (ProSettings -> Liquipedia)"
+                >
+                  <ExternalLink size={14} /> Fix Links
+                </button>
+                <button 
+                  onClick={handleRevertLinks}
+                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-red-500 hover:text-black transition-all`}
+                  title="Revert Overwatch 2 links to ProSettings"
+                >
+                  <RefreshCcw size={14} /> Revert
+                </button>
+                <button 
+                  onClick={() => setShowAddModal(true)}
+                  className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600/30 text-emerald-600'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:bg-emerald-500 hover:text-black transition-all`}
+                >
+                  <Zap size={14} /> {t.addPro}
+                </button>
+              </div>
+            )}
+            {user && (
+              <button 
+                onClick={handleLogout}
+                className={`flex items-center gap-2 px-4 py-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg text-xs font-mono uppercase tracking-wider hover:border-red-500 text-red-400 transition-colors`}
+                title={user.email || ''}
+              >
+                <LogOut size={14} /> {t.logout}
+              </button>
+            )}
           </div>
         </header>
 
@@ -445,6 +1025,7 @@ export default function App() {
                     listId="mice-list"
                     options={PRO_MICE}
                     theme={theme}
+                    category="mouse"
                     onChange={(val) => setSettings({ ...settings, mouse: val })}
                   />
                   <InputGroup 
@@ -456,6 +1037,7 @@ export default function App() {
                     listId="keyboards-list"
                     options={PRO_KEYBOARDS}
                     theme={theme}
+                    category="keyboard"
                     onChange={(val) => setSettings({ ...settings, keyboard: val })}
                   />
                   <InputGroup 
@@ -467,6 +1049,7 @@ export default function App() {
                     listId="monitors-list"
                     options={PRO_MONITORS}
                     theme={theme}
+                    category="monitor"
                     onChange={(val) => setSettings({ ...settings, monitor: val })}
                   />
                   <InputGroup 
@@ -478,6 +1061,7 @@ export default function App() {
                     listId="mousepads-list"
                     options={PRO_MOUSEPADS}
                     theme={theme}
+                    category="mousepad"
                     onChange={(val) => setSettings({ ...settings, mousepad: val })}
                   />
                 </div>
@@ -564,7 +1148,7 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
                       <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>eDPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[1].settings.edpi}</span>
+                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(matches[1].settings.edpi)}</span>
                       </div>
                       <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>SENS</span>
@@ -573,8 +1157,12 @@ export default function App() {
                     </div>
                     <div className="space-y-1">
                       <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Mouse size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[1].gear.mouse}</span>
+                        {matches[1].gear.mouse ? (
+                          <Mouse size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
+                        ) : (
+                          <Gamepad2 size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
+                        )}
+                        <span className="truncate">{matches[1].gear.mouse || matches[1].gear.controller}</span>
                       </div>
                       <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
                         <Keyboard size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
@@ -622,18 +1210,23 @@ export default function App() {
                       </div>
                     </div>
  
-                    <div className="grid grid-cols-2 gap-6">
-                      <StatBlock label={t.edpi} value={matches[0].settings.edpi.toString()} theme={theme} />
-                      <StatBlock label={t.sensitivity} value={matches[0].settings.sensitivity.toString()} theme={theme} />
-                    </div>
+                      <div className="grid grid-cols-2 gap-6">
+                        <StatBlock label={t.edpi} value={formatEdpi(matches[0].settings.edpi)} theme={theme} />
+                        <StatBlock label={t.sensitivity} value={matches[0].settings.sensitivity.toString()} theme={theme} />
+                      </div>
  
                     <div className={`space-y-5 pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
-                      <ProGearItem icon={<Mouse size={18} />} label={t.mouse} value={matches[0].gear.mouse} theme={theme} />
+                      <ProGearItem 
+                        icon={matches[0].gear.mouse ? <Mouse size={18} /> : <Gamepad2 size={18} />} 
+                        label={matches[0].gear.mouse ? t.mouse : "Controller"} 
+                        value={matches[0].gear.mouse || matches[0].gear.controller || ''} 
+                        theme={theme} 
+                      />
                       <ProGearItem icon={<Keyboard size={18} />} label={t.keyboard} value={matches[0].gear.keyboard} theme={theme} />
                       <ProGearItem icon={<Monitor size={18} />} label={t.monitor} value={matches[0].gear.monitor} theme={theme} />
                       <ProGearItem icon={<Layers size={18} />} label={t.mousepad} value={matches[0].gear.mousepad} theme={theme} />
                     </div>
- 
+
                     <div className={`pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                       <span>{t.source}: {matches[0].source}</span>
                       <a 
@@ -669,7 +1262,7 @@ export default function App() {
                     <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
                       <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>eDPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[2].settings.edpi}</span>
+                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(matches[2].settings.edpi)}</span>
                       </div>
                       <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>SENS</span>
@@ -678,8 +1271,12 @@ export default function App() {
                     </div>
                     <div className="space-y-1">
                       <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Mouse size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[2].gear.mouse}</span>
+                        {matches[2].gear.mouse ? (
+                          <Mouse size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
+                        ) : (
+                          <Gamepad2 size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
+                        )}
+                        <span className="truncate">{matches[2].gear.mouse || matches[2].gear.controller}</span>
                       </div>
                       <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
                         <Keyboard size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
@@ -721,12 +1318,12 @@ export default function App() {
                       </div>
                       <div className="text-right">
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} font-mono text-[10px] block uppercase`}>eDPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xs`}>{m!.settings.edpi}</span>
+                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xs`}>{formatEdpi(m!.settings.edpi)}</span>
                       </div>
                     </div>
                     <div className={`grid grid-cols-1 gap-1 py-2 border-y ${theme === 'dark' ? 'border-[#333]/50' : 'border-[#e5e7eb]'}`}>
                       <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Mouse size={10} /> <span className="truncate">{m!.gear.mouse}</span>
+                        {m!.gear.mouse ? <Mouse size={10} /> : <Gamepad2 size={10} />} <span className="truncate">{m!.gear.mouse || m!.gear.controller}</span>
                       </div>
                       <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
                         <Keyboard size={10} /> <span className="truncate">{m!.gear.keyboard}</span>
@@ -765,6 +1362,26 @@ export default function App() {
           >
             <Loader2 size={64} className="text-emerald-500 animate-spin mb-6" />
             <p className="text-emerald-500 font-mono text-xl animate-pulse uppercase tracking-[0.2em]">{t.scanning}</p>
+            
+            {bulkProgress && (
+              <div className="mt-8 w-full max-w-md">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-mono text-emerald-500 uppercase tracking-widest">
+                    {t.processingBulk}
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-500">
+                    [{bulkProgress.current}/{bulkProgress.total}]
+                  </span>
+                </div>
+                <div className={`h-1.5 w-full rounded-full ${theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-600/10'} overflow-hidden`}>
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                    className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                  />
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -880,6 +1497,142 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Notification Toast */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md px-4"
+          >
+            <div className={`p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 ${notification.type === 'success' ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white'}`}>
+              <div className="flex items-center gap-3">
+                {notification.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+                <p className="text-xs font-bold uppercase tracking-wider">{notification.message}</p>
+              </div>
+              <button onClick={() => setNotification(null)} className="p-1 hover:bg-black/10 rounded-full transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Revert Links Confirm Modal */}
+      <AnimatePresence>
+        {showRevertConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+            >
+              <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <RefreshCcw size={32} />
+              </div>
+              <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                링크 복구 확인
+              </h2>
+              <p className={`text-sm mb-8 leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                Overwatch 2 선수들의 Liquipedia 링크를 다시 ProSettings 링크로 복구하시겠습니까?
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => setShowRevertConfirm(false)}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                >
+                  취소
+                </button>
+                <button 
+                  onClick={executeRevertLinks}
+                  className="py-3 bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-red-400 transition-all"
+                >
+                  복구 실행
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Fix Links Confirm Modal */}
+      <AnimatePresence>
+        {showFixLinksConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+            >
+              <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <ExternalLink size={32} />
+              </div>
+              <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                링크 자동 수정 확인
+              </h2>
+              <p className={`text-sm mb-8 leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                Overwatch 2 선수들의 잘못된 링크(ProSettings 등)를 Liquipedia 링크로 일괄 수정하시겠습니까?
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => setShowFixLinksConfirm(false)}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                >
+                  취소
+                </button>
+                <button 
+                  onClick={executeFixLinks}
+                  className="py-3 bg-blue-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-blue-400 transition-all"
+                >
+                  수정 실행
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Migration Confirm Modal */}
+      <AnimatePresence>
+        {showMigrateConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+            >
+              <div className="w-16 h-16 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Sword size={32} />
+              </div>
+              <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                데이터 이전 확인
+              </h2>
+              <p className={`text-sm mb-8 leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                오늘 추가된 모든 Valorant 및 CS2 선수 데이터를 Apex Legends 목록으로 옮기시겠습니까? 이 작업은 되돌릴 수 없습니다.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => setShowMigrateConfirm(false)}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                >
+                  취소
+                </button>
+                <button 
+                  onClick={executeMigration}
+                  className="py-3 bg-orange-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-orange-400 transition-all"
+                >
+                  이전 실행
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Pro List Modal */}
       <AnimatePresence>
         {showList && (
@@ -903,6 +1656,40 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  <button 
+                    onClick={downloadCSV}
+                    className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                    title={t.downloadCsv}
+                  >
+                    <FileSpreadsheet size={12} /> {t.downloadCsv}
+                  </button>
+                  {user?.email === ADMIN_EMAIL && (
+                    <button 
+                      onClick={handleSeedDatabase}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      title={t.seedData}
+                    >
+                      <Shield size={12} /> {t.seedData}
+                    </button>
+                  )}
+                  {user?.email === ADMIN_EMAIL && (
+                    <button 
+                      onClick={() => setShowBulkAuditModal(true)}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      title={t.bulkAudit}
+                    >
+                      <Target size={12} /> {t.bulkAudit}
+                    </button>
+                  )}
+                  {user?.email === ADMIN_EMAIL && (
+                    <button 
+                      onClick={handleCleanAllNames}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      title="Clean all names (remove full names)"
+                    >
+                      <Wand2 size={12} /> Clean All
+                    </button>
+                  )}
                   <div className="relative">
                     <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} `} size={14} />
                     <input 
@@ -913,6 +1700,14 @@ export default function App() {
                       className={`w-full md:w-64 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-10 pr-4 py-2 text-xs font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500' : 'focus:border-emerald-600'} transition-all`}
                     />
                   </div>
+                  <button 
+                    onClick={() => fetchProList(true)} 
+                    className={`p-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-emerald-600'} border rounded-lg transition-all`}
+                    title={t.refresh}
+                    disabled={listLoading}
+                  >
+                    <RefreshCcw size={18} className={listLoading ? 'animate-spin' : ''} />
+                  </button>
                   <button 
                     onClick={() => setShowList(false)} 
                     className={`p-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-white' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-black'} border rounded-lg transition-all`}
@@ -940,12 +1735,12 @@ export default function App() {
                           <th className={`p-4 cursor-pointer hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} onClick={() => handleSort('gear.keyboard')}>Keyboard</th>
                           <th className={`p-4 cursor-pointer hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} onClick={() => handleSort('gear.monitor')}>Monitor</th>
                           <th className={`p-4 cursor-pointer hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} onClick={() => handleSort('settings.edpi')}>eDPI</th>
-                          <th className="p-4 text-center">Link</th>
+                          <th className="p-4 text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className={`divide-y ${theme === 'dark' ? 'divide-[#1a1b1e]' : 'divide-[#e5e7eb]'}`}>
-                        {sortedProList.map((pro, idx) => (
-                          <tr key={idx} className={`group ${theme === 'dark' ? 'hover:bg-[#151619]' : 'hover:bg-[#f3f4f6]'} transition-colors`}>
+                        {sortedProList.map((pro) => (
+                          <tr key={pro.id || pro.name} className={`group ${theme === 'dark' ? 'hover:bg-[#151619]' : 'hover:bg-[#f3f4f6]'} transition-colors`}>
                             <td className="p-4">
                               <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} group-hover:text-emerald-500 transition-colors`}>{pro.name}</span>
                             </td>
@@ -953,7 +1748,9 @@ export default function App() {
                               <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase`}>{pro.team}</span>
                             </td>
                             <td className="p-4">
-                              <span className={`text-xs ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#444]'} group-hover:text-emerald-500 transition-colors`}>{pro.gear.mouse}</span>
+                              <span className={`text-xs ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#444]'} group-hover:text-emerald-500 transition-colors`}>
+                                {pro.gear.mouse || pro.gear.controller || '-'}
+                              </span>
                             </td>
                             <td className="p-4">
                               <span className={`text-xs ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#444]'} group-hover:text-emerald-500 transition-colors`}>{pro.gear.keyboard}</span>
@@ -962,17 +1759,56 @@ export default function App() {
                               <span className={`text-xs ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#444]'} group-hover:text-emerald-500 transition-colors`}>{pro.gear.monitor}</span>
                             </td>
                             <td className="p-4">
-                              <span className={`text-xs font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{pro.settings.edpi}</span>
+                              <span className={`text-xs font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(pro.settings.edpi)}</span>
                             </td>
                             <td className="p-4 text-center">
-                              <a 
-                                href={pro.profileUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className={`inline-flex p-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-lg hover:text-emerald-400 hover:border-emerald-500/50 border transition-all`}
-                              >
-                                <ExternalLink size={14} />
-                              </a>
+                              <div className="flex items-center justify-center gap-2">
+                                <a 
+                                  href={pro.profileUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className={`inline-flex p-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-lg hover:text-emerald-400 hover:border-emerald-500/50 border transition-all`}
+                                  title={t.viewProfile}
+                                >
+                                  <ExternalLink size={14} />
+                                </a>
+                                  {user?.email === ADMIN_EMAIL && (
+                                    <div className="flex items-center gap-1">
+                                      <input 
+                                        type="text"
+                                        placeholder="URL"
+                                        value={tempUrls[pro.id || pro.name] ?? pro.profileUrl ?? ''}
+                                        onChange={(e) => setTempUrls(prev => ({ ...prev, [pro.id || pro.name]: e.target.value }))}
+                                        className={`w-32 text-[10px] font-mono ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded px-2 py-1 focus:outline-none focus:border-emerald-500 transition-all`}
+                                      />
+                                      <button 
+                                        onClick={() => {
+                                          setEditingPro(pro);
+                                          setShowEditModal(true);
+                                        }}
+                                        className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-blue-400 hover:border-blue-500/50 border transition-all`}
+                                        title={t.edit}
+                                      >
+                                        <Pencil size={12} />
+                                      </button>
+                                      <button 
+                                        onClick={() => handleUpdatePro(pro, tempUrls[pro.id || pro.name])}
+                                      disabled={updatingProId === (pro.id || pro.name)}
+                                      className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-emerald-400 hover:border-emerald-500/50 border transition-all disabled:opacity-50`}
+                                      title={t.update}
+                                    >
+                                      <RefreshCcw size={12} className={updatingProId === (pro.id || pro.name) ? 'animate-spin' : ''} />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleDeletePro(pro)}
+                                      className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-red-400 hover:border-red-500/50 border transition-all`}
+                                      title="Delete"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -998,32 +1834,683 @@ export default function App() {
           </div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {showBulkAuditModal && (
+          <BulkAuditModal 
+            theme={theme}
+            t={t}
+            proList={proList}
+            onClose={() => setShowBulkAuditModal(false)}
+            onAddPlayer={async (val) => {
+              const isUrl = val.startsWith('http');
+              const initialPro = {
+                name: isUrl ? '' : val,
+                team: '',
+                game: settings.game,
+                profileUrl: isUrl ? val : '',
+                imageUrl: '',
+                teamLogoUrl: '',
+                gear: { mouse: '', keyboard: '', monitor: '', mousepad: '' },
+                settings: { dpi: 800, sensitivity: 0.5, edpi: 400 },
+                source: 'Manual Entry'
+              };
+              setNewPro(initialPro);
+              setShowBulkAuditModal(false);
+              setShowAddModal(true);
+
+              if (isUrl) {
+                setFetchingData(true);
+                try {
+                  const scraped = await scrapeProGamerInfo(val);
+                  if (scraped) {
+                    setNewPro(prev => ({
+                      ...prev,
+                      name: scraped.name || prev.name,
+                      team: scraped.team || prev.team,
+                      game: scraped.game || prev.game,
+                      gear: { ...prev.gear, ...scraped.gear },
+                      settings: {
+                        ...prev.settings,
+                        ...scraped.settings,
+                        edpi: Number(((scraped.settings?.dpi || prev.settings.dpi) * (scraped.settings?.sensitivity || prev.settings.sensitivity)).toFixed(1))
+                      }
+                    }));
+                  }
+                } catch (err) {
+                  console.error("Auto-fetch failed:", err);
+                } finally {
+                  setFetchingData(false);
+                }
+              }
+            }}
+            onRefreshList={() => fetchProList(true)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Edit Pro Modal */}
+      <AnimatePresence>
+        {showEditModal && editingPro && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowEditModal(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={`text-2xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                  {t.editPro || 'Edit Pro Profile'}
+                </h2>
+                <button onClick={() => setShowEditModal(false)} className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} hover:text-emerald-500`}>
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditPro} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.playerName}</label>
+                    <input 
+                      required
+                      type="text"
+                      value={editingPro.name || ''}
+                      onChange={(e) => setEditingPro({...editingPro, name: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.teamName}</label>
+                    <input 
+                      required
+                      type="text"
+                      value={editingPro.team || ''}
+                      onChange={(e) => setEditingPro({...editingPro, team: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.gameName}</label>
+                    <select 
+                      value={editingPro.game || 'Valorant'}
+                      onChange={(e) => setEditingPro({...editingPro, game: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    >
+                      {GAMES.map(g => <option key={g.name} value={g.name}>{g.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.profileUrl}</label>
+                    <input 
+                      type="url"
+                      value={editingPro.profileUrl || ''}
+                      onChange={(e) => setEditingPro({...editingPro, profileUrl: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.imageUrl}</label>
+                    <input 
+                      type="url"
+                      value={editingPro.imageUrl || ''}
+                      onChange={(e) => setEditingPro({...editingPro, imageUrl: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.teamLogoUrl}</label>
+                    <input 
+                      type="url"
+                      value={editingPro.teamLogoUrl || ''}
+                      onChange={(e) => setEditingPro({...editingPro, teamLogoUrl: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#333]">
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.mouse}</label>
+                    <input 
+                      type="text"
+                      value={editingPro.gear.mouse || ''}
+                      onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, mouse: e.target.value}})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.keyboard}</label>
+                    <input 
+                      type="text"
+                      value={editingPro.gear.keyboard || ''}
+                      onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, keyboard: e.target.value}})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.monitor}</label>
+                    <input 
+                      type="text"
+                      value={editingPro.gear.monitor || ''}
+                      onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, monitor: e.target.value}})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.mousepad}</label>
+                    <input 
+                      type="text"
+                      value={editingPro.gear.mousepad || ''}
+                      onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, mousepad: e.target.value}})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>Controller</label>
+                    <input 
+                      type="text"
+                      value={editingPro.gear.controller || ''}
+                      onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, controller: e.target.value}})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-[#333]">
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.dpi}</label>
+                    <input 
+                      type="number"
+                      value={editingPro.settings.dpi || 0}
+                      onChange={(e) => {
+                        const dpi = Number(e.target.value);
+                        const edpi = Number((dpi * editingPro.settings.sensitivity).toFixed(1));
+                        setEditingPro({...editingPro, settings: {...editingPro.settings, dpi, edpi}});
+                      }}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.sensitivity}</label>
+                    <input 
+                      type="number"
+                      step="0.001"
+                      value={editingPro.settings.sensitivity || 0}
+                      onChange={(e) => {
+                        const sensitivity = Number(e.target.value);
+                        const edpi = Number((editingPro.settings.dpi * sensitivity).toFixed(1));
+                        setEditingPro({...editingPro, settings: {...editingPro.settings, sensitivity, edpi}});
+                      }}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.edpi}</label>
+                    <input 
+                      type="number"
+                      step="0.1"
+                      value={editingPro.settings.edpi || 0}
+                      onChange={(e) => {
+                        const edpi = Number(e.target.value);
+                        const sensitivity = editingPro.settings.dpi > 0 ? Number((edpi / editingPro.settings.dpi).toFixed(4)) : 0;
+                        setEditingPro({...editingPro, settings: {...editingPro.settings, edpi, sensitivity}});
+                      }}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-6">
+                  <button 
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#555] hover:text-white' : 'bg-gray-100 text-gray-500 hover:text-black'} transition-all`}
+                  >
+                    {t.cancel}
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs bg-emerald-500 text-black hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50"
+                  >
+                    {loading ? t.updating : t.save}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Pro Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={`text-2xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                  {t.addPro}
+                </h2>
+                {bulkProgress && (
+                  <div className="flex-1 mx-8">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-mono text-emerald-500 uppercase tracking-widest animate-pulse">
+                        {t.processingBulk}
+                      </span>
+                      <span className="text-[10px] font-mono text-emerald-500">
+                        [{bulkProgress.current}/{bulkProgress.total}]
+                      </span>
+                    </div>
+                    <div className={`h-1.5 w-full rounded-full ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-gray-100'} overflow-hidden`}>
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                        className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                      />
+                    </div>
+                  </div>
+                )}
+                <button onClick={() => setShowAddModal(false)} className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} hover:text-emerald-500`}>
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveNewPro} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.playerName}</label>
+                    <input 
+                      required
+                      type="text"
+                      value={newPro.name || ''}
+                      onChange={(e) => setNewPro({...newPro, name: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      placeholder="e.g. TenZ"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.teamName}</label>
+                    <input 
+                      required
+                      type="text"
+                      value={newPro.team || ''}
+                      onChange={(e) => setNewPro({...newPro, team: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      placeholder="e.g. Sentinels"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.gameName}</label>
+                    <select 
+                      value={newPro.game || 'Valorant'}
+                      onChange={(e) => setNewPro({...newPro, game: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                    >
+                      {GAMES.map(g => <option key={g.name} value={g.name}>{g.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.profileUrl}</label>
+                    <div className="flex gap-2">
+                      <input 
+                        type="url"
+                        value={newPro.profileUrl || ''}
+                        onChange={(e) => setNewPro({...newPro, profileUrl: e.target.value})}
+                        className={`flex-1 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                        placeholder={t.autoFetchPlaceholder}
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleFetchFromUrl}
+                        disabled={fetchingData || !newPro.profileUrl}
+                        className={`px-4 py-3 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600/30 text-emerald-600'} border rounded-xl text-[10px] font-mono uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+                      >
+                        {fetchingData ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
+                        {fetchingData ? '...' : t.autoFetch}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.imageUrl}</label>
+                    <input 
+                      type="url"
+                      value={newPro.imageUrl || ''}
+                      onChange={(e) => setNewPro({...newPro, imageUrl: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{t.teamLogoUrl}</label>
+                    <input 
+                      type="url"
+                      value={newPro.teamLogoUrl || ''}
+                      onChange={(e) => setNewPro({...newPro, teamLogoUrl: e.target.value})}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'}`}>
+                  <h3 className={`text-xs font-mono uppercase tracking-widest mb-4 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{t.gearSettings}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InputGroup 
+                      label={t.mouse} 
+                      icon={<Mouse size={18} />} 
+                      value={newPro.gear.mouse}
+                      placeholder="e.g. G Pro X Superlight"
+                      hint={t.enterGear}
+                      listId="pro-mice-list"
+                      options={PRO_MICE}
+                      theme={theme}
+                      category="mouse"
+                      onChange={(val) => handleGearChange('mouse', val)}
+                    />
+                    <InputGroup 
+                      label={t.keyboard} 
+                      icon={<Keyboard size={18} />} 
+                      value={newPro.gear.keyboard}
+                      placeholder="e.g. Wooting 60HE"
+                      hint={t.enterGear}
+                      listId="pro-keyboards-list"
+                      options={PRO_KEYBOARDS}
+                      theme={theme}
+                      category="keyboard"
+                      onChange={(val) => handleGearChange('keyboard', val)}
+                    />
+                    <InputGroup 
+                      label={t.monitor} 
+                      icon={<Monitor size={18} />} 
+                      value={newPro.gear.monitor}
+                      placeholder="e.g. Zowie XL2566K"
+                      hint={t.enterGear}
+                      listId="pro-monitors-list"
+                      options={PRO_MONITORS}
+                      theme={theme}
+                      category="monitor"
+                      onChange={(val) => handleGearChange('monitor', val)}
+                    />
+                    <InputGroup 
+                      label={t.mousepad} 
+                      icon={<Layers size={18} />} 
+                      value={newPro.gear.mousepad}
+                      placeholder="e.g. Artisan Zero"
+                      hint={t.enterGear}
+                      listId="pro-mousepads-list"
+                      options={PRO_MOUSEPADS}
+                      theme={theme}
+                      category="mousepad"
+                      onChange={(val) => handleGearChange('mousepad', val)}
+                    />
+                    <InputGroup 
+                      label="Controller" 
+                      icon={<Gamepad2 size={18} />} 
+                      value={newPro.gear.controller || ''}
+                      placeholder="e.g. DualSense Edge"
+                      hint="Enter controller model"
+                      listId="pro-controllers-list"
+                      options={[]}
+                      theme={theme}
+                      category="controller"
+                      onChange={(val) => handleGearChange('controller', val)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono uppercase tracking-widest text-[#888]">{t.dpi}</label>
+                      <input 
+                        type="number"
+                        value={newPro.settings.dpi || 0}
+                        onChange={(e) => {
+                          const dpi = Number(e.target.value);
+                          const edpi = Number((dpi * newPro.settings.sensitivity).toFixed(1));
+                          setNewPro({...newPro, settings: {...newPro.settings, dpi, edpi}});
+                        }}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono uppercase tracking-widest text-[#888]">{t.sensitivity}</label>
+                      <input 
+                        type="number"
+                        step="0.001"
+                        value={newPro.settings.sensitivity || 0}
+                        onChange={(e) => {
+                          const sensitivity = Number(e.target.value);
+                          const edpi = Number((newPro.settings.dpi * sensitivity).toFixed(1));
+                          setNewPro({...newPro, settings: {...newPro.settings, sensitivity, edpi}});
+                        }}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-mono uppercase tracking-widest text-[#888]">{t.edpi}</label>
+                      <input 
+                        type="number"
+                        step="0.1"
+                        value={newPro.settings.edpi || 0}
+                        onChange={(e) => {
+                          const edpi = Number(e.target.value);
+                          const sensitivity = newPro.settings.dpi > 0 ? Number((edpi / newPro.settings.dpi).toFixed(4)) : 0;
+                          setNewPro({...newPro, settings: {...newPro.settings, edpi, sensitivity}});
+                        }}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className={`flex-1 py-4 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-red-500/10 hover:text-red-400 transition-all`}
+                  >
+                    {t.cancel}
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 py-4 bg-emerald-500 text-black rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                    {loading ? t.adding : t.save}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Claude Chat Modal */}
+      <AnimatePresence>
+        {showClaudeModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl`}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Wand2 className="text-purple-500" size={24} />
+                  <h2 className={`text-2xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    Claude Chat
+                  </h2>
+                </div>
+                <button onClick={() => setShowClaudeModal(false)} className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} hover:text-purple-500`}>
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-4 mb-6 pr-2 scrollbar-thin scrollbar-thumb-purple-500/20">
+                {claudeMessages.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                    <div className="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center mb-4">
+                      <Wand2 className="text-purple-500" size={32} />
+                    </div>
+                    <p className={`text-sm font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-widest max-w-xs`}>
+                      Ask Claude anything about pro gamer gear or settings.
+                    </p>
+                  </div>
+                )}
+                {claudeMessages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-sans leading-relaxed ${
+                      msg.role === 'user' 
+                        ? 'bg-purple-600 text-white rounded-tr-none' 
+                        : theme === 'dark' 
+                          ? 'bg-[#0a0a0a] border border-[#333] text-[#aaa] rounded-tl-none' 
+                          : 'bg-[#f3f4f6] text-[#1a1a1a] rounded-tl-none'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))}
+                {claudeLoading && (
+                  <div className="flex justify-start">
+                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-[#0a0a0a] border border-[#333]' : 'bg-[#f3f4f6]'} rounded-tl-none`}>
+                      <Loader2 size={16} className="animate-spin text-purple-500" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={handleClaudeChat} className="flex gap-2">
+                <input 
+                  type="text"
+                  value={claudeInput}
+                  onChange={(e) => setClaudeInput(e.target.value)}
+                  placeholder="Type your message..."
+                  className={`flex-1 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-purple-500 transition-all`}
+                />
+                <button 
+                  type="submit"
+                  disabled={claudeLoading || !claudeInput.trim()}
+                  className="px-6 bg-purple-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Send
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, options, theme }: { label: string, icon: React.ReactNode, value: string, placeholder: string, hint?: string, onChange: (val: string) => void, listId?: string, options?: string[], theme: 'dark' | 'light' }) {
+function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, options, theme, category }: { label: string, icon: React.ReactNode, value: string, placeholder: string, hint?: string, onChange: (val: string) => void, listId?: string, options?: string[], theme: 'dark' | 'light', category?: 'mouse' | 'keyboard' | 'monitor' | 'mousepad' | 'controller' }) {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleInputChange = (val: string) => {
+    onChange(val);
+    
+    if (!category) return;
+
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    if (val.length < 2) {
+      setSuggestions([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    debounceTimer.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const results = await getGearSuggestions(val, category);
+        setSuggestions(results);
+        setShowDropdown(results.length > 0);
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+  };
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 relative">
       <div className="flex items-center justify-between">
         <label className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider flex items-center gap-2`}>
           {icon} {label}
         </label>
         {hint && <span className={`text-[10px] font-sans ${theme === 'dark' ? 'text-[#777]' : 'text-[#999]'} font-medium italic`}>{hint}</span>}
       </div>
-      <input 
-        type="text"
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        list={listId}
-        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-[#9ca3af]`}
-      />
-      {listId && options && (
-        <datalist id={listId}>
-          {options.map(opt => <option key={opt} value={opt} />)}
-        </datalist>
-      )}
+      <div className="relative">
+        <input 
+          type="text"
+          value={value || ''}
+          placeholder={placeholder}
+          onChange={(e) => handleInputChange(e.target.value)}
+          onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+          onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+          className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-[#9ca3af]`}
+        />
+        {loading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <Loader2 size={14} className="animate-spin text-emerald-500" />
+          </div>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {showDropdown && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`absolute z-50 left-0 right-0 mt-1 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg shadow-xl overflow-hidden`}
+          >
+            {suggestions.map((suggestion, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  onChange(suggestion);
+                  setSuggestions([]);
+                  setShowDropdown(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-xs font-mono ${theme === 'dark' ? 'hover:bg-emerald-500/10 text-[#aaa] hover:text-emerald-400' : 'hover:bg-emerald-50 text-[#4b5563] hover:text-emerald-600'} transition-colors border-b last:border-0 ${theme === 'dark' ? 'border-[#333]' : 'border-[#f3f4f6]'}`}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1033,6 +2520,150 @@ function StatBlock({ label, value, theme }: { label: string, value: string, them
     <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-3 rounded-xl`}>
       <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-widest block mb-1`}>{label}</span>
       <span className={`text-2xl font-bold tracking-tighter ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{value}</span>
+    </div>
+  );
+}
+
+function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer, onRefreshList }: { theme: 'dark' | 'light', t: any, proList: ProGamer[], onClose: () => void, onAddPlayer: (name: string) => void, onRefreshList: () => void }) {
+  const [inputText, setInputText] = useState('');
+  const [results, setResults] = useState<{ missing: string[], existing: string[] } | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [isAddingAll, setIsAddingAll] = useState(false);
+
+  const performAudit = () => {
+    setIsAuditing(true);
+    // Split by comma or newline
+    const items = inputText.split(/[,\n]/).map(n => n.trim()).filter(n => n.length > 0);
+    const existingNames = proList.map(p => p.name.toLowerCase());
+    const existingUrls = proList.map(p => p.profileUrl?.toLowerCase()).filter(Boolean);
+    
+    const missing: string[] = [];
+    const existing: string[] = [];
+
+    items.forEach(item => {
+      const lowerItem = item.toLowerCase();
+      const isUrl = item.startsWith('http');
+      
+      if (isUrl) {
+        if (existingUrls.includes(lowerItem)) {
+          existing.push(item);
+        } else {
+          missing.push(item);
+        }
+      } else {
+        if (existingNames.includes(lowerItem)) {
+          existing.push(item);
+        } else {
+          missing.push(item);
+        }
+      }
+    });
+
+    setResults({ missing, existing });
+    setIsAuditing(false);
+  };
+
+  const addAllMissing = async () => {
+    if (!results || results.missing.length === 0) return;
+    setIsAddingAll(true);
+    
+    // We'll use a simplified version of auto-fetch if we had URLs, 
+    // but here we just have names. So we'll just open the add modal for each?
+    // Actually, let's just provide a way to search them on liquipedia
+    
+    alert("Please add players individually using the 'Add' button to ensure correct data fetching.");
+    setIsAddingAll(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl`}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Target className="text-emerald-500" size={24} />
+            <h2 className={`text-2xl font-black uppercase tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+              {t.bulkAuditTitle}
+            </h2>
+          </div>
+          <button onClick={onClose} className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} hover:text-emerald-500`}>
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+          <div className="space-y-2">
+            <label className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+              {t.pastePlayerNames}
+            </label>
+            <textarea 
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              className={`w-full h-32 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all resize-none`}
+              placeholder="Asuna, TenZ, https://liquipedia.net/valorant/Aspas..."
+            />
+            <button 
+              onClick={performAudit}
+              disabled={!inputText.trim() || isAuditing}
+              className="w-full py-3 bg-emerald-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all flex items-center justify-center gap-2"
+            >
+              {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+              {t.checkMissing}
+            </button>
+          </div>
+
+          {results && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-xs font-mono uppercase tracking-widest text-red-400 flex items-center gap-2">
+                  <X size={14} /> {t.missing} ({results.missing.length})
+                </h3>
+                <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#fff5f5] border-red-100'} max-h-64 overflow-y-auto space-y-2`}>
+                  {results.missing.length === 0 ? (
+                    <p className="text-xs text-[#555] italic">{t.noMissing}</p>
+                  ) : (
+                    results.missing.map((name, i) => (
+                      <div key={i} className="flex items-center justify-between group gap-2">
+                        <span className={`text-xs font-mono truncate flex-1 ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`} title={name}>{name}</span>
+                        <button 
+                          onClick={() => onAddPlayer(name)}
+                          className="text-[9px] font-mono uppercase tracking-widest text-emerald-500 hover:text-emerald-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                        >
+                          {t.add}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-xs font-mono uppercase tracking-widest text-emerald-400 flex items-center gap-2">
+                  <CheckCircle2 size={14} /> {t.existing} ({results.existing.length})
+                </h3>
+                <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f0fff4] border-emerald-100'} max-h-64 overflow-y-auto space-y-2`}>
+                  {results.existing.map((name, i) => (
+                    <div key={i} className="text-xs font-mono text-[#555] truncate" title={name}>{name}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-[#333] flex justify-end">
+          <button 
+            onClick={onClose}
+            className={`px-8 py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-500/10 hover:text-emerald-400 transition-all`}
+          >
+            {t.close}
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -1048,4 +2679,7 @@ function ProGearItem({ icon, label, value, theme }: { icon: React.ReactNode, lab
     </div>
   );
 }
+
+
+
 

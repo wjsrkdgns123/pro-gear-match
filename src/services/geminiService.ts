@@ -2,76 +2,64 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { GearSettings, ProGamer } from "../types";
 import { db, OperationType, handleFirestoreError, auth, googleProvider } from "../firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
-import { collection, query, where, getDocs, setDoc, doc } from "firebase/firestore";
+import { collection, query, where, getDocs, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const getApiKey = () => {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    console.warn("GEMINI_API_KEY is missing in environment variables.");
+  }
+  return key || "";
+};
 
-const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
+const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
-async function syncProGamerToDb(pro: ProGamer) {
-  try {
-    // Only attempt sync if logged in as admin
-    if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
-      return;
-    }
-
-    const gamerId = `${pro.game}_${pro.name}`.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-    const gamerRef = doc(db, "pro-gamers", gamerId);
-    await setDoc(gamerRef, {
-      ...pro,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-  } catch (error) {
-    // Silently fail for regular users, log for admin
-    if (auth.currentUser?.email === ADMIN_EMAIL) {
-      console.error("Admin Sync error:", error);
+/**
+ * Helper to execute an AI call with exponential backoff on 429 errors.
+ */
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      const errorStr = JSON.stringify(error);
+      const isRateLimit = errorStr.includes("429") || errorStr.includes("RESOURCE_EXHAUSTED");
+      
+      if (isRateLimit && i < maxRetries - 1) {
+        const delay = Math.pow(2, i) * 2000 + Math.random() * 1000;
+        console.warn(`Rate limit hit. Retrying in ${Math.round(delay)}ms... (Attempt ${i + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+      throw error;
     }
   }
+  throw lastError;
 }
 
-export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]> {
-  const prompt = `
-    Based on the following gaming gear and settings, find 3 professional gamers (from games like Valorant, CS2, Overwatch 2, etc.) who use similar equipment or have a similar sensitivity profile (DPI * Sensitivity = eDPI).
-    
-    The first gamer should be the BEST match. The other two should be the next closest matches.
-    If multiple pro gamers have the same or very similar settings, prioritize the most famous and well-known players.
-    
-    User Settings:
-    - Game: ${settings.game}
-    - Mouse: ${settings.mouse}
-    - Keyboard: ${settings.keyboard}
-    - Monitor: ${settings.monitor}
-    - Mousepad: ${settings.mousepad}
-    - DPI: ${settings.dpi}
-    - Sensitivity: ${settings.sensitivity}
-    - eDPI: ${settings.dpi * settings.sensitivity}
-
-    CRITICAL CONSTRAINTS:
-    1. EXISTENCE CHECK: Every pro gamer returned MUST have a valid, existing profile on ProSettings.net (https://prosettings.net). If a player is not on ProSettings.net, DO NOT include them.
-    2. DATA SOURCE: While the player must exist on ProSettings.net, you MUST search the ENTIRE INTERNET (Liquipedia, Twitter/X, official team announcements, etc.) to provide the ABSOLUTE LATEST gear and settings. ProSettings.net can sometimes be outdated; your goal is to provide the most current information available as of today.
-    3. NO HALLUCINATION: If the latest information for a specific gear item or setting cannot be found anywhere, use the data from ProSettings.net. If even that is missing, use an empty string ("") or 0.
-    4. IMAGE SOURCE: Use the best available high-quality image URLs from the internet (Liquipedia is often best). If no image is found, use: https://picsum.photos/seed/{playerName}/200/200
-    5. Provide a direct URL to their profile on ProSettings.net for reference.
-    6. SOURCE FIELD: In the "source" field, list the primary sources used (e.g., "ProSettings.net, Liquipedia, Twitter").
-  `;
-
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      tools: [{ googleSearch: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
+/**
+ * Scrapes pro gamer information from a URL using Gemini's URL Context tool.
+ */
+export async function scrapeProGamerInfo(url: string): Promise<Partial<ProGamer> | null> {
+  if (!url) return null;
+  
+  try {
+    const response = await withRetry(() => ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Extract pro gamer information from ${url}. 
+      Return a JSON object with: name (use ONLY the player's nickname/in-game name, e.g., 'TenZ' instead of 'Tyson Ngo'), team, game, gear (mouse, keyboard, monitor, mousepad, controller), and settings (dpi, sensitivity).
+      If a field is not found, leave it empty or null.`,
+      config: {
+        tools: [{ urlContext: {} }],
+        responseMimeType: "application/json",
+        responseSchema: {
           type: Type.OBJECT,
           properties: {
             name: { type: Type.STRING },
             team: { type: Type.STRING },
             game: { type: Type.STRING },
-            imageUrl: { type: Type.STRING, description: "Direct URL to player's profile image. Empty string if not found." },
-            teamLogoUrl: { type: Type.STRING, description: "Direct URL to the team's logo image. Empty string if not found." },
-            profileUrl: { type: Type.STRING, description: "Direct URL to player's profile page on ProSettings.net" },
             gear: {
               type: Type.OBJECT,
               properties: {
@@ -79,47 +67,266 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
                 keyboard: { type: Type.STRING },
                 monitor: { type: Type.STRING },
                 mousepad: { type: Type.STRING },
-              },
-              required: ["mouse", "keyboard", "monitor", "mousepad"],
+                controller: { type: Type.STRING },
+              }
             },
             settings: {
               type: Type.OBJECT,
               properties: {
                 dpi: { type: Type.NUMBER },
                 sensitivity: { type: Type.NUMBER },
-                edpi: { type: Type.NUMBER },
-              },
-              required: ["dpi", "sensitivity", "edpi"],
-            },
-            source: { type: Type.STRING, description: "The source of this information (e.g., ProSettings.net)" },
-          },
-          required: ["name", "team", "game", "profileUrl", "gear", "settings", "source"],
-        },
-      },
-    },
-  });
+              }
+            }
+          }
+        }
+      }
+    }));
 
-  if (!response.text) {
-    throw new Error("Failed to get match from AI");
+    if (response.text) {
+      const data = JSON.parse(response.text);
+      
+      // Logic: If mouse is missing but controller exists, populate mouse, keyboard, mousepad with controller info
+      if (data.gear && !data.gear.mouse && data.gear.controller) {
+        data.gear.mouse = data.gear.controller;
+        data.gear.keyboard = data.gear.controller;
+        data.gear.mousepad = data.gear.controller;
+      }
+      
+      return data;
+    }
+    return null;
+  } catch (error) {
+    console.error("Scraping error:", error);
+    return null;
   }
-
-  const results = JSON.parse(response.text);
-  // Sync matches to DB in background
-  results.forEach((pro: ProGamer) => syncProGamerToDb(pro));
-  
-  return results;
 }
 
-const VALORANT_FALLBACK: ProGamer[] = [
-  {
-    name: "Asuna", team: "100 Thieves", game: "Valorant",
-    imageUrl: "https://prosettings.net/wp-content/uploads/asuna.png",
-    teamLogoUrl: "https://prosettings.net/wp-content/uploads/100-thieves-logo.png",
-    profileUrl: "https://prosettings.net/players/asuna/",
-    gear: { mouse: "RAZER DEATHADDER V3", keyboard: "SteelSeries Apex Pro TKL", monitor: "ZOWIE XL2546K", mousepad: "Artisan Hayate Otsu Soft" },
-    settings: { dpi: 1400, sensitivity: 0.24, edpi: 336 },
-    source: "ProSettings.net"
-  },
+/**
+ * Provides gear suggestions based on a partial query.
+ */
+export async function getGearSuggestions(queryStr: string, category: 'mouse' | 'keyboard' | 'monitor' | 'mousepad' | 'controller'): Promise<string[]> {
+  if (!queryStr || queryStr.length < 2) return [];
+
+  try {
+    const response = await withRetry(() => ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Provide 5 popular ${category} models that match or are similar to "${queryStr}". 
+      Return only a JSON array of strings.`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        }
+      }
+    }));
+
+    if (response.text) {
+      return JSON.parse(response.text);
+    }
+    return [];
+  } catch (error) {
+    console.error("Suggestion error:", error);
+    return [];
+  }
+}
+
+const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
+const VALID_GAMES = ['Valorant', 'CS2', 'Overwatch 2', 'Apex Legends'];
+
+function normalizeGameName(game: string): string {
+  if (!game) return "Valorant";
+  const found = VALID_GAMES.find(g => g.toLowerCase() === game.toLowerCase());
+  return found || game;
+}
+
+export function cleanPlayerName(name: string): string {
+  if (!name) return "";
+  
+  // Extract nickname from formats like: Tyson "TenZ" Ngo or Tyson 'TenZ' Ngo
+  const quoteMatch = name.match(/["'](.+)["']/);
+  if (quoteMatch) return quoteMatch[1].trim();
+  
+  // Extract from parentheses: Tyson (TenZ) Ngo
+  const parenMatch = name.match(/\((.+)\)/);
+  if (parenMatch) return parenMatch[1].trim();
+
+  // Extract from brackets: Tyson [TenZ] Ngo
+  const bracketMatch = name.match(/\[(.+)\]/);
+  if (bracketMatch) return bracketMatch[1].trim();
+  
+  // If it's a full name without markers, we can't easily guess the nickname.
+  // But the scraper prompt now handles this for URL fetches.
+  return name.trim();
+}
+
+export async function syncProGamerToDb(pro: ProGamer) {
+  try {
+    // Only attempt sync if logged in as admin
+    if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+      console.error("Unauthorized: Only admin can sync pro gamer data.");
+      throw new Error("Unauthorized: Only admin can perform this action.");
+    }
+
+    const cleanedName = cleanPlayerName(pro.name);
+    const normalizedGame = normalizeGameName(pro.game);
+    
+    // Logic: If mouse is missing but controller exists, populate mouse, keyboard, mousepad with controller info
+    if (pro.gear && !pro.gear.mouse && pro.gear.controller) {
+      pro.gear.mouse = pro.gear.controller;
+      pro.gear.keyboard = pro.gear.controller;
+      pro.gear.mousepad = pro.gear.controller;
+    }
+
+    const gamerId = `${normalizedGame}_${cleanedName}`.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const gamerRef = doc(db, "pro-gamers", gamerId);
+    
+    console.log(`Syncing pro gamer: ${cleanedName} (${gamerId}) in game: ${normalizedGame}`);
+    
+    await setDoc(gamerRef, {
+      ...pro,
+      name: cleanedName,
+      game: normalizedGame,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+    
+    console.log("Sync successful.");
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `pro-gamers/${pro.name}`);
+    throw error;
+  }
+}
+
+export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]> {
+  // Check if API key is present
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("Matchmaking failed: GEMINI_API_KEY is not set.");
+    if (settings.game === 'Valorant') {
+      return VALORANT_FALLBACK.slice(0, 3);
+    }
+    throw new Error("API configuration error. Please contact the administrator.");
+  }
+
+  // OPTIMIZATION: Fetch existing pros from Firestore to provide as context
+  let localPros: ProGamer[] = [];
+  try {
+    const q = query(collection(db, "pro-gamers"), where("game", "==", settings.game));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      localPros = querySnapshot.docs.map(doc => doc.data() as ProGamer);
+    }
+  } catch (error) {
+    console.error("Firestore fetch error during matchmaking:", error);
+  }
+
+  // If no data in DB, use fallback for Valorant or return empty
+  if (localPros.length === 0 && settings.game === 'Valorant') {
+    localPros = VALORANT_FALLBACK;
+  }
+
+  if (localPros.length === 0) {
+    throw new Error("No pro gamer data available in the database. Please upload data first.");
+  }
+
+  const prompt = `
+    Match 3 professional gamers for the game: ${settings.game} from the provided list.
+    User settings:
+    - Mouse: ${settings.mouse}
+    - Keyboard: ${settings.keyboard}
+    - Monitor: ${settings.monitor}
+    - Mousepad: ${settings.mousepad}
+    - DPI: ${settings.dpi}
+    - Sensitivity: ${settings.sensitivity}
+    - eDPI: ${(settings.dpi * settings.sensitivity).toFixed(1)}
+
+    DATA SOURCE (ONLY USE THIS DATA):
+    ${JSON.stringify(localPros)}
+
+    MATCHING LOGIC:
+    1. eDPI TOLERANCE: Identify players whose eDPI is within a +/- 15% range of the user's eDPI.
+    2. GEAR PRIORITY: Prioritize matching those who use the SAME or VERY SIMILAR gear.
+    3. RANKING: The first result should be the best match.
+
+    CRITICAL: DO NOT use Google Search. DO NOT invent new players. ONLY use the players provided in the DATA SOURCE above.
+    IMPORTANT: Use ONLY the player's nickname for the 'name' field (e.g., 'TenZ' instead of 'Tyson "TenZ" Ngo').
+    
+    Return the data in the specified JSON format.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              team: { type: Type.STRING },
+              game: { type: Type.STRING },
+              imageUrl: { type: Type.STRING },
+              teamLogoUrl: { type: Type.STRING },
+              profileUrl: { type: Type.STRING },
+              gear: {
+                type: Type.OBJECT,
+                properties: {
+                  mouse: { type: Type.STRING },
+                  keyboard: { type: Type.STRING },
+                  monitor: { type: Type.STRING },
+                  mousepad: { type: Type.STRING },
+                },
+                required: ["mouse", "keyboard", "monitor", "mousepad"],
+              },
+              settings: {
+                type: Type.OBJECT,
+                properties: {
+                  dpi: { type: Type.NUMBER },
+                  sensitivity: { type: Type.NUMBER },
+                  edpi: { type: Type.NUMBER },
+                },
+                required: ["dpi", "sensitivity", "edpi"],
+              },
+              source: { type: Type.STRING },
+            },
+            required: ["name", "team", "game", "profileUrl", "gear", "settings", "source"],
+          },
+        },
+      },
+    });
+
+    if (!response.text) {
+      console.error("Gemini API returned empty response text.");
+      if (settings.game === 'Valorant') return VALORANT_FALLBACK.slice(0, 3);
+      throw new Error("Empty response from AI");
+    }
+
+    const results = JSON.parse(response.text);
+    if (!Array.isArray(results) || results.length === 0) {
+      if (settings.game === 'Valorant') return VALORANT_FALLBACK.slice(0, 3);
+      throw new Error("No matches found");
+    }
+    
+    // Clean names just in case
+    const cleanedResults = results.map((pro: ProGamer) => ({
+      ...pro,
+      name: cleanPlayerName(pro.name)
+    }));
+    
+    return cleanedResults;
+  } catch (error) {
+    console.error("Matchmaking error:", error);
+    if (settings.game === 'Valorant') {
+      console.log("Returning fallback data for Valorant");
+      return VALORANT_FALLBACK.slice(0, 3);
+    }
+    throw error;
+  }
+}
+
+export const VALORANT_FALLBACK: ProGamer[] = [
   {
     name: "bang", team: "100 Thieves", game: "Valorant",
     imageUrl: "https://prosettings.net/wp-content/uploads/bang.png",
@@ -147,110 +354,277 @@ const VALORANT_FALLBACK: ProGamer[] = [
     settings: { dpi: 800, sensitivity: 0.4, edpi: 320 },
     source: "ProSettings.net"
   }
-  // ... adding more from the list
 ];
+
+export async function seedDatabase() {
+  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+    throw new Error("Unauthorized: Only admin can seed database.");
+  }
+  
+  console.log("Seeding database with default Valorant pros...");
+  for (const pro of VALORANT_FALLBACK) {
+    await syncProGamerToDb(pro);
+  }
+}
+
+export async function deleteProGamer(pro: ProGamer) {
+  console.log("deleteProGamer called for:", pro.name, pro.id);
+  try {
+    if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+      console.warn("Delete attempt by non-admin:", auth.currentUser?.email);
+      throw new Error("Unauthorized: Only administrators can delete entries.");
+    }
+    
+    // Use the explicit ID if available
+    if (pro.id) {
+      console.log("Deleting by ID:", pro.id);
+      const gamerRef = doc(db, "pro-gamers", pro.id);
+      await deleteDoc(gamerRef);
+      return;
+    }
+    
+    // Fallback to name-based ID if no explicit ID
+    const cleanedName = cleanPlayerName(pro.name);
+    const gamerId = `${pro.game}_${cleanedName}`.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const gamerRef = doc(db, "pro-gamers", gamerId);
+    console.log("Deleting by generated ID:", gamerId);
+    await deleteDoc(gamerRef);
+    
+    // Also try with original name ID just in case it was saved differently
+    const originalGamerId = `${pro.game}_${pro.name}`.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    if (gamerId !== originalGamerId) {
+      console.log("Deleting by original ID:", originalGamerId);
+      const originalGamerRef = doc(db, "pro-gamers", originalGamerId);
+      await deleteDoc(originalGamerRef);
+    }
+  } catch (error) {
+    console.error("Delete error:", error);
+    throw error;
+  }
+}
+
+export async function migrateProsToOverwatch() {
+  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+    throw new Error("Unauthorized: Only admin can perform migration.");
+  }
+
+  // Get today's date in YYYY-MM-DD format (UTC)
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  console.log(`Starting migration. Checking for pros added on ${today} or ${yesterday} (UTC)...`);
+
+  try {
+    const allSnapshot = await getDocs(collection(db, "pro-gamers"));
+    console.log(`Total documents in collection: ${allSnapshot.size}`);
+    
+    const todayPros = allSnapshot.docs.filter(d => {
+      const data = d.data();
+      // Check for both today and yesterday to handle timezone overlaps
+      const isRecent = data.updatedAt && (data.updatedAt.startsWith(today) || data.updatedAt.startsWith(yesterday));
+      const isTargetGame = data.game === "Valorant" || data.game === "CS2";
+      
+      if (isTargetGame) {
+        console.log(`Checking ${data.name}: game=${data.game}, updatedAt=${data.updatedAt}, isRecent=${isRecent}`);
+      }
+      
+      return isRecent && isTargetGame;
+    });
+
+    if (todayPros.length === 0) {
+      console.log("No matching pros found for migration.");
+      return 0;
+    }
+
+    console.log(`Found ${todayPros.length} pros to migrate.`);
+
+    for (const docSnap of todayPros) {
+      const data = docSnap.data() as ProGamer;
+      const oldPro = { ...data, id: docSnap.id };
+      
+      console.log(`Migrating ${oldPro.name} from ${oldPro.game} to Overwatch 2...`);
+      
+      // 1. Delete old entry
+      await deleteProGamer(oldPro);
+      
+      // 2. Create new entry in Apex Legends
+      const newPro: ProGamer = {
+        ...data,
+        game: "Apex Legends",
+        updatedAt: new Date().toISOString()
+      };
+      await syncProGamerToDb(newPro);
+    }
+
+    console.log("Migration successfully completed.");
+    return todayPros.length;
+  } catch (error) {
+    console.error("Migration error details:", error);
+    throw error;
+  }
+}
+
+export async function revertOverwatchLinks() {
+  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+    throw new Error("Unauthorized: Only admin can perform this action.");
+  }
+
+  console.log("Reverting Overwatch 2 links (Liquipedia -> ProSettings)...");
+
+  try {
+    const q = query(collection(db, "pro-gamers"), where("game", "==", "Overwatch 2"));
+    const snapshot = await getDocs(q);
+    let count = 0;
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data() as ProGamer;
+      const url = data.profileUrl || "";
+      
+      // If it's a Liquipedia link, try to revert it to ProSettings
+      if (url.includes("liquipedia.net")) {
+        // ProSettings Overwatch URLs are usually https://prosettings.net/overwatch/playername/
+        const slug = data.name.toLowerCase().replace(/\s+/g, '-');
+        const originalUrl = `https://prosettings.net/overwatch/${slug}/`;
+        
+        await updateDoc(doc(db, "pro-gamers", docSnap.id), {
+          profileUrl: originalUrl,
+          updatedAt: new Date().toISOString()
+        });
+        count++;
+        console.log(`Reverted ${data.name}: ${url} -> ${originalUrl}`);
+      }
+    }
+
+    console.log(`Revert complete. Restored ${count} players.`);
+    return count;
+  } catch (error) {
+    console.error("Revert error:", error);
+    throw error;
+  }
+}
+
+export async function fixOverwatchLinks() {
+  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+    throw new Error("Unauthorized: Only admin can perform this action.");
+  }
+
+  console.log("Starting precision Overwatch 2 link fix (404 detection)...");
+
+  try {
+    const q = query(collection(db, "pro-gamers"), where("game", "==", "Overwatch 2"));
+    const snapshot = await getDocs(q);
+    let count = 0;
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data() as ProGamer;
+      const url = data.profileUrl || "";
+      
+      // Only target prosettings.net links for validation
+      if (url.includes("prosettings.net")) {
+        let isInvalid = false;
+        
+        // Heuristic 1: Generic list URL (Doesn't point to a specific player)
+        if (url.endsWith("/overwatch-pro-settings-list/") || 
+            url.endsWith("/overwatch-pro-settings-list") ||
+            url.endsWith("/overwatch/") ||
+            url.endsWith("/overwatch")) {
+          isInvalid = true;
+        }
+
+        // Heuristic 2: Check for 404 via server-side proxy
+        if (!isInvalid) {
+          try {
+            const response = await fetch(`/api/check-url?url=${encodeURIComponent(url)}`);
+            const result = await response.json();
+            
+            if (result.status === 404) {
+              console.log(`404 detected for ${data.name}: ${url}`);
+              isInvalid = true;
+            }
+          } catch (e) {
+            console.warn(`Failed to check URL status for ${data.name}:`, e);
+          }
+        }
+
+        if (isInvalid) {
+          const newUrl = `https://liquipedia.net/overwatch/${data.name.replace(/\s+/g, '_')}`;
+          await updateDoc(doc(db, "pro-gamers", docSnap.id), {
+            profileUrl: newUrl,
+            updatedAt: new Date().toISOString()
+          });
+          count++;
+          console.log(`Fixed broken link for ${data.name}: ${url} -> ${newUrl}`);
+        }
+      }
+    }
+
+    console.log(`Precision link fix complete. Updated ${count} players.`);
+    return count;
+  } catch (error) {
+    console.error("Link fix error:", error);
+    throw error;
+  }
+}
 
 export async function getProGamerList(game: string): Promise<ProGamer[]> {
   try {
-    const q = query(collection(db, "pro-gamers"), where("game", "==", game));
+    const normalizedGame = normalizeGameName(game);
+    console.log(`Fetching ${normalizedGame} pros from Firestore...`);
+    
+    // Diagnostic: Log all docs in the collection to see if anything is "lost"
+    if (auth.currentUser?.email === ADMIN_EMAIL) {
+      const allSnapshot = await getDocs(collection(db, "pro-gamers"));
+      const allPros = allSnapshot.docs.map(d => ({ id: d.id, game: d.data().game, name: d.data().name }));
+      console.log("DIAGNOSTIC: All pro-gamers in DB:", allPros);
+      
+      const asuna = allSnapshot.docs.find(d => 
+        (d.data().name && d.data().name.toLowerCase().includes("asuna")) || 
+        d.id.toLowerCase().includes("asuna")
+      );
+      if (asuna) {
+        console.log("DIAGNOSTIC: Found 'Asuna' entry:", asuna.data());
+        console.log("DIAGNOSTIC: Entry game is:", asuna.data().game, "Requested game is:", normalizedGame);
+      } else {
+        console.log("DIAGNOSTIC: 'Asuna' NOT found in entire collection.");
+      }
+    }
+
+    const q = query(collection(db, "pro-gamers"), where("game", "==", normalizedGame));
     const querySnapshot = await getDocs(q);
     
+    console.log(`Fetched ${querySnapshot.size} docs from Firestore for ${normalizedGame}`);
+    
+    let dbList: ProGamer[] = [];
     if (!querySnapshot.empty) {
-      const dbList = querySnapshot.docs.map(doc => doc.data() as ProGamer);
-      if (game === 'Valorant') {
-        // Merge with fallback to ensure we have the latest extracted data
-        const merged = [...dbList];
-        VALORANT_FALLBACK.forEach(fallback => {
-          if (!merged.some(p => p.name.toLowerCase() === fallback.name.toLowerCase())) {
-            merged.push(fallback);
-          }
-        });
-        return merged;
-      }
-      return dbList;
+      dbList = querySnapshot.docs.map(doc => {
+        const data = doc.data() as ProGamer;
+        const cleanedName = cleanPlayerName(data.name);
+        return {
+          ...data,
+          id: doc.id, // Store the Firestore document ID
+          name: cleanedName,
+          _rawName: data.name // Store original name for cleanup logic
+        };
+      });
     }
+    
+    // If it's Valorant, merge fallback data with DB data to avoid "disappearing" pros
+    if (normalizedGame === 'Valorant') {
+      const merged = [...dbList];
+      VALORANT_FALLBACK.forEach(fallbackPro => {
+        // Only add fallback if not already in DB (by name)
+        if (!merged.some(p => p.name.toLowerCase() === fallbackPro.name.toLowerCase())) {
+          merged.push(fallbackPro);
+        }
+      });
+      return merged;
+    }
+    
+    return dbList;
   } catch (error) {
     console.error("Firestore fetch error:", error);
+    if (game === 'Valorant') return VALORANT_FALLBACK;
+    return [];
   }
-
-  if (game === 'Valorant') return VALORANT_FALLBACK;
-
-  const prompt = `
-    List at least 100 famous professional gamers for the game: ${game}.
-    
-    CRITICAL CONSTRAINTS:
-    1. EXISTENCE CHECK: Every pro gamer returned MUST have a valid, existing profile on ProSettings.net (https://prosettings.net). If a player is not on ProSettings.net, DO NOT include them.
-    2. DATA SOURCE: While the player must exist on ProSettings.net, you MUST search the ENTIRE INTERNET (Liquipedia, Twitter/X, official team announcements, etc.) to provide the ABSOLUTE LATEST gear and settings. ProSettings.net can sometimes be outdated; your goal is to provide the most current information available as of today.
-    3. NO HALLUCINATION: If the latest information for a specific gear item or setting cannot be found anywhere, use the data from ProSettings.net. If even that is missing, use an empty string ("") or 0.
-    4. IMAGE SOURCE: Use the best available high-quality image URLs from the internet (Liquipedia is often best). If no image is found, use: https://picsum.photos/seed/{playerName}/200/200
-    5. QUANTITY: Provide at least 100 unique professional gamers who meet the existence criteria.
-    6. TEAM PRIORITY: Prioritize active players from famous teams.
-    7. SORTING: Return the list SORTED BY TEAM NAME alphabetically.
-    8. SOURCE FIELD: In the "source" field, list the primary sources used (e.g., "ProSettings.net, Liquipedia, Twitter").
-    
-    For each gamer, provide:
-    - name
-    - team
-    - game
-    - imageUrl (Direct link to profile photo)
-    - teamLogoUrl (Direct link to team logo)
-    - profileUrl (ProSettings.net profile URL)
-    - gear (mouse, keyboard, monitor, mousepad)
-    - settings (dpi, sensitivity, edpi)
-    - source (e.g., "ProSettings.net, Liquipedia")
-  `;
-
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      tools: [{ googleSearch: {} }],
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            team: { type: Type.STRING },
-            game: { type: Type.STRING },
-            imageUrl: { type: Type.STRING },
-            teamLogoUrl: { type: Type.STRING },
-            profileUrl: { type: Type.STRING },
-            gear: {
-              type: Type.OBJECT,
-              properties: {
-                mouse: { type: Type.STRING },
-                keyboard: { type: Type.STRING },
-                monitor: { type: Type.STRING },
-                mousepad: { type: Type.STRING },
-              },
-              required: ["mouse", "keyboard", "monitor", "mousepad"],
-            },
-            settings: {
-              type: Type.OBJECT,
-              properties: {
-                dpi: { type: Type.NUMBER },
-                sensitivity: { type: Type.NUMBER },
-                edpi: { type: Type.NUMBER },
-              },
-              required: ["dpi", "sensitivity", "edpi"],
-            },
-            source: { type: Type.STRING },
-          },
-          required: ["name", "team", "game", "profileUrl", "gear", "settings", "source"],
-        },
-      },
-    },
-  });
-
-  if (!response.text) {
-    throw new Error("Failed to get list from AI");
-  }
-
-  const list = JSON.parse(response.text);
-  // Sync list to DB in background
-  list.forEach((pro: ProGamer) => syncProGamerToDb(pro));
-
-  return list;
 }

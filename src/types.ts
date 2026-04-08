@@ -8,12 +8,9 @@ export interface GearSettings {
   game: string;
 }
 
-export interface Highlight {
-  title: string;
-  url: string;
-}
-
 export interface ProGamer {
+  id?: string;
+  _rawName?: string;
   name: string;
   team: string;
   game: string;
@@ -25,6 +22,7 @@ export interface ProGamer {
     keyboard: string;
     monitor: string;
     mousepad: string;
+    controller?: string;
   };
   settings: {
     dpi: number;
@@ -32,5 +30,5 @@ export interface ProGamer {
     edpi: number;
   };
   source: string;
-  highlights?: Highlight[];
+  updatedAt?: string;
 }

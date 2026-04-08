@@ -19,7 +19,7 @@ service cloud.firestore {
     match /pro-gamers/{gamerId} {
       // Anyone can read pro gamer data
       allow read: if true;
-      // Only admin can write/update/delete
+      // Only admins can write pro gamer data
       allow write: if isAdmin();
     }
   }
