@@ -31,4 +31,5 @@ export interface ProGamer {
   };
   source: string;
   updatedAt?: string;
+  matchReasons?: string[];
 }

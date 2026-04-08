@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil } from 'lucide-react';
+import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
@@ -1198,6 +1198,10 @@ export default function App() {
                     />
                   </label>
                 </div>
+                <div className="mt-2 flex justify-end items-center gap-2 px-1">
+                  <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'} uppercase tracking-widest`}>eDPI</span>
+                  <span className="text-sm font-bold text-emerald-500 font-mono">{(settings.dpi * settings.sensitivity).toFixed(1)}</span>
+                </div>
               </div>
 
               <button 
@@ -1255,7 +1259,11 @@ export default function App() {
                         <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{matches[1].team}</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                    <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
+                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
+                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>DPI</span>
+                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[1].settings.dpi}</span>
+                      </div>
                       <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>eDPI</span>
                         <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(matches[1].settings.edpi)}</span>
@@ -1314,13 +1322,30 @@ export default function App() {
                   
                   <div className="p-8 space-y-8">
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-                      <div className="text-center md:text-left">
+                      <div className="text-center md:text-left flex-1">
                         <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none mb-2">{matches[0].name}</h2>
-                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xl uppercase tracking-widest`}>{matches[0].team}</p>
+                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xl uppercase tracking-widest mb-4`}>{matches[0].team}</p>
+                        
+                        {matches[0].matchReasons && matches[0].matchReasons.length > 0 && (
+                          <div className={`mt-4 p-4 rounded-xl ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} border`}>
+                            <p className="text-[10px] font-mono text-[#555] uppercase tracking-widest mb-2 flex items-center gap-2">
+                              <Zap size={10} className="text-emerald-500" /> 매칭 포인트
+                            </p>
+                            <ul className="space-y-1">
+                              {matches[0].matchReasons.map((reason, idx) => (
+                                <li key={idx} className="text-xs font-sans text-emerald-500 flex items-start gap-2">
+                                  <span className="mt-1.5 w-1 h-1 rounded-full bg-emerald-500 flex-shrink-0" />
+                                  {reason}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
  
-                      <div className="grid grid-cols-2 gap-6">
+                      <div className="grid grid-cols-3 gap-6">
+                        <StatBlock label="DPI" value={matches[0].settings.dpi.toString()} theme={theme} />
                         <StatBlock label={t.edpi} value={formatEdpi(matches[0].settings.edpi)} theme={theme} />
                         <StatBlock label={t.sensitivity} value={matches[0].settings.sensitivity.toString()} theme={theme} />
                       </div>
@@ -1338,7 +1363,17 @@ export default function App() {
                     </div>
 
                     <div className={`pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
-                      <span>{t.source}: {matches[0].source}</span>
+                      <div className="flex flex-col gap-1">
+                        <span>{t.source}: {matches[0].source}</span>
+                        <a 
+                          href={`https://www.youtube.com/results?search_query=${matches[0].name}+${matches[0].game}+highlights`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-emerald-500 hover:text-emerald-400 flex items-center gap-1 mt-1 transition-colors"
+                        >
+                          <Play size={12} fill="currentColor" /> 하이라이트 영상 보기
+                        </a>
+                      </div>
                       <a 
                         href={matches[0].profileUrl} 
                         target="_blank" 
@@ -1369,7 +1404,11 @@ export default function App() {
                         <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{matches[2].team}</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
+                    <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
+                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
+                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>DPI</span>
+                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[2].settings.dpi}</span>
+                      </div>
                       <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
                         <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>eDPI</span>
                         <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(matches[2].settings.edpi)}</span>

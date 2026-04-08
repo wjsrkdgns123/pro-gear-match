@@ -155,40 +155,56 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
 
   const scoredPros = localPros.map(pro => {
     let score = 0;
+    const reasons: string[] = [];
     const proEdpi = pro.settings.edpi || (pro.settings.dpi * pro.settings.sensitivity);
 
     // 1. eDPI Similarity (Weight: 60%)
-    // Calculate how close the eDPI is. 1.0 means exact match, 0.0 means very far.
     const edpiDiff = Math.abs(userEdpi - proEdpi);
+    const edpiRatio = Math.min(userEdpi, proEdpi) / Math.max(userEdpi, proEdpi);
     const edpiScore = Math.max(0, 1 - (edpiDiff / (userEdpi || 1)));
     score += edpiScore * 60;
 
+    if (edpiRatio > 0.9) {
+      reasons.push("eDPI가 거의 일치합니다 (90% 이상)");
+    } else if (edpiRatio > 0.8) {
+      reasons.push("유사한 eDPI 범위를 사용합니다");
+    }
+
     // 2. Gear Similarity (Weight: 40%)
     let gearMatches = 0;
-    const userGear = [
-      settings.mouse?.toLowerCase().trim(),
-      settings.keyboard?.toLowerCase().trim(),
-      settings.monitor?.toLowerCase().trim(),
-      settings.mousepad?.toLowerCase().trim()
-    ].filter(Boolean);
+    const matchedGearNames: string[] = [];
+    
+    const userGearMap = {
+      "마우스": settings.mouse?.toLowerCase().trim(),
+      "키보드": settings.keyboard?.toLowerCase().trim(),
+      "모니터": settings.monitor?.toLowerCase().trim(),
+      "마우스패드": settings.mousepad?.toLowerCase().trim()
+    };
 
-    const proGear = [
-      pro.gear.mouse?.toLowerCase().trim(),
-      pro.gear.keyboard?.toLowerCase().trim(),
-      pro.gear.monitor?.toLowerCase().trim(),
-      pro.gear.mousepad?.toLowerCase().trim()
-    ].filter(Boolean);
+    const proGearMap = {
+      "마우스": pro.gear.mouse?.toLowerCase().trim() || pro.gear.controller?.toLowerCase().trim(),
+      "키보드": pro.gear.keyboard?.toLowerCase().trim(),
+      "모니터": pro.gear.monitor?.toLowerCase().trim(),
+      "마우스패드": pro.gear.mousepad?.toLowerCase().trim()
+    };
 
-    userGear.forEach(ug => {
-      if (proGear.some(pg => pg.includes(ug) || ug.includes(pg))) {
+    Object.entries(userGearMap).forEach(([label, ug]) => {
+      if (!ug) return;
+      const pg = proGearMap[label as keyof typeof proGearMap];
+      if (pg && (pg.includes(ug) || ug.includes(pg))) {
         gearMatches++;
+        matchedGearNames.push(label);
       }
     });
+
+    if (matchedGearNames.length > 0) {
+      reasons.push(`${matchedGearNames.join(", ")} 장비가 일치하거나 매우 유사합니다`);
+    }
 
     const gearScore = (gearMatches / 4) * 40;
     score += gearScore;
 
-    return { pro, score };
+    return { pro: { ...pro, matchReasons: reasons }, score };
   });
 
   // Sort by score descending and take top 3
