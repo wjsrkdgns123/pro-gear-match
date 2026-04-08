@@ -460,6 +460,24 @@ export async function fixOverwatchLinks() {
   }
 }
 
+export async function getHighlightVideos(playerName: string, game: string): Promise<{ title: string, youtubeId: string, description?: string }[]> {
+  if (!playerName || !game) return [];
+  
+  try {
+    const response = await fetch("/api/gemini/highlights", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ playerName, game })
+    });
+
+    if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Highlights fetch error:", error);
+    return [];
+  }
+}
+
 export async function getProGamerList(game: string): Promise<ProGamer[]> {
   try {
     const normalizedGame = normalizeGameName(game);

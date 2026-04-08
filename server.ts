@@ -372,6 +372,41 @@ async function startServer() {
     }
   });
 
+  // Gemini Highlights Endpoint
+  app.post("/api/gemini/highlights", async (req, res) => {
+    const { playerName, game } = req.body;
+    if (!playerName || !game) return res.status(400).json({ error: "Missing playerName or game" });
+    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+
+    try {
+      const result = await genAI.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: "user", parts: [{ text: `Find 3 popular YouTube highlight videos for the pro gamer "${playerName}" in the game "${game}". 
+        Return a JSON array of objects, each with: title, youtubeId (the 11-char ID from the URL), and description.` }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                youtubeId: { type: Type.STRING },
+                description: { type: Type.STRING },
+              },
+              required: ["title", "youtubeId"]
+            }
+          }
+        }
+      });
+
+      res.json(JSON.parse(result.text || "[]"));
+    } catch (error: any) {
+      console.error("Gemini Highlights Error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

@@ -3,7 +3,7 @@ import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, Exte
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
-import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, cleanPlayerName, scrapeProGamerInfo, getGearSuggestions, seedDatabase, migrateProsToOverwatch, fixOverwatchLinks, revertOverwatchLinks } from './services/geminiService';
+import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, cleanPlayerName, scrapeProGamerInfo, getGearSuggestions, seedDatabase, migrateProsToOverwatch, fixOverwatchLinks, revertOverwatchLinks, getHighlightVideos } from './services/geminiService';
 import { translations, getLanguage, Language } from './translations';
 import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from './constants';
 import { auth, googleProvider } from './firebase';
@@ -88,6 +88,8 @@ export default function App() {
   const [showList, setShowList] = useState(false);
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
   const [proList, setProList] = useState<ProGamer[]>([]);
+  const [highlights, setHighlights] = useState<{ title: string, youtubeId: string, description?: string }[]>([]);
+  const [loadingHighlights, setLoadingHighlights] = useState(false);
 
   const gameStats = useMemo(() => {
     if (proList.length === 0) return null;
@@ -761,9 +763,23 @@ export default function App() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setHighlights([]);
     try {
       const results = await matchProGamer(settings);
       setMatches(results);
+
+      if (results.length > 0) {
+        setLoadingHighlights(true);
+        try {
+          const vids = await getHighlightVideos(results[0].name, results[0].game);
+          setHighlights(vids);
+        } catch (e) {
+          console.error("Failed to fetch highlights:", e);
+        } finally {
+          setLoadingHighlights(false);
+        }
+      }
+
       // Trigger confetti
       const duration = 1 * 1000;
       const animationEnd = Date.now() + duration;
@@ -1234,7 +1250,7 @@ export default function App() {
           >
             <div className="max-w-6xl mx-auto">
               <button 
-                onClick={() => setMatches(null)}
+                onClick={() => { setMatches(null); setHighlights([]); }}
                 className={`mb-8 flex items-center gap-2 ${theme === 'dark' ? 'text-[#888] bg-[#151619] border-[#333]' : 'text-[#4b5563] bg-white border-[#d1d5db]'} hover:text-emerald-400 transition-colors font-mono text-sm uppercase tracking-widest px-4 py-2 rounded-lg border`}
               >
                 <ArrowLeft size={18} /> {t.back}
@@ -1323,7 +1339,17 @@ export default function App() {
                   <div className="p-8 space-y-8">
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                       <div className="text-center md:text-left flex-1">
-                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none mb-2">{matches[0].name}</h2>
+                        <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-2">
+                          <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">{matches[0].name}</h2>
+                          <a 
+                            href={matches[0].profileUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888]' : 'bg-white border-[#d1d5db] text-[#4b5563]'} border rounded-lg text-[10px] font-mono hover:text-emerald-400 hover:border-emerald-500/50 transition-all uppercase tracking-widest mb-1 md:mb-2`}
+                          >
+                            {t.viewProfile} <ExternalLink size={10} />
+                          </a>
+                        </div>
                         <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xl uppercase tracking-widest mb-4`}>{matches[0].team}</p>
                         
                         {matches[0].matchReasons && matches[0].matchReasons.length > 0 && (
@@ -1362,25 +1388,57 @@ export default function App() {
                       <ProGearItem icon={<Layers size={18} />} label={t.mousepad} value={matches[0].gear.mousepad} theme={theme} />
                     </div>
 
-                    <div className={`pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
-                      <div className="flex flex-col gap-1">
-                        <span>{t.source}: {matches[0].source}</span>
-                        <a 
-                          href={`https://www.youtube.com/results?search_query=${matches[0].name}+${matches[0].game}+highlights`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-emerald-500 hover:text-emerald-400 flex items-center gap-1 mt-1 transition-colors"
-                        >
-                          <Play size={12} fill="currentColor" /> 하이라이트 영상 보기
-                        </a>
+                    {loadingHighlights && (
+                      <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'} flex flex-col items-center justify-center py-8`}>
+                        <Loader2 size={24} className="text-emerald-500 animate-spin mb-2" />
+                        <p className="text-[10px] font-mono text-emerald-500 uppercase tracking-widest animate-pulse">하이라이트 불러오는 중...</p>
                       </div>
+                    )}
+
+                    {highlights.length > 0 && (
+                      <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
+                        <p className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase tracking-widest mb-4 flex items-center gap-2`}>
+                          <Play size={12} className="text-emerald-500" /> 추천 하이라이트
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {highlights.map((vid, idx) => (
+                            <a 
+                              key={idx}
+                              href={`https://www.youtube.com/watch?v=${vid.youtubeId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group block space-y-2"
+                            >
+                              <div className="relative aspect-video rounded-xl overflow-hidden border border-transparent group-hover:border-emerald-500/50 transition-all">
+                                <img 
+                                  src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`} 
+                                  alt={vid.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors flex items-center justify-center">
+                                  <div className="w-8 h-8 bg-emerald-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all">
+                                    <Play size={16} fill="currentColor" />
+                                  </div>
+                                </div>
+                              </div>
+                              <p className={`text-[10px] font-medium leading-tight line-clamp-2 ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'} group-hover:text-emerald-500 transition-colors`}>
+                                {vid.title}
+                              </p>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className={`pt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                       <a 
-                        href={matches[0].profileUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className={`px-6 py-3 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f9fafb] border-[#e5e7eb]'} border rounded-xl hover:text-emerald-400 hover:border-emerald-500/50 flex items-center gap-2 transition-all`}
+                        href={`https://www.youtube.com/results?search_query=${matches[0].name}+${matches[0].game}+highlights`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-500 hover:text-emerald-400 flex items-center gap-2 transition-colors px-6 py-3 border border-emerald-500/20 rounded-xl bg-emerald-500/5"
                       >
-                        {t.viewProfile} <ExternalLink size={14} />
+                        <Play size={14} fill="currentColor" /> 하이라이트 영상 보기
                       </a>
                     </div>
                   </div>
@@ -1600,6 +1658,15 @@ export default function App() {
             <button onClick={() => setActivePolicy('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
             <button onClick={() => setActivePolicy('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>
             <button onClick={() => setActivePolicy('contact')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.contactUs}</button>
+            {user ? (
+              <button onClick={handleLogout} className="flex items-center gap-1 text-red-500 hover:text-red-400 transition-colors">
+                <LogOut size={10} /> {t.logout}
+              </button>
+            ) : (
+              <button onClick={handleLogin} className={`flex items-center gap-1 hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>
+                <LogIn size={10} /> {t.login}
+              </button>
+            )}
           </div>
         </div>
       </footer>
