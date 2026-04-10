@@ -1,52 +1,56 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
+import Anthropic from "@anthropic-ai/sdk";
+import axios from "axios";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || "" });
 
 async function scrape(url: string) {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
-      contents: "Extract pro gamer information from " + url + ". Return a JSON object with: name, team, game, gear (mouse, keyboard, monitor, mousepad), settings (dpi, sensitivity), imageUrl, teamLogoUrl, profileUrl.",
-      config: {
-        tools: [{ urlContext: {} }],
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            team: { type: Type.STRING },
-            game: { type: Type.STRING },
-            imageUrl: { type: Type.STRING },
-            teamLogoUrl: { type: Type.STRING },
-            profileUrl: { type: Type.STRING },
-            gear: {
-              type: Type.OBJECT,
-              properties: {
-                mouse: { type: Type.STRING },
-                keyboard: { type: Type.STRING },
-                monitor: { type: Type.STRING },
-                mousepad: { type: Type.STRING },
-              }
-            },
-            settings: {
-              type: Type.OBJECT,
-              properties: {
-                dpi: { type: Type.NUMBER },
-                sensitivity: { type: Type.NUMBER },
-              }
-            }
-          }
-        }
-      }
+    const pageResponse = await axios.get(url, {
+      timeout: 10000,
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      maxContentLength: 500000,
+    });
+    const html = String(pageResponse.data).slice(0, 80000);
+
+    const message = await anthropic.messages.create({
+      model: "claude-opus-4-6",
+      max_tokens: 1024,
+      messages: [
+        {
+          role: "user",
+          content: `Extract pro gamer information from this page HTML.
+Return ONLY a valid JSON object with this exact shape (no explanation, no markdown):
+{
+  "name": "<player nickname only>",
+  "team": "<team name>",
+  "game": "<game name>",
+  "imageUrl": "<player image URL or null>",
+  "teamLogoUrl": "<team logo URL or null>",
+  "profileUrl": "${url}",
+  "gear": {
+    "mouse": "<mouse model or null>",
+    "keyboard": "<keyboard model or null>",
+    "monitor": "<monitor model or null>",
+    "mousepad": "<mousepad model or null>"
+  },
+  "settings": {
+    "dpi": <number or null>,
+    "sensitivity": <number or null>
+  }
+}
+
+PAGE HTML:
+${html}`,
+        },
+      ],
     });
 
-    if (response.text) {
-      return JSON.parse(response.text);
-    }
+    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) return JSON.parse(jsonMatch[0]);
   } catch (error) {
     console.error("Error scraping " + url + ":", error);
   }
@@ -57,7 +61,7 @@ async function main() {
   const urls = [
     "https://prosettings.net/players/boostio/",
     "https://prosettings.net/players/cryocells/",
-    "https://prosettings.net/players/eeiu/"
+    "https://prosettings.net/players/eeiu/",
   ];
 
   const results = [];

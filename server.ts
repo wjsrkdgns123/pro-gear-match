@@ -6,7 +6,6 @@ import cookieSession from "cookie-session";
 import axios from "axios";
 import dotenv from "dotenv";
 import Anthropic from "@anthropic-ai/sdk";
-import { GoogleGenAI, Type } from "@google/genai";
 
 dotenv.config();
 
@@ -15,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3005;
 
   app.use(express.json());
   app.use(express.static(path.join(process.cwd(), "public")));
@@ -23,19 +22,16 @@ async function startServer() {
     cookieSession({
       name: "session",
       keys: [process.env.SESSION_SECRET || "pro-gear-match-secret"],
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
       secure: true,
       sameSite: "none",
     })
   );
 
   // Anthropic (Claude) Client
-  const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY || "",
-  });
-
-  // Gemini Client
-  const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+  const anthropic = process.env.ANTHROPIC_API_KEY
+    ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+    : null;
 
   // Microsoft OAuth Config
   const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID;
@@ -47,176 +43,122 @@ async function startServer() {
     res.json({ status: "ok" });
   });
 
-  // Gemini Scrape Endpoint
-  app.post("/api/gemini/scrape", async (req, res) => {
+  // Claude Scrape Endpoint — fetch URL content and extract pro gamer info
+  app.post("/api/claude/scrape", async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: "No URL provided" });
-    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+    if (!anthropic) return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
 
     try {
-      const result = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [{ role: "user", parts: [{ text: `Extract pro gamer information from ${url}. 
-        Return a JSON object with: name (use ONLY the player's nickname/in-game name, e.g., 'TenZ' instead of 'Tyson Ngo'), team, game, gear (mouse, keyboard, monitor, mousepad, controller), and settings (dpi, sensitivity).
-        If a field is not found, leave it empty or null.` }] }],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              name: { type: Type.STRING },
-              team: { type: Type.STRING },
-              game: { type: Type.STRING },
-              gear: {
-                type: Type.OBJECT,
-                properties: {
-                  mouse: { type: Type.STRING },
-                  keyboard: { type: Type.STRING },
-                  monitor: { type: Type.STRING },
-                  mousepad: { type: Type.STRING },
-                  controller: { type: Type.STRING },
-                }
-              },
-              settings: {
-                type: Type.OBJECT,
-                properties: {
-                  dpi: { type: Type.NUMBER },
-                  sensitivity: { type: Type.NUMBER },
-                }
-              }
-            }
+      // Fetch the page HTML server-side to avoid CORS
+      const pageResponse = await axios.get(url, {
+        timeout: 10000,
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+        maxContentLength: 500000,
+      });
+
+      // Trim HTML to keep token usage reasonable (first 80k chars is usually enough)
+      const html = String(pageResponse.data).slice(0, 80000);
+
+      const message = await anthropic.messages.create({
+        model: "claude-opus-4-6",
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "user",
+            content: `Extract pro gamer information from this page HTML.
+Return ONLY a valid JSON object with this exact shape:
+{
+  "name": "<player nickname only, e.g. TenZ not Tyson Ngo>",
+  "team": "<team name>",
+  "game": "<game name>",
+  "gear": {
+    "mouse": "<mouse model or null>",
+    "keyboard": "<keyboard model or null>",
+    "monitor": "<monitor model or null>",
+    "mousepad": "<mousepad model or null>",
+    "controller": "<controller model or null>"
+  },
+  "settings": {
+    "dpi": <number or null>,
+    "sensitivity": <number or null>
+  }
+}
+Use null for any field not found. Do not include any explanation or markdown.
+
+PAGE URL: ${url}
+
+PAGE HTML:
+${html}`,
           },
-          tools: [{ urlContext: {} }] as any
-        }
+        ],
       });
 
-      res.json(JSON.parse(result.text || "{}"));
+      const text = message.content[0].type === "text" ? message.content[0].text : "";
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("No JSON found in Claude response");
+
+      const data = JSON.parse(jsonMatch[0]);
+
+      // If mouse is missing but controller exists, populate from controller
+      if (data.gear && !data.gear.mouse && data.gear.controller) {
+        data.gear.mouse = data.gear.controller;
+        data.gear.keyboard = data.gear.controller;
+        data.gear.mousepad = data.gear.controller;
+      }
+
+      res.json(data);
     } catch (error: any) {
-      console.error("Gemini Scrape Error:", error);
+      console.error("Claude Scrape Error:", error.message);
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Gemini Suggestions Endpoint
-  app.post("/api/gemini/suggestions", async (req, res) => {
-    const { query, category } = req.body;
-    if (!query || !category) return res.status(400).json({ error: "Missing query or category" });
-    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
+  // Claude Highlights Endpoint — find YouTube highlight videos for a pro gamer
+  app.post("/api/claude/highlights", async (req, res) => {
+    const { playerName, game } = req.body;
+    if (!playerName || !game) return res.status(400).json({ error: "Missing playerName or game" });
+    if (!anthropic) return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
 
     try {
-      const result = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [{ role: "user", parts: [{ text: `Provide 5 popular ${category} models that match or are similar to "${query}". 
-        Return only a JSON array of strings.` }] }],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING }
-          }
-        }
+      const message = await anthropic.messages.create({
+        model: "claude-opus-4-6",
+        max_tokens: 1024,
+        messages: [
+          {
+            role: "user",
+            content: `List 3 popular YouTube highlight videos for the pro gamer "${playerName}" in the game "${game}".
+Return ONLY a valid JSON array with this exact shape:
+[
+  { "title": "<video title>", "youtubeId": "<11-char YouTube video ID>", "description": "<brief description>" }
+]
+Use real, well-known highlight videos if you know them. Do not include any explanation or markdown.`,
+          },
+        ],
       });
 
-      res.json(JSON.parse(result.text || "[]"));
+      const text = message.content[0].type === "text" ? message.content[0].text : "";
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error("No JSON array found in Claude response");
+
+      res.json(JSON.parse(jsonMatch[0]));
     } catch (error: any) {
-      console.error("Gemini Suggestion Error:", error);
+      console.error("Claude Highlights Error:", error.message);
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Gemini Match Endpoint
-  app.post("/api/gemini/match", async (req, res) => {
-    const { settings, localPros } = req.body;
-    if (!settings || !localPros) return res.status(400).json({ error: "Missing settings or localPros" });
-    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
-
-    const prompt = `
-      Match 3 professional gamers for the game: ${settings.game} from the provided list.
-      User settings:
-      - Mouse: ${settings.mouse}
-      - Keyboard: ${settings.keyboard}
-      - Monitor: ${settings.monitor}
-      - Mousepad: ${settings.mousepad}
-      - DPI: ${settings.dpi}
-      - Sensitivity: ${settings.sensitivity}
-      - eDPI: ${(settings.dpi * settings.sensitivity).toFixed(1)}
-
-      DATA SOURCE (ONLY USE THIS DATA):
-      ${JSON.stringify(localPros)}
-
-      MATCHING LOGIC:
-      1. eDPI TOLERANCE: Identify players whose eDPI is within a +/- 15% range of the user's eDPI.
-      2. GEAR PRIORITY: Prioritize matching those who use the SAME or VERY SIMILAR gear.
-      3. RANKING: The first result should be the best match.
-
-      CRITICAL: DO NOT use Google Search. DO NOT invent new players. ONLY use the players provided in the DATA SOURCE above.
-      IMPORTANT: Use ONLY the player's nickname for the 'name' field (e.g., 'TenZ' instead of 'Tyson "TenZ" Ngo').
-      
-      Return the data in the specified JSON format.
-    `;
-
-    try {
-      const result = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                name: { type: Type.STRING },
-                team: { type: Type.STRING },
-                game: { type: Type.STRING },
-                imageUrl: { type: Type.STRING },
-                teamLogoUrl: { type: Type.STRING },
-                profileUrl: { type: Type.STRING },
-                gear: {
-                  type: Type.OBJECT,
-                  properties: {
-                    mouse: { type: Type.STRING },
-                    keyboard: { type: Type.STRING },
-                    monitor: { type: Type.STRING },
-                    mousepad: { type: Type.STRING },
-                  },
-                  required: ["mouse", "keyboard", "monitor", "mousepad"],
-                },
-                settings: {
-                  type: Type.OBJECT,
-                  properties: {
-                    dpi: { type: Type.NUMBER },
-                    sensitivity: { type: Type.NUMBER },
-                    edpi: { type: Type.NUMBER },
-                  },
-                  required: ["dpi", "sensitivity", "edpi"],
-                },
-                source: { type: Type.STRING },
-              },
-              required: ["name", "team", "game", "profileUrl", "gear", "settings", "source"],
-            },
-          }
-        }
-      });
-
-      res.json(JSON.parse(result.text || "[]"));
-    } catch (error: any) {
-      console.error("Gemini Match Error:", error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Claude API Endpoint
+  // Claude Chat Endpoint
   app.post("/api/claude/chat", async (req, res) => {
     const { messages, system } = req.body;
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured in Secrets" });
+    if (!anthropic) {
+      return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
     }
 
     try {
       const response = await anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-opus-4-6",
         max_tokens: 1024,
         system: system || "You are a helpful assistant.",
         messages: messages || [],
@@ -264,7 +206,7 @@ async function startServer() {
       );
 
       req.session!.microsoftToken = response.data.access_token;
-      
+
       res.send(`
         <html>
           <body>
@@ -295,14 +237,13 @@ async function startServer() {
     if (!shareUrl) return res.status(400).json({ error: "No URL provided" });
 
     try {
-      // 1. Encode the sharing URL
-      const base64Url = Buffer.from(shareUrl).toString("base64")
+      const base64Url = Buffer.from(shareUrl)
+        .toString("base64")
         .replace(/\+/g, "-")
         .replace(/\//g, "_")
         .replace(/=+$/, "");
       const shareId = `u!${base64Url}`;
 
-      // 2. Get the drive item
       const driveItemResponse = await axios.get(
         `https://graph.microsoft.com/v1.0/shares/${shareId}/driveItem`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -311,7 +252,6 @@ async function startServer() {
       const driveId = driveItemResponse.data.parentReference.driveId;
       const itemId = driveItemResponse.data.id;
 
-      // 3. Get worksheets
       const worksheetsResponse = await axios.get(
         `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${itemId}/workbook/worksheets`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -319,7 +259,6 @@ async function startServer() {
 
       const firstSheetName = worksheetsResponse.data.value[0].name;
 
-      // 4. Get table/range data
       const rangeResponse = await axios.get(
         `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${itemId}/workbook/worksheets/${firstSheetName}/usedRange`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -327,7 +266,7 @@ async function startServer() {
 
       res.json({
         fileName: driveItemResponse.data.name,
-        data: rangeResponse.data.values
+        data: rangeResponse.data.values,
       });
     } catch (error: any) {
       console.error("Excel Data Error:", error.response?.data || error.message);
@@ -335,29 +274,26 @@ async function startServer() {
     }
   });
 
-  // URL Status Checker (to detect 404s on third-party sites)
+  // URL Status Checker
   app.get("/api/check-url", async (req, res) => {
     const url = req.query.url as string;
     if (!url) return res.status(400).json({ error: "No URL provided" });
 
     try {
-      // We use a HEAD request first as it's faster and uses less bandwidth
-      // If HEAD fails or isn't supported, we fall back to GET
       let status = 0;
       try {
-        const headResponse = await axios.head(url, { 
+        const headResponse = await axios.head(url, {
           timeout: 5000,
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
         });
         status = headResponse.status;
       } catch (e: any) {
         if (e.response) {
           status = e.response.status;
         } else {
-          // Fallback to GET if HEAD is blocked or fails
-          const getResponse = await axios.get(url, { 
+          const getResponse = await axios.get(url, {
             timeout: 5000,
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36' }
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
           });
           status = getResponse.status;
         }
@@ -372,48 +308,13 @@ async function startServer() {
     }
   });
 
-  // Gemini Highlights Endpoint
-  app.post("/api/gemini/highlights", async (req, res) => {
-    const { playerName, game } = req.body;
-    if (!playerName || !game) return res.status(400).json({ error: "Missing playerName or game" });
-    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: "GEMINI_API_KEY not configured" });
-
-    try {
-      const result = await genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [{ role: "user", parts: [{ text: `Find 3 popular YouTube highlight videos for the pro gamer "${playerName}" in the game "${game}". 
-        Return a JSON array of objects, each with: title, youtubeId (the 11-char ID from the URL), and description.` }] }],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                youtubeId: { type: Type.STRING },
-                description: { type: Type.STRING },
-              },
-              required: ["title", "youtubeId"]
-            }
-          }
-        }
-      });
-
-      res.json(JSON.parse(result.text || "[]"));
-    } catch (error: any) {
-      console.error("Gemini Highlights Error:", error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { 
+      server: {
         middlewareMode: true,
-        hmr: false,
-        watch: null
+        hmr: { port: 24679 },
+        watch: null,
       },
       appType: "spa",
     });

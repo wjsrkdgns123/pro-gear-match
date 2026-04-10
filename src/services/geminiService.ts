@@ -11,7 +11,7 @@ export async function scrapeProGamerInfo(url: string): Promise<Partial<ProGamer>
   if (!url) return null;
   
   try {
-    const response = await fetch("/api/gemini/scrape", {
+    const response = await fetch("/api/claude/scrape", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
@@ -464,7 +464,7 @@ export async function getHighlightVideos(playerName: string, game: string): Prom
   if (!playerName || !game) return [];
   
   try {
-    const response = await fetch("/api/gemini/highlights", {
+    const response = await fetch("/api/claude/highlights", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ playerName, game })
