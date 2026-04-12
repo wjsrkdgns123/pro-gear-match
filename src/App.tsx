@@ -7,7 +7,7 @@ import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, clean
 import { translations, getLanguage, Language } from './translations';
 import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from './constants';
 import { auth, googleProvider } from './firebase';
-import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
 
 const GAMES = [
   { name: 'Valorant', emoji: '🎯' },
@@ -678,14 +678,34 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
     });
+    // Handle redirect result after Google login (for fallback redirect flow)
+    getRedirectResult(auth)
+      .then(result => {
+        if (result?.user) console.log('Redirect login success:', result.user.email);
+      })
+      .catch(err => console.error('Redirect result error:', err));
     return () => unsubscribe();
   }, []);
 
   const handleLogin = async () => {
     try {
+      // Try popup first (better UX)
       await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Popup login failed:', err?.code, err?.message);
+      // Fallback to redirect if popup is blocked or fails
+      if (
+        err?.code === 'auth/popup-blocked' ||
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request' ||
+        err?.code === 'auth/internal-error'
+      ) {
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectErr) {
+          console.error('Redirect login failed:', redirectErr);
+        }
+      }
     }
   };
 
@@ -1923,6 +1943,45 @@ export default function App() {
                 </div>
               </div>
               
+              {/* Today's Added Players - Admin Only */}
+              {user?.email === ADMIN_EMAIL && (() => {
+                const today = new Date().toISOString().split('T')[0];
+                const todayPros = proList.filter(p => p.updatedAt?.startsWith(today));
+                if (todayPros.length === 0) return null;
+                return (
+                  <div className={`px-6 py-4 border-b ${theme === 'dark' ? 'border-[#333] bg-[#12131a]' : 'border-[#e5e7eb] bg-[#eef2ff]'}`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <CheckCircle2 size={14} className="text-emerald-500" />
+                      <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                        오늘 추가된 선수 ({todayPros.length}명)
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {todayPros.map((pro: ProGamer) => (
+                        <React.Fragment key={pro.id || pro.name}>
+                          <TodayProCard
+                            pro={pro}
+                            theme={theme}
+                            currentGame={settings.game}
+                            onMove={async (targetGame) => {
+                              try {
+                                await deleteProGamer(pro);
+                                await syncProGamerToDb({ ...pro, game: targetGame, updatedAt: new Date().toISOString() });
+                                const list = await getProGamerList(settings.game);
+                                setProList([...list].sort((a, b) => a.team.localeCompare(b.team)));
+                              } catch (err) {
+                                console.error('Move failed:', err);
+                                alert('이동 실패: ' + (err instanceof Error ? err.message : String(err)));
+                              }
+                            }}
+                          />
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Modal Body - Table */}
               <div className={`flex-1 overflow-auto ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-[#f8f9fa]'}`}>
                 {listLoading ? (
@@ -2886,6 +2945,52 @@ function ProGearItem({ icon, label, value, theme }: { icon: React.ReactNode, lab
   );
 }
 
+function TodayProCard({ pro, theme, currentGame, onMove }: {
+  pro: ProGamer;
+  theme: 'dark' | 'light';
+  currentGame: string;
+  onMove: (targetGame: string) => Promise<void>;
+}) {
+  const [moving, setMoving] = useState(false);
+  const [selectedGame, setSelectedGame] = useState('');
 
+  const otherGames = GAMES.filter(g => g.name !== currentGame);
+
+  const handleMove = async () => {
+    if (!selectedGame) return;
+    setMoving(true);
+    await onMove(selectedGame);
+    setMoving(false);
+    setSelectedGame('');
+  };
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+      <span className="font-bold">{pro.name}</span>
+      <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>·</span>
+      <span className={`${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>{pro.team}</span>
+      <select
+        value={selectedGame}
+        onChange={e => setSelectedGame(e.target.value)}
+        className={`ml-1 text-[10px] font-mono rounded px-1 py-0.5 border ${theme === 'dark' ? 'bg-[#1a1b1e] border-[#444] text-[#aaa]' : 'bg-white border-[#d1d5db] text-[#374151]'} outline-none`}
+      >
+        <option value="">이동...</option>
+        {otherGames.map(g => (
+          <option key={g.name} value={g.name}>{g.emoji} {g.name}</option>
+        ))}
+      </select>
+      {selectedGame && (
+        <button
+          onClick={handleMove}
+          disabled={moving}
+          className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold transition-all ${theme === 'dark' ? 'bg-blue-500/20 border border-blue-500/40 text-blue-300 hover:bg-blue-500/30' : 'bg-blue-50 border border-blue-200 text-blue-600 hover:bg-blue-100'} disabled:opacity-50`}
+        >
+          {moving ? <Loader2 size={10} className="animate-spin" /> : <ArrowLeft size={10} className="rotate-180" />}
+          이동
+        </button>
+      )}
+    </div>
+  );
+}
 
 

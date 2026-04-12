@@ -85,7 +85,25 @@ export const PRO_MICE = [
   "Cherry Xtrfy M68 Pro",
   "VGN Dragonfly F1 Pro Max",
   "VXE R1 Pro",
-  "Zaopin Z1 Pro"
+  "Zaopin Z1 Pro",
+  "BenQ Zowie FK1-B",
+  "BenQ Zowie S2 Divina",
+  "TRUST GXT 179 Gamers",
+  "SteelSeries Rival 5",
+  "SteelSeries Rival 600",
+  "SteelSeries Sensei Ten",
+  "Corsair Dark Core RGB Pro",
+  "Corsair M65 RGB Ultra",
+  "Corsair Ironclaw RGB",
+  "Mad Catz R.A.T. 8+ Pro",
+  "Mad Catz R.A.T. Pro X",
+  "Turtle Beach Krait Ultra",
+  "Gigabyte Aorus M5",
+  "MSI Clutch GM11",
+  "SCUF Impact",
+  "Turtle Beach Krait",
+  "Kingston Fury Beast Pro",
+  "Patriot Viper V560"
 ];
 
 export const PRO_KEYBOARDS = [
@@ -150,7 +168,24 @@ export const PRO_KEYBOARDS = [
   "ZSA Moonlander",
   "NuPhy Air75",
   "IQUNIX L80",
-  "Mistel Barocco MD770"
+  "Mistel Barocco MD770",
+  "Monsgeek King Kong 87",
+  "Epomaker GK96S",
+  "Ajazz AK820",
+  "Gateron Apex Pro",
+  "Corsair K70 Lux",
+  "Corsair K70 RGB TKL",
+  "Steelseries Apex M800",
+  "Razer Huntsman Elite",
+  "Razer Pro Type Ultra",
+  "GMMK 2 Pro",
+  "Keychron K8 Pro",
+  "Lenovo Thinkvision Monitor",
+  "Mechanical Gaming Keyboard Custom",
+  "iKBC CD108",
+  "Novelkeys NK87 Entry",
+  "Bauzen KBC",
+  "Input Club K-Type"
 ];
 
 export const PRO_MONITORS = [
@@ -274,5 +309,23 @@ export const PRO_MOUSEPADS = [
   "Glorious Ice",
   "Corsair MM300",
   "Corsair MM350",
-  "Cooler Master MP511"
+  "Cooler Master MP511",
+  "Endgame Gear OP1 8K",
+  "Razer Strider Pro",
+  "Cooler Master MP511 XL",
+  "Ducky Sherlock Dark",
+  "Ducky Sherlock Frost",
+  "Logitech G Pro X",
+  "SteelSeries QcK Large",
+  "SteelSeries QcK XL",
+  "HyperX Fury L Pro",
+  "Corsair MM800",
+  "SCUF Instinct Pro",
+  "Turtle Beach Flash Pro",
+  "Vanguard VG Infinity",
+  "Glorious 3XL Extended",
+  "Razer Invicta",
+  "Mad Catz Glide 38",
+  "Kingston Fury Beast XL",
+  "Patriot Viper V1 Pro"
 ];

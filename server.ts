@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 3005;
+  const PORT = Number(process.env.PORT) || 3010;
 
   app.use(express.json());
   app.use(express.static(path.join(process.cwd(), "public")));
@@ -57,21 +57,37 @@ async function startServer() {
         maxContentLength: 500000,
       });
 
-      // Trim HTML to keep token usage reasonable (first 80k chars is usually enough)
-      const html = String(pageResponse.data).slice(0, 80000);
+      // Strip noise from HTML: remove scripts, styles, nav, images, SVGs to keep only content
+      let html = String(pageResponse.data);
+      html = html.replace(/<script[\s\S]*?<\/script>/gi, "");
+      html = html.replace(/<style[\s\S]*?<\/style>/gi, "");
+      html = html.replace(/<nav[\s\S]*?<\/nav>/gi, "");
+      html = html.replace(/<footer[\s\S]*?<\/footer>/gi, "");
+      html = html.replace(/<svg[\s\S]*?<\/svg>/gi, "");
+      html = html.replace(/<picture[\s\S]*?<\/picture>/gi, "");
+      html = html.replace(/<img[^>]*>/gi, "");
+      html = html.replace(/\s+/g, " ");
+      html = html.slice(0, 60000);
 
       const message = await anthropic.messages.create({
-        model: "claude-opus-4-6",
+        model: "claude-sonnet-4-6",
         max_tokens: 1024,
         messages: [
           {
             role: "user",
-            content: `Extract pro gamer information from this page HTML.
-Return ONLY a valid JSON object with this exact shape:
+            content: `Extract pro gamer gear and settings from this ProSettings.net page.
+
+IMPORTANT HINTS for parsing ProSettings.net HTML:
+- Gear sections have classes like "section--mouse", "section--keyboard", "section--monitor", "section--mousepad"
+- Gear names are in <h4><a>...</a></h4> inside each section
+- Settings like DPI and sensitivity are in <tr data-field="dpi">, <tr data-field="sensitivity"> with values in <td> tags
+- The first game section (usually VALORANT) is the primary one
+
+Return ONLY a valid JSON object:
 {
   "name": "<player nickname only, e.g. TenZ not Tyson Ngo>",
   "team": "<team name>",
-  "game": "<game name>",
+  "game": "<primary game>",
   "gear": {
     "mouse": "<mouse model or null>",
     "keyboard": "<keyboard model or null>",
@@ -84,7 +100,6 @@ Return ONLY a valid JSON object with this exact shape:
     "sensitivity": <number or null>
   }
 }
-Use null for any field not found. Do not include any explanation or markdown.
 
 PAGE URL: ${url}
 
