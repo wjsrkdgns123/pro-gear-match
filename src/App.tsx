@@ -2757,7 +2757,7 @@ function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, o
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className={`absolute z-50 left-0 right-0 mt-1 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg shadow-xl overflow-hidden`}
+            className={`absolute z-50 left-0 right-0 mt-1 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg shadow-xl overflow-y-auto max-h-60`}
           >
             {suggestions.map((suggestion, idx) => (
               <button
