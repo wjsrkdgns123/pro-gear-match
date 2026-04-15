@@ -1656,6 +1656,17 @@ export default function App() {
                       </a>
                     </div>
 
+                    {/* eDPI Distribution Chart */}
+                    <EdpiDistributionChart
+                      proList={proList}
+                      userEdpi={settings.dpi * settings.sensitivity}
+                      proEdpi={matches[0].settings.edpi}
+                      proName={matches[0].name}
+                      game={settings.game}
+                      theme={theme}
+                      lang={lang}
+                    />
+
                     {/* Comments */}
                     <CommentSection
                       proId={matches[0].id || matches[0].name}
@@ -3214,6 +3225,131 @@ function normalizeGearName(s: string): string {
 function getAmazonLink(productName: string): string {
   if (!productName) return '';
   return AMAZON_LINKS_NORMALIZED[normalizeGearName(productName)] || '';
+}
+
+// ── eDPI 분포 차트 ──────────────────────────────────────────────────
+function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, theme, lang }: {
+  proList: ProGamer[];
+  userEdpi: number;
+  proEdpi: number;
+  proName: string;
+  game: string;
+  theme: 'dark' | 'light';
+  lang: Language;
+}) {
+  const edpiValues = proList.map(p => p.settings.edpi).filter(e => e > 0);
+  if (edpiValues.length < 3) return null;
+
+  const maxVal = Math.max(...edpiValues, userEdpi, proEdpi);
+  const rawBinSize = maxVal / 14;
+  const binSize = Math.ceil(rawBinSize / 50) * 50 || 50;
+  const numBins = Math.ceil((maxVal + binSize) / binSize);
+
+  const bins = Array(numBins).fill(0);
+  edpiValues.forEach(e => {
+    const idx = Math.floor(e / binSize);
+    if (idx >= 0 && idx < numBins) bins[idx]++;
+  });
+  const maxCount = Math.max(...bins, 1);
+
+  const userPercentile = Math.round((edpiValues.filter(e => e < userEdpi).length / edpiValues.length) * 100);
+  const topPercent = 100 - userPercentile;
+
+  const gameHex: Record<string, string> = {
+    'Valorant': '#f43f5e',
+    'CS2': '#f97316',
+    'Overwatch 2': '#38bdf8',
+    'Apex Legends': '#ef4444',
+  };
+  const gColor = gameHex[game] || '#10b981';
+
+  const SW = 500, SH = 130;
+  const PL = 28, PR = 16, PT = 18, PB = 28;
+  const CW = SW - PL - PR;
+  const CH = SH - PT - PB;
+
+  const toX = (val: number) => PL + (val / (numBins * binSize)) * CW;
+  const barW = Math.max(CW / numBins - 1, 1);
+
+  const userX = toX(userEdpi);
+  const proX = toX(proEdpi);
+  const tooClose = Math.abs(userX - proX) < 20;
+
+  return (
+    <div className={`mt-6 p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <p className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
+          {game} eDPI {lang === 'ko' ? '분포' : 'Distribution'} · {edpiValues.length}{lang === 'ko' ? '명' : ' pros'}
+        </p>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className={`text-[10px] font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              {lang === 'ko' ? '나' : 'You'} {formatEdpi(userEdpi)} · {lang === 'ko' ? `상위 ${topPercent}%` : `Top ${topPercent}%`}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gColor }} />
+            <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#555]'}`}>
+              {proName} {formatEdpi(proEdpi)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full" style={{ height: '130px' }}>
+        {/* 그리드 */}
+        {[0.25, 0.5, 0.75, 1].map(r => (
+          <line key={r} x1={PL} y1={PT + CH * (1 - r)} x2={PL + CW} y2={PT + CH * (1 - r)}
+            stroke={theme === 'dark' ? '#161616' : '#f3f4f6'} strokeWidth={1} />
+        ))}
+
+        {/* 바 */}
+        {bins.map((count, idx) => {
+          if (count === 0) return null;
+          const bh = Math.max((count / maxCount) * CH, 2);
+          const bx = PL + (idx / numBins) * CW;
+          const by = PT + CH - bh;
+          const isUserBin = Math.floor(userEdpi / binSize) === idx;
+          const isProBin = Math.floor(proEdpi / binSize) === idx;
+          const fill = isUserBin ? '#10b98133' : isProBin ? `${gColor}33` : theme === 'dark' ? '#1e2a22' : '#d1fae5';
+          return <rect key={idx} x={bx} y={by} width={barW} height={bh} fill={fill} rx={1} />;
+        })}
+
+        {/* X축 */}
+        <line x1={PL} y1={PT + CH} x2={PL + CW} y2={PT + CH}
+          stroke={theme === 'dark' ? '#2a2a2a' : '#e5e7eb'} strokeWidth={1} />
+
+        {/* 프로 마커 */}
+        <line x1={proX} y1={PT} x2={proX} y2={PT + CH}
+          stroke={gColor} strokeWidth={1.5} strokeDasharray="3,2" opacity={0.8} />
+        <polygon points={`${proX},${PT + CH + 3} ${proX - 3},${PT + CH + 9} ${proX + 3},${PT + CH + 9}`}
+          fill={gColor} opacity={0.8} />
+        {!tooClose && (
+          <text x={proX} y={PT - 5} textAnchor="middle" fontSize={7}
+            fill={gColor} fontFamily="monospace">{proName.split(' ')[0]}</text>
+        )}
+
+        {/* 유저 마커 */}
+        <line x1={userX} y1={PT} x2={userX} y2={PT + CH}
+          stroke="#10b981" strokeWidth={2} strokeDasharray="3,2" />
+        <polygon points={`${userX},${PT + CH + 3} ${userX - 3},${PT + CH + 9} ${userX + 3},${PT + CH + 9}`}
+          fill="#10b981" />
+        <text x={userX} y={PT - 5} textAnchor="middle" fontSize={8}
+          fill="#10b981" fontFamily="monospace" fontWeight="bold">
+          {lang === 'ko' ? '나' : 'You'}
+        </text>
+
+        {/* X축 레이블 */}
+        {[0, 0.25, 0.5, 0.75, 1].map(r => (
+          <text key={r} x={PL + r * CW} y={SH - 4} textAnchor="middle" fontSize={7}
+            fill={theme === 'dark' ? '#444' : '#9ca3af'} fontFamily="monospace">
+            {Math.round(r * numBins * binSize)}
+          </text>
+        ))}
+      </svg>
+    </div>
+  );
 }
 
 // ── 작성자 토큰 (브라우저당 고유, 익명 소유권 확인용) ──────────────
