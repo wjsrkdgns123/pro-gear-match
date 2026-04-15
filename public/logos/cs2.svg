@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 105">
+  <!-- COUNTER top line -->
+  <text
+    x="4" y="50"
+    font-family="'Arial Black', 'Franklin Gothic Heavy', 'Impact', sans-serif"
+    font-weight="900"
+    font-style="italic"
+    font-size="46"
+    letter-spacing="-1"
+    fill="#1B1F2C"
+    stroke="white"
+    stroke-width="5"
+    stroke-linejoin="round"
+    paint-order="stroke fill"
+  >COUNTER</text>
+
+  <!-- STRIKE bottom line -->
+  <text
+    x="4" y="99"
+    font-family="'Arial Black', 'Franklin Gothic Heavy', 'Impact', sans-serif"
+    font-weight="900"
+    font-style="italic"
+    font-size="46"
+    letter-spacing="-1"
+    fill="#1B1F2C"
+    stroke="white"
+    stroke-width="5"
+    stroke-linejoin="round"
+    paint-order="stroke fill"
+  >STRIKE</text>
+
+  <!-- Large outlined 2 -->
+  <text
+    x="213" y="101"
+    font-family="'Arial Black', 'Franklin Gothic Heavy', 'Impact', sans-serif"
+    font-weight="900"
+    font-style="italic"
+    font-size="90"
+    fill="none"
+    stroke="#1B1F2C"
+    stroke-width="5"
+    stroke-linejoin="round"
+  >2</text>
+  <!-- 2 inner white outline -->
+  <text
+    x="213" y="101"
+    font-family="'Arial Black', 'Franklin Gothic Heavy', 'Impact', sans-serif"
+    font-weight="900"
+    font-style="italic"
+    font-size="90"
+    fill="none"
+    stroke="white"
+    stroke-width="2"
+    stroke-linejoin="round"
+  >2</text>
+</svg>

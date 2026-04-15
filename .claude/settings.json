@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /c/Users/wjsrk/Desktop/progearmatch && npm run lint 2>&1 || true",
+            "statusMessage": "Running tsc type check...",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

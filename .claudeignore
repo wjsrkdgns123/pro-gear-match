@@ -1,0 +1,22 @@
+# 의존성 / 빌드 산출물
+node_modules/
+dist/
+.wrangler/
+
+# 환경변수 / 비밀키
+.env
+.env.local
+.env*.local
+
+# Git 내부
+.git/
+
+# 대용량 / 불필요 데이터
+valorant_pros.csv
+package-lock.json
+
+# Claude 메모리
+.claude/
+
+# 로그
+*.log
