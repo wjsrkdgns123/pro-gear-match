@@ -1870,6 +1870,11 @@ export default function App() {
 
       {/* Footer */}
       <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4`}>
+        {/* Amazon Associates Disclosure */}
+        <div className={`max-w-4xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#222]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
+          <span className={`${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'} font-semibold`}>Amazon Associates</span>
+          {' '}— Pro Gear Match는 Amazon Associates 제휴 프로그램에 참여하고 있으며, 적격 구매 시 수수료를 받을 수 있습니다. 가격 확인 링크를 통해 구매하시면 사이트 운영에 도움이 됩니다.
+        </div>
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
             <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} tracking-tighter uppercase mb-2`}>Pro Gear Match</h3>
