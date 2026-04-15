@@ -1479,6 +1479,17 @@ export default function App() {
                         <StatBlock label={t.sensitivity} value={matches[0].settings.sensitivity.toString()} theme={theme} />
                       </div>
  
+                    {/* eDPI Distribution Chart */}
+                    <EdpiDistributionChart
+                      proList={proList}
+                      userEdpi={settings.dpi * settings.sensitivity}
+                      proEdpi={matches[0].settings.edpi}
+                      proName={matches[0].name}
+                      game={settings.game}
+                      theme={theme}
+                      lang={lang}
+                    />
+
                     {/* 나 vs 프로 장비 비교 */}
                     <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                       <p className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase tracking-widest mb-4 flex items-center gap-2`}>
@@ -1655,17 +1666,6 @@ export default function App() {
                         <Play size={14} fill="currentColor" /> 하이라이트 영상 보기
                       </a>
                     </div>
-
-                    {/* eDPI Distribution Chart */}
-                    <EdpiDistributionChart
-                      proList={proList}
-                      userEdpi={settings.dpi * settings.sensitivity}
-                      proEdpi={matches[0].settings.edpi}
-                      proName={matches[0].name}
-                      game={settings.game}
-                      theme={theme}
-                      lang={lang}
-                    />
 
                     {/* Comments */}
                     <CommentSection
