@@ -129,7 +129,7 @@ export async function syncProGamerToDb(pro: ProGamer) {
 /**
  * Matches pro gamers based on user settings using a deterministic algorithm (No AI).
  */
-export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]> {
+export async function matchProGamer(settings: GearSettings, lang: 'en' | 'ko' = 'ko'): Promise<ProGamer[]> {
   // Fetch existing pros from Firestore to provide as context
   let localPros: ProGamer[] = [];
   try {
@@ -165,27 +165,34 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
     score += edpiScore * 60;
 
     if (edpiRatio > 0.9) {
-      reasons.push("eDPI가 거의 일치합니다 (90% 이상)");
+      reasons.push(lang === 'en' ? "eDPI is nearly identical (90%+)" : "eDPI가 거의 일치합니다 (90% 이상)");
     } else if (edpiRatio > 0.8) {
-      reasons.push("유사한 eDPI 범위를 사용합니다");
+      reasons.push(lang === 'en' ? "Similar eDPI range" : "유사한 eDPI 범위를 사용합니다");
     }
 
     // 2. Gear Similarity (Weight: 40%)
     let gearMatches = 0;
     const matchedGearNames: string[] = [];
-    
+
+    const gearLabels = {
+      mouse: lang === 'en' ? "Mouse" : "마우스",
+      keyboard: lang === 'en' ? "Keyboard" : "키보드",
+      monitor: lang === 'en' ? "Monitor" : "모니터",
+      mousepad: lang === 'en' ? "Mousepad" : "마우스패드",
+    };
+
     const userGearMap = {
-      "마우스": settings.mouse?.toLowerCase().trim(),
-      "키보드": settings.keyboard?.toLowerCase().trim(),
-      "모니터": settings.monitor?.toLowerCase().trim(),
-      "마우스패드": settings.mousepad?.toLowerCase().trim()
+      [gearLabels.mouse]: settings.mouse?.toLowerCase().trim(),
+      [gearLabels.keyboard]: settings.keyboard?.toLowerCase().trim(),
+      [gearLabels.monitor]: settings.monitor?.toLowerCase().trim(),
+      [gearLabels.mousepad]: settings.mousepad?.toLowerCase().trim()
     };
 
     const proGearMap = {
-      "마우스": pro.gear.mouse?.toLowerCase().trim() || pro.gear.controller?.toLowerCase().trim(),
-      "키보드": pro.gear.keyboard?.toLowerCase().trim(),
-      "모니터": pro.gear.monitor?.toLowerCase().trim(),
-      "마우스패드": pro.gear.mousepad?.toLowerCase().trim()
+      [gearLabels.mouse]: pro.gear.mouse?.toLowerCase().trim() || pro.gear.controller?.toLowerCase().trim(),
+      [gearLabels.keyboard]: pro.gear.keyboard?.toLowerCase().trim(),
+      [gearLabels.monitor]: pro.gear.monitor?.toLowerCase().trim(),
+      [gearLabels.mousepad]: pro.gear.mousepad?.toLowerCase().trim()
     };
 
     Object.entries(userGearMap).forEach(([label, ug]) => {
@@ -198,7 +205,10 @@ export async function matchProGamer(settings: GearSettings): Promise<ProGamer[]>
     });
 
     if (matchedGearNames.length > 0) {
-      reasons.push(`${matchedGearNames.join(", ")} 장비가 일치하거나 매우 유사합니다`);
+      reasons.push(lang === 'en'
+        ? `${matchedGearNames.join(", ")} gear matches or is very similar`
+        : `${matchedGearNames.join(", ")} 장비가 일치하거나 매우 유사합니다`
+      );
     }
 
     const gearScore = (gearMatches / 4) * 40;

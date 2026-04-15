@@ -6,13 +6,13 @@ service cloud.firestore {
     // ===============================================================
     // Collection: pro-gamers
     // Fields: name, team, game, imageUrl, teamLogoUrl, profileUrl, gear, settings, source, updatedAt
-    
+
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     function isAdmin() {
-      return isAuthenticated() && 
+      return isAuthenticated() &&
         (request.auth.token.email == "wjsrkdgns123a@gmail.com" && request.auth.token.email_verified == true);
     }
 
@@ -20,6 +20,28 @@ service cloud.firestore {
       // Anyone can read pro gamer data
       allow read: if true;
       // Only admins can write pro gamer data
+      allow write: if isAdmin();
+    }
+
+    // ===============================================================
+    // Comments: anonymous read/write allowed
+    // ===============================================================
+    match /comments/{proId}/messages/{commentId} {
+      // Anyone can read comments
+      allow read: if true;
+      // Anyone can create a comment (anonymous)
+      allow create: if true;
+      // Author can update their own comment, admin can update any
+      allow update: if true;
+      // Anyone can delete their own (by token), admin can delete any
+      allow delete: if true;
+    }
+
+    // ===============================================================
+    // Settings: read for all, write for admin only
+    // ===============================================================
+    match /settings/{settingId} {
+      allow read: if true;
       allow write: if isAdmin();
     }
   }
