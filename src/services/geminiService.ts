@@ -539,3 +539,49 @@ export async function getProGamerList(game: string): Promise<ProGamer[]> {
     return [];
   }
 }
+
+const COLOR_WORDS_REGEX = /\b(black|white|red|blue|green|pink|purple|orange|yellow|grey|gray|silver|gold|rose|magenta|cyan|teal|navy|coral|mint|violet|indigo|crimson|scarlet|amber|ivory|charcoal|glossy|matte|maroon|beige|olive|lime|fluorescent|neon)\b/gi;
+
+function stripColorWords(name: string): string {
+  if (!name) return name;
+  return name.replace(COLOR_WORDS_REGEX, '').replace(/\s{2,}/g, ' ').trim();
+}
+
+export async function stripColorsFromAllGear(): Promise<{ updated: number; skipped: number }> {
+  if (!auth.currentUser || auth.currentUser.email !== ADMIN_EMAIL) {
+    throw new Error("Unauthorized: Only admin can perform this action.");
+  }
+
+  const snapshot = await getDocs(collection(db, "pro-gamers"));
+  let updated = 0;
+  let skipped = 0;
+
+  for (const docSnap of snapshot.docs) {
+    const data = docSnap.data() as ProGamer;
+    const gear = data.gear || { mouse: '', keyboard: '', monitor: '', mousepad: '' };
+
+    const newGear = {
+      mouse:    stripColorWords(gear.mouse    || ''),
+      keyboard: stripColorWords(gear.keyboard || ''),
+      monitor:  stripColorWords(gear.monitor  || ''),
+      mousepad: stripColorWords(gear.mousepad || ''),
+      ...(gear.controller != null ? { controller: stripColorWords(gear.controller || '') } : {}),
+    };
+
+    const changed =
+      newGear.mouse    !== (gear.mouse    || '') ||
+      newGear.keyboard !== (gear.keyboard || '') ||
+      newGear.monitor  !== (gear.monitor  || '') ||
+      newGear.mousepad !== (gear.mousepad || '') ||
+      (gear.controller != null && newGear.controller !== (gear.controller || ''));
+
+    if (changed) {
+      await updateDoc(doc(db, "pro-gamers", docSnap.id), { gear: newGear });
+      updated++;
+    } else {
+      skipped++;
+    }
+  }
+
+  return { updated, skipped };
+}

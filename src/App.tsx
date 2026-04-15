@@ -3,9 +3,10 @@ import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, Exte
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
-import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, cleanPlayerName, scrapeProGamerInfo, getGearSuggestions, seedDatabase, migrateProsToOverwatch, fixOverwatchLinks, revertOverwatchLinks, getHighlightVideos } from './services/geminiService';
+import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, cleanPlayerName, scrapeProGamerInfo, getGearSuggestions, seedDatabase, migrateProsToOverwatch, fixOverwatchLinks, revertOverwatchLinks, getHighlightVideos, stripColorsFromAllGear } from './services/geminiService';
 import { translations, getLanguage, Language } from './translations';
 import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from './constants';
+import { AMAZON_LINKS_NORMALIZED } from './amazonLinks';
 import { auth, googleProvider } from './firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
 
@@ -13,8 +14,15 @@ const GAMES = [
   { name: 'Valorant', emoji: '🎯' },
   { name: 'CS2', emoji: '🔫' },
   { name: 'Overwatch 2', emoji: '🛡️' },
-  { name: 'Apex Legends', emoji: '🏃' }
+  { name: 'Apex Legends', emoji: '🏃' },
 ];
+
+const GAME_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  'Valorant': { bg: 'bg-rose-500/10', border: 'border-rose-500', text: 'text-rose-400' },
+  'CS2': { bg: 'bg-orange-500/10', border: 'border-orange-500', text: 'text-orange-400' },
+  'Overwatch 2': { bg: 'bg-sky-500/10', border: 'border-sky-500', text: 'text-sky-400' },
+  'Apex Legends': { bg: 'bg-red-600/10', border: 'border-red-500', text: 'text-red-400' },
+};
 
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
 
@@ -127,6 +135,7 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [totalProCount, setTotalProCount] = useState(0);
   const [excelStatus, setExcelStatus] = useState<{ loading: boolean, success?: boolean, proFound?: boolean, photoFound?: boolean, error?: string } | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -141,6 +150,7 @@ export default function App() {
   const [showMigrateConfirm, setShowMigrateConfirm] = useState(false);
   const [showFixLinksConfirm, setShowFixLinksConfirm] = useState(false);
   const [showRevertConfirm, setShowRevertConfirm] = useState(false);
+  const [showStripColorsConfirm, setShowStripColorsConfirm] = useState(false);
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [claudeMessages, setClaudeMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
   const [claudeInput, setClaudeInput] = useState('');
@@ -170,6 +180,23 @@ export default function App() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'dark' | 'light' | null;
     if (savedTheme) setTheme(savedTheme);
+  }, []);
+
+  // Load total pro count from all games on mount
+  useEffect(() => {
+    const loadTotalProCount = async () => {
+      try {
+        let total = 0;
+        for (const game of GAMES) {
+          const list = await getProGamerList(game.name);
+          total += list.length;
+        }
+        setTotalProCount(total);
+      } catch (err) {
+        console.error("Failed to load total pro count:", err);
+      }
+    };
+    loadTotalProCount();
   }, []);
 
   const toggleTheme = () => {
@@ -779,6 +806,20 @@ export default function App() {
     }
   };
 
+  const executeStripColors = async () => {
+    setShowStripColorsConfirm(false);
+    setLoading(true);
+    try {
+      const { updated, skipped } = await stripColorsFromAllGear();
+      setNotification({ message: `색깔 단어 제거 완료: ${updated}개 업데이트, ${skipped}개 변경없음`, type: 'success' });
+      fetchProList(true);
+    } catch (err: any) {
+      setNotification({ message: "색깔 제거 실패: " + err.message, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleMatch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -916,85 +957,124 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans p-4 md:p-8`}>
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <header className="mb-12 flex flex-col items-center justify-center gap-8 border-b border-emerald-500/10 pb-10">
-          <div className="flex flex-col items-center gap-4 group cursor-default">
-            <div className="relative">
-              <img 
-                src="/favicon.svg" 
-                alt="Pro Gear Match Logo" 
-                className="w-16 h-16 md:w-20 md:h-20" 
-                referrerPolicy="no-referrer" 
-              />
-            </div>
-            <div className="text-center">
-              <h1 className={`text-3xl md:text-5xl font-black tracking-tighter bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent uppercase leading-none mb-3`}>
-                {t.title}
-              </h1>
-              <div className="flex flex-col items-center gap-3">
-                <p className={`${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'} font-mono text-xs md:text-sm uppercase tracking-[0.3em]`}>
-                  {t.subtitle}
-                </p>
-                {excelStatus?.success && (
-                  <div className={`flex items-center gap-1.5 px-3 py-1 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400/80' : 'bg-emerald-600/10 border-emerald-600/20 text-emerald-600/80'} border rounded-full text-[10px] font-mono uppercase tracking-widest mt-2`}>
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    {t.excelStatus}
-                  </div>
-                )}
+    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#050507] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans relative overflow-hidden`}>
+      {theme === 'dark' && (
+        <div className="fixed inset-0 pointer-events-none" style={{backgroundImage: 'linear-gradient(rgba(16,185,129,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.028) 1px, transparent 1px)', backgroundSize: '44px 44px'}} />
+      )}
+      {theme === 'dark' && (
+        <>
+          <div className="fixed top-[-10%] left-[10%] w-[900px] h-[900px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 60%)'}} />
+          <div className="fixed bottom-[5%] right-[0%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(6,182,212,0.03) 0%, transparent 65%)'}} />
+        </>
+      )}
+      <div className="relative max-w-4xl mx-auto px-4 md:px-8 py-4 md:py-8">
+        {/* Hero Section */}
+        <section className="relative mb-8">
+          {/* Nav strip */}
+          <motion.nav
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex items-center justify-between py-5 mb-4"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                {theme === 'dark' && <div className="absolute inset-0 bg-emerald-500/25 rounded-lg blur-md" />}
+                <img src="/favicon.svg" alt="PGM" referrerPolicy="no-referrer" className="relative w-8 h-8" />
+              </div>
+              <div className="hidden sm:block">
+                <div className="text-[11px] font-mono font-bold text-emerald-500 uppercase tracking-[0.2em]">Pro Gear Match</div>
+                <div className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>Find Your Pro Twin</div>
               </div>
             </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3 justify-center w-full">
-            <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-black/20 border border-white/5">
-              <button 
-                onClick={toggleLanguage}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${theme === 'dark' ? 'hover:bg-white/5 text-[#888] hover:text-white' : 'hover:bg-black/5 text-[#4b5563] hover:text-black'}`}
-                title={t.toggleLanguage}
-              >
-                <Languages size={14} /> {lang.toUpperCase()}
-              </button>
-              <div className="w-px h-5 bg-white/10" />
-              <button 
-                onClick={toggleTheme}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${theme === 'dark' ? 'hover:bg-white/5 text-[#888] hover:text-white' : 'hover:bg-black/5 text-[#4b5563] hover:text-black'}`}
-                title={t.toggleTheme}
-              >
-                {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-              </button>
-            </div>
-
-            <button 
-              onClick={() => fetchProList()}
-              className={`flex items-center gap-2 px-6 py-3 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black' : 'bg-white border-[#d1d5db] text-[#1a1a1a] hover:border-emerald-500'} border rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/5`}
-            >
-              <Users size={16} /> {t.proList}
-            </button>
-
-            {user?.email === ADMIN_EMAIL && (
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setShowAddModal(true)}
-                  className={`flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20`}
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <div className={`flex items-center gap-0.5 p-1 rounded-xl ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-black/[0.04] border border-black/[0.06]'}`}>
+                <button
+                  onClick={toggleLanguage}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-[#555] hover:text-white' : 'hover:bg-black/10 text-[#4b5563] hover:text-black'}`}
+                  title={t.toggleLanguage}
                 >
-                  <Zap size={16} /> {t.addPro}
+                  <Languages size={12} /> {lang.toUpperCase()}
+                </button>
+                <div className={`w-px h-3 ${theme === 'dark' ? 'bg-white/10' : 'bg-black/10'}`} />
+                <button
+                  onClick={toggleTheme}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-[#555] hover:text-white' : 'hover:bg-black/10 text-[#4b5563] hover:text-black'}`}
+                  title={t.toggleTheme}
+                >
+                  {theme === 'dark' ? <Sun size={12} /> : <Moon size={12} />}
                 </button>
               </div>
-            )}
-            
-            {user && (
-              <button 
-                onClick={handleLogout}
-                className={`flex items-center gap-2 px-6 py-3 ${theme === 'dark' ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500 hover:text-black' : 'bg-white border-red-200 text-red-600 hover:bg-red-50'} border rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all`}
-                title={user.email || ''}
+
+              <button
+                onClick={() => fetchProList()}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:border-emerald-500/40 hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:border-emerald-500 hover:text-emerald-600'}`}
               >
-                <LogOut size={16} /> {t.logout}
+                <Users size={13} /> {t.proList}
               </button>
-            )}
+
+              {user?.email === ADMIN_EMAIL && (
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-black rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20"
+                >
+                  <Zap size={13} /> {t.addPro}
+                </button>
+              )}
+
+              {user && (
+                <button
+                  onClick={handleLogout}
+                  className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-100 text-red-500 hover:bg-red-100'}`}
+                  title={user.email || ''}
+                >
+                  <LogOut size={13} />
+                </button>
+              )}
+            </div>
+          </motion.nav>
+
+          {/* Hero content */}
+          <div className="text-center py-6 md:py-14">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.08, duration: 0.4 }}
+              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-mono uppercase tracking-[0.25em] mb-8 ${theme === 'dark' ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+              Live Pro Database
+              {totalProCount > 0 && (
+                <span className={`ml-1 ${theme === 'dark' ? 'text-emerald-600' : 'text-emerald-400'}`}>· {totalProCount >= 100 ? Math.floor(totalProCount / 100) * 100 + '+' : totalProCount} players</span>
+              )}
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.14, type: 'spring', stiffness: 70, damping: 18 }}
+              className="font-black tracking-tighter uppercase leading-[0.88] mb-5 select-none"
+            >
+              <span className={`block text-[3.2rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem] ${theme === 'dark' ? 'bg-gradient-to-b from-white to-emerald-200/80 bg-clip-text text-transparent' : 'text-[#0f172a]'}`}>
+                PRO GEAR
+              </span>
+              <span className="block text-[3.2rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem] bg-gradient-to-r from-emerald-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent">
+                MATCH
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className={`text-[11px] font-mono uppercase tracking-[0.45em] mb-10 ${theme === 'dark' ? 'text-[#333]' : 'text-[#9ca3af]'}`}
+            >
+              {t.subtitle}
+            </motion.p>
+
           </div>
-        </header>
+        </section>
 
         {/* Excel Status Card */}
         <AnimatePresence>
@@ -1064,33 +1144,39 @@ export default function App() {
 
         <div className="grid grid-cols-1 gap-8">
           {/* Input Section */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 shadow-2xl max-w-2xl mx-auto w-full`}
+            transition={{ delay: 0.5 }}
+            className={`relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1c1c20]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl max-w-2xl mx-auto w-full overflow-hidden`}
           >
+            {theme === 'dark' && <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />}
             <form onSubmit={handleMatch} className="space-y-6">
               <div className="space-y-4">
                 <div>
                   <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-3 block`}>{t.selectGame}</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {GAMES.map(game => (
-                      <button
-                        key={game.name}
-                        type="button"
-                        onClick={() => setSettings({ ...settings, game: game.name })}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-2 ${
-                          settings.game === game.name 
-                            ? (theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600 text-emerald-600')
-                            : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#555] hover:border-[#444]' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:border-emerald-500')
-                        }`}
-                      >
-                        <span className={`text-2xl transition-all ${settings.game === game.name ? 'opacity-100' : 'opacity-40 grayscale hover:grayscale-0 hover:opacity-100'}`}>
-                          {game.emoji}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase tracking-tighter truncate w-full text-center">{game.name}</span>
-                      </button>
-                    ))}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {GAMES.map(game => {
+                      const colors = GAME_COLORS[game.name];
+                      const isActive = settings.game === game.name;
+                      return (
+                        <button
+                          key={game.name}
+                          type="button"
+                          onClick={() => setSettings({ ...settings, game: game.name })}
+                          className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 gap-1.5 ${
+                            isActive
+                              ? `${colors.bg} ${colors.border} ${colors.text}`
+                              : (theme === 'dark' ? 'bg-[#0a0a0c] border-[#1a1a1e] text-[#444] hover:border-[#2a2a2e] hover:text-[#666]' : 'bg-[#fafafa] border-[#e5e7eb] text-[#9ca3af] hover:border-[#d1d5db] hover:text-[#6b7280]')
+                          }`}
+                        >
+                          <span className={`text-xl transition-all duration-200 ${isActive ? 'scale-110' : 'opacity-25 grayscale'}`}>
+                            {game.emoji}
+                          </span>
+                          <span className="text-[9px] font-bold uppercase tracking-tight truncate w-full text-center leading-tight">{game.name}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1237,16 +1323,23 @@ export default function App() {
                 </div>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={loading}
-                className={`w-full bg-emerald-500 hover:bg-emerald-400 ${theme === 'dark' ? 'disabled:bg-[#333] disabled:text-[#555]' : 'disabled:bg-[#e5e7eb] disabled:text-[#9ca3af]'} text-black font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group uppercase tracking-widest`}
+                className={`w-full relative overflow-hidden font-black py-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 uppercase tracking-widest text-sm ${
+                  loading
+                    ? (theme === 'dark' ? 'bg-[#141416] text-[#333] cursor-not-allowed' : 'bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed')
+                    : 'bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
+                }`}
               >
+                {!loading && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+                )}
                 {loading ? (
-                  <Loader2 className="animate-spin" />
+                  <><Loader2 className="animate-spin" size={17} /> Matching...</>
                 ) : (
                   <>
-                    <Search size={20} />
+                    <Target size={17} />
                     {t.findMatch}
                   </>
                 )}
@@ -1393,16 +1486,127 @@ export default function App() {
                         <StatBlock label={t.sensitivity} value={matches[0].settings.sensitivity.toString()} theme={theme} />
                       </div>
  
-                    <div className={`space-y-5 pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
-                      <ProGearItem 
-                        icon={matches[0].gear.mouse ? <Mouse size={18} /> : <Gamepad2 size={18} />} 
-                        label={matches[0].gear.mouse ? t.mouse : "Controller"} 
-                        value={matches[0].gear.mouse || matches[0].gear.controller || ''} 
-                        theme={theme} 
-                      />
-                      <ProGearItem icon={<Keyboard size={18} />} label={t.keyboard} value={matches[0].gear.keyboard} theme={theme} />
-                      <ProGearItem icon={<Monitor size={18} />} label={t.monitor} value={matches[0].gear.monitor} theme={theme} />
-                      <ProGearItem icon={<Layers size={18} />} label={t.mousepad} value={matches[0].gear.mousepad} theme={theme} />
+                    {/* 나 vs 프로 장비 비교 */}
+                    <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
+                      <p className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase tracking-widest mb-4 flex items-center gap-2`}>
+                        <Target size={12} className="text-emerald-500" /> 장비 비교
+                      </p>
+                      <div className="space-y-3">
+                        {/* Header */}
+                        <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-1">
+                          <span className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>나의 장비</span>
+                          <span className={`text-[9px] font-mono uppercase tracking-widest text-center w-16 ${theme === 'dark' ? 'text-[#555]' : 'text-[#aaa]'}`}></span>
+                          <span className={`text-[9px] font-mono uppercase tracking-widest text-right ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>{matches[0].name}</span>
+                        </div>
+                        {/* Mouse */}
+                        {(() => {
+                          const myMouse = settings.mouse;
+                          const proMouse = matches[0].gear.mouse || matches[0].gear.controller || '';
+                          const same = myMouse && proMouse && myMouse.toLowerCase() === proMouse.toLowerCase();
+                          return (
+                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Mouse size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
+                                <span className={`text-[10px] truncate ${myMouse ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myMouse || '미입력'}</span>
+                              </div>
+                              <div className="flex flex-col items-center w-16 flex-shrink-0">
+                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>마우스</span>
+                                {same ? <span className="text-emerald-500 text-[9px]">✓ 동일</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
+                              </div>
+                              <div className="flex items-center gap-1.5 justify-end min-w-0">
+                                <span className={`text-[10px] truncate text-right ${proMouse ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proMouse || '-'}</span>
+                                {proMouse && (
+                                  <a href={getAmazonLink(proMouse)} target="_blank" rel="noopener noreferrer"
+                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
+                                    가격 확인 <ExternalLink size={7} />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        {/* Keyboard */}
+                        {(() => {
+                          const myKb = settings.keyboard;
+                          const proKb = matches[0].gear.keyboard || '';
+                          const same = myKb && proKb && myKb.toLowerCase() === proKb.toLowerCase();
+                          return (
+                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Keyboard size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
+                                <span className={`text-[10px] truncate ${myKb ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myKb || '미입력'}</span>
+                              </div>
+                              <div className="flex flex-col items-center w-16 flex-shrink-0">
+                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>키보드</span>
+                                {same ? <span className="text-emerald-500 text-[9px]">✓ 동일</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
+                              </div>
+                              <div className="flex items-center gap-1.5 justify-end min-w-0">
+                                <span className={`text-[10px] truncate text-right ${proKb ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proKb || '-'}</span>
+                                {proKb && (
+                                  <a href={getAmazonLink(proKb)} target="_blank" rel="noopener noreferrer"
+                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
+                                    가격 확인 <ExternalLink size={7} />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        {/* Monitor */}
+                        {(() => {
+                          const myMon = settings.monitor;
+                          const proMon = matches[0].gear.monitor || '';
+                          const same = myMon && proMon && myMon.toLowerCase() === proMon.toLowerCase();
+                          return (
+                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Monitor size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
+                                <span className={`text-[10px] truncate ${myMon ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myMon || '미입력'}</span>
+                              </div>
+                              <div className="flex flex-col items-center w-16 flex-shrink-0">
+                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>모니터</span>
+                                {same ? <span className="text-emerald-500 text-[9px]">✓ 동일</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
+                              </div>
+                              <div className="flex items-center gap-1.5 justify-end min-w-0">
+                                <span className={`text-[10px] truncate text-right ${proMon ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proMon || '-'}</span>
+                                {proMon && (
+                                  <a href={getAmazonLink(proMon)} target="_blank" rel="noopener noreferrer"
+                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
+                                    가격 확인 <ExternalLink size={7} />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        {/* Mousepad */}
+                        {(() => {
+                          const myPad = settings.mousepad;
+                          const proPad = matches[0].gear.mousepad || '';
+                          const same = myPad && proPad && myPad.toLowerCase() === proPad.toLowerCase();
+                          return (
+                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Layers size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
+                                <span className={`text-[10px] truncate ${myPad ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myPad || '미입력'}</span>
+                              </div>
+                              <div className="flex flex-col items-center w-16 flex-shrink-0">
+                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>마우스패드</span>
+                                {same ? <span className="text-emerald-500 text-[9px]">✓ 동일</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
+                              </div>
+                              <div className="flex items-center gap-1.5 justify-end min-w-0">
+                                <span className={`text-[10px] truncate text-right ${proPad ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proPad || '-'}</span>
+                                {proPad && (
+                                  <a href={getAmazonLink(proPad)} target="_blank" rel="noopener noreferrer"
+                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
+                                    가격 확인 <ExternalLink size={7} />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
 
                     {loadingHighlights && (
@@ -1790,6 +1994,47 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Strip Colors Confirm Modal */}
+      <AnimatePresence>
+        {showStripColorsConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+            >
+              <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Wand2 size={32} />
+              </div>
+              <h2 className={`text-2xl font-black uppercase tracking-tighter mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                색깔 단어 일괄 제거
+              </h2>
+              <p className={`text-sm mb-2 leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                모든 프로게이머의 장비명에서 색상 관련 단어를 제거합니다.
+              </p>
+              <p className={`text-xs mb-8 font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                black · white · red · blue · green · pink · silver · gray ...
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setShowStripColorsConfirm(false)}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={executeStripColors}
+                  className="py-3 bg-amber-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-amber-400 transition-all"
+                >
+                  실행
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Fix Links Confirm Modal */}
       <AnimatePresence>
         {showFixLinksConfirm && (
@@ -1908,12 +2153,21 @@ export default function App() {
                     </button>
                   )}
                   {user?.email === ADMIN_EMAIL && (
-                    <button 
+                    <button
                       onClick={handleCleanAllNames}
                       className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
                       title="Clean all names (remove full names)"
                     >
                       <Wand2 size={12} /> Clean All
+                    </button>
+                  )}
+                  {user?.email === ADMIN_EMAIL && (
+                    <button
+                      onClick={() => setShowStripColorsConfirm(true)}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      title="장비명에서 색깔 단어 일괄 제거"
+                    >
+                      <Wand2 size={12} /> Strip Colors
                     </button>
                   )}
                   <div className="relative">
@@ -2933,14 +3187,38 @@ function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer, onRefreshList
   );
 }
 
-function ProGearItem({ icon, label, value, theme }: { icon: React.ReactNode, label: string, value: string, theme: 'dark' | 'light' }) {
+const COLOR_WORDS_RE = /\b(black|white|red|blue|green|pink|purple|orange|yellow|grey|gray|silver|gold|rose|magenta|cyan|teal|navy|coral|mint|violet|indigo|crimson|scarlet|amber|ivory|charcoal|glossy|matte|maroon|beige|olive|lime|fluorescent|neon)\b/gi;
+
+function normalizeGearName(s: string): string {
+  return s.replace(COLOR_WORDS_RE, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function getAmazonLink(productName: string): string {
+  if (!productName) return '';
+  return AMAZON_LINKS_NORMALIZED[normalizeGearName(productName)] || '';
+}
+
+function ProGearItem({ icon, label, value, theme, amazonUrl }: { icon: React.ReactNode, label: string, value: string, theme: 'dark' | 'light', amazonUrl?: string }) {
   return (
     <div className="flex items-center gap-3">
       <div className={`${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>{icon}</div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <span className={`text-[9px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest block`}>{label}</span>
         <span className={`text-xs font-medium ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{value}</span>
       </div>
+      {amazonUrl && value && (
+        <a
+          href={amazonUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-mono uppercase tracking-wider border transition-all
+            ${theme === 'dark'
+              ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-amber-400 hover:border-amber-500/50'
+              : 'bg-white border-[#d1d5db] text-[#6b7280] hover:text-amber-600 hover:border-amber-400'}`}
+        >
+          가격 확인 <ExternalLink size={8} />
+        </a>
+      )}
     </div>
   );
 }
