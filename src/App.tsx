@@ -1152,21 +1152,40 @@ export default function App() {
                     {GAMES.map(game => {
                       const colors = GAME_COLORS[game.name];
                       const isActive = settings.game === game.name;
+                      const gameGlow: Record<string, string> = {
+                        'Valorant': '#f43f5e',
+                        'CS2': '#f97316',
+                        'Overwatch 2': '#38bdf8',
+                        'Apex Legends': '#ef4444',
+                      };
+                      const glow = gameGlow[game.name] || '#10b981';
                       return (
                         <button
                           key={game.name}
                           type="button"
                           onClick={() => setSettings({ ...settings, game: game.name })}
-                          className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 gap-1.5 ${
+                          style={isActive ? { boxShadow: `0 0 0 1.5px ${glow}, 0 4px 24px ${glow}30` } : undefined}
+                          className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 gap-2 overflow-hidden group ${
                             isActive
-                              ? `${colors.bg} ${colors.border} ${colors.text}`
-                              : (theme === 'dark' ? 'bg-[#0a0a0c] border-[#1a1a1e] text-[#444] hover:border-[#2a2a2e] hover:text-[#666]' : 'bg-[#fafafa] border-[#e5e7eb] text-[#9ca3af] hover:border-[#d1d5db] hover:text-[#6b7280]')
+                              ? `${colors.bg} border-transparent ${colors.text}`
+                              : (theme === 'dark'
+                                ? 'bg-[#0a0a0c] border-[#1e1e22] text-[#3a3a3a] hover:border-[#2e2e36] hover:text-[#666] hover:bg-[#0e0e12]'
+                                : 'bg-[#f9fafb] border-[#e5e7eb] text-[#c4c9d4] hover:border-[#cbd5e1] hover:text-[#94a3b8] hover:bg-white')
                           }`}
                         >
-                          <span className={`text-xl transition-all duration-200 ${isActive ? 'scale-110' : 'opacity-25 grayscale'}`}>
+                          {/* 액티브 하단 글로우 라인 */}
+                          {isActive && (
+                            <div className="absolute bottom-0 left-1/4 right-1/4 h-[2px] rounded-full"
+                              style={{ background: `linear-gradient(90deg, transparent, ${glow}, transparent)` }} />
+                          )}
+                          {/* 이모지 */}
+                          <span className={`text-2xl transition-all duration-300 ${isActive ? 'scale-115 drop-shadow-lg' : 'opacity-20 grayscale group-hover:opacity-50 group-hover:grayscale-[50%]'}`}>
                             {game.emoji}
                           </span>
-                          <span className="text-[9px] font-bold uppercase tracking-tight truncate w-full text-center leading-tight">{game.name}</span>
+                          {/* 게임명 */}
+                          <span className={`text-[9px] font-bold uppercase tracking-widest truncate w-full text-center leading-tight transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50'}`}>
+                            {game.name}
+                          </span>
                         </button>
                       );
                     })}
