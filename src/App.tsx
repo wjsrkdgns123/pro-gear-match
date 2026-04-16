@@ -1813,14 +1813,58 @@ export default function App() {
       {/* Loading Overlay */}
       <AnimatePresence>
         {loading && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className={`fixed inset-0 z-[70] ${theme === 'dark' ? 'bg-black/90' : 'bg-white/90'} backdrop-blur-md flex flex-col items-center justify-center text-center p-8`}
           >
-            <Loader2 size={64} className="text-emerald-500 animate-spin mb-6" />
-            <p className="text-emerald-500 font-mono text-xl animate-pulse uppercase tracking-[0.2em]">{t.scanning}</p>
+            {/* 오비트 애니메이션 */}
+            <style>{`
+              @keyframes pgm-orbit {
+                from { transform: rotate(0deg) translateX(72px) rotate(0deg); }
+                to   { transform: rotate(360deg) translateX(72px) rotate(-360deg); }
+              }
+              @keyframes pgm-orbit2 {
+                from { transform: rotate(180deg) translateX(72px) rotate(-180deg); }
+                to   { transform: rotate(540deg) translateX(72px) rotate(-540deg); }
+              }
+              @keyframes pgm-pulse-ring {
+                0%, 100% { transform: scale(1); opacity: 0.4; }
+                50% { transform: scale(1.12); opacity: 0.8; }
+              }
+            `}</style>
+
+            <div className="relative flex items-center justify-center mb-10" style={{ width: 200, height: 200 }}>
+              {/* 외부 궤도 링 */}
+              <div className="absolute rounded-full border border-dashed border-emerald-500/20"
+                style={{ width: 160, height: 160 }} />
+
+              {/* 내부 펄스 링 */}
+              <div className="absolute rounded-full border border-emerald-500/30"
+                style={{ width: 80, height: 80, animation: 'pgm-pulse-ring 2s ease-in-out infinite' }} />
+
+              {/* 중심 원 */}
+              <div className="absolute w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center"
+                style={{ boxShadow: '0 0 20px rgba(16,185,129,0.3)' }}>
+                <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"
+                  style={{ boxShadow: '0 0 10px rgba(16,185,129,0.8)' }} />
+              </div>
+
+              {/* 로고 오비트 (정방향) */}
+              <div className="absolute" style={{ animation: 'pgm-orbit 2.4s linear infinite' }}>
+                <img src="/favicon.svg" alt="PGM" className="w-9 h-9"
+                  style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.9)) drop-shadow(0 0 12px rgba(16,185,129,0.4))' }} />
+              </div>
+
+              {/* 작은 점 오비트 (역방향 약간 느리게) */}
+              <div className="absolute" style={{ animation: 'pgm-orbit2 3.2s linear infinite' }}>
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"
+                  style={{ boxShadow: '0 0 8px rgba(16,185,129,0.9)' }} />
+              </div>
+            </div>
+
+            <p className="text-emerald-500 font-mono text-sm animate-pulse uppercase tracking-[0.3em]">{t.scanning}</p>
             
             {bulkProgress && (
               <div className="mt-8 w-full max-w-md">
