@@ -27,6 +27,33 @@ const GAME_COLORS: Record<string, { bg: string; border: string; text: string }> 
 
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
 
+function ScrollFade({ children, delay = 0, className, direction = 'up' }: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+  direction?: 'up' | 'left' | 'right';
+}) {
+  const variants = {
+    up: { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } },
+    left: { hidden: { opacity: 0, x: -28 }, visible: { opacity: 1, x: 0 } },
+    right: { hidden: { opacity: 0, x: 28 }, visible: { opacity: 1, x: 0 } },
+  };
+  const v = variants[direction];
+  return (
+    <motion.div
+      initial={v.hidden}
+      whileInView={v.visible}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.5, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+type PageType = 'home' | 'how-it-works' | 'about' | 'privacy' | 'terms' | 'affiliate';
+
 const formatEdpi = (val: number) => {
   if (!val) return "0";
   if (Number.isInteger(val)) return val.toString();
@@ -96,6 +123,26 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [showList, setShowList] = useState(false);
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
+
+  const [currentPage, setCurrentPage] = useState<PageType>(() => {
+    const p = window.location.pathname;
+    if (p === '/how-it-works') return 'how-it-works';
+    if (p === '/about') return 'about';
+    if (p === '/privacy') return 'privacy';
+    if (p === '/terms') return 'terms';
+    if (p === '/affiliate-disclosure') return 'affiliate';
+    return 'home';
+  });
+
+  const navigate = (page: PageType) => {
+    const pathMap: Record<PageType, string> = {
+      home: '/', 'how-it-works': '/how-it-works', about: '/about',
+      privacy: '/privacy', terms: '/terms', affiliate: '/affiliate-disclosure',
+    };
+    history.pushState({}, '', pathMap[page]);
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
   const [proList, setProList] = useState<ProGamer[]>([]);
   const [highlights, setHighlights] = useState<{ title: string, youtubeId: string, description?: string }[]>([]);
   const [loadingHighlights, setLoadingHighlights] = useState(false);
@@ -216,6 +263,21 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
+
+  useEffect(() => {
+    const handle = () => {
+      const p = window.location.pathname;
+      if (p === '/how-it-works') setCurrentPage('how-it-works');
+      else if (p === '/about') setCurrentPage('about');
+      else if (p === '/privacy') setCurrentPage('privacy');
+      else if (p === '/terms') setCurrentPage('terms');
+      else if (p === '/affiliate-disclosure') setCurrentPage('affiliate');
+      else setCurrentPage('home');
+      window.scrollTo(0, 0);
+    };
+    window.addEventListener('popstate', handle);
+    return () => window.removeEventListener('popstate', handle);
+  }, []);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -957,6 +1019,10 @@ export default function App() {
     }
   };
 
+  if (currentPage !== 'home') {
+    return <StaticPageView page={currentPage} theme={theme} lang={lang} t={t} onNavigate={navigate} />;
+  }
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#050507] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans relative overflow-hidden`}>
       {theme === 'dark' && (
@@ -1160,7 +1226,7 @@ export default function App() {
                       };
                       const glow = gameGlow[game.name] || '#10b981';
                       return (
-                        <button
+                        <motion.button
                           key={game.name}
                           type="button"
                           onClick={() => setSettings({ ...settings, game: game.name })}
@@ -1172,6 +1238,9 @@ export default function App() {
                                 ? 'bg-[#0a0a0c] border-[#1e1e22] text-[#3a3a3a] hover:border-[#2e2e36] hover:text-[#666] hover:bg-[#0e0e12]'
                                 : 'bg-[#f9fafb] border-[#e5e7eb] text-[#c4c9d4] hover:border-[#cbd5e1] hover:text-[#94a3b8] hover:bg-white')
                           }`}
+                          whileHover={{ scale: 1.05, y: -3 }}
+                          whileTap={{ scale: 0.96 }}
+                          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                         >
                           {/* 액티브 하단 글로우 라인 */}
                           {isActive && (
@@ -1186,7 +1255,7 @@ export default function App() {
                           <span className={`text-[9px] font-bold uppercase tracking-widest truncate w-full text-center leading-tight transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50'}`}>
                             {game.name}
                           </span>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -1194,6 +1263,7 @@ export default function App() {
 
                 {/* Game Statistics Section */}
                 {gameStats && (
+                  <ScrollFade delay={0.1}>
                   <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} space-y-4`}>
                     <div className="flex items-center justify-between">
                       <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest font-bold`}>{t.gameStats}</span>
@@ -1254,10 +1324,12 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                  </ScrollFade>
                 )}
 
+                <ScrollFade delay={0.1}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputGroup 
+                  <InputGroup
                     label={t.mouse} 
                     icon={<Mouse size={18} />} 
                     value={settings.mouse}
@@ -1306,7 +1378,9 @@ export default function App() {
                     onChange={(val) => setSettings({ ...settings, mousepad: val })}
                   />
                 </div>
+                </ScrollFade>
 
+                <ScrollFade delay={0.15}>
                 <div className={`grid grid-cols-2 gap-4 pt-4 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                   <label className="block">
                     <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-2 block`}>{t.dpi}</span>
@@ -1333,9 +1407,10 @@ export default function App() {
                   <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'} uppercase tracking-widest`}>eDPI</span>
                   <span className="text-sm font-bold text-emerald-500 font-mono">{(settings.dpi * settings.sensitivity).toFixed(1)}</span>
                 </div>
+                </ScrollFade>
               </div>
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={loading}
                 className={`w-full relative overflow-hidden font-black py-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 uppercase tracking-widest text-sm ${
@@ -1343,6 +1418,9 @@ export default function App() {
                     ? (theme === 'dark' ? 'bg-[#141416] text-[#333] cursor-not-allowed' : 'bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed')
                     : 'bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
                 }`}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
               >
                 {!loading && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 pointer-events-none" />
@@ -1355,7 +1433,7 @@ export default function App() {
                     {t.findMatch}
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
           </motion.div>
         </div>
@@ -1527,7 +1605,11 @@ export default function App() {
                           const proMouse = matches[0].gear.mouse || matches[0].gear.controller || '';
                           const same = myMouse && proMouse && myMouse.toLowerCase() === proMouse.toLowerCase();
                           return (
-                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                            <motion.div
+                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
+                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
+                              transition={{ duration: 0.15 }}
+                            >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Mouse size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
                                 <span className={`text-[10px] truncate ${myMouse ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myMouse || t.notEntered}</span>
@@ -1545,7 +1627,7 @@ export default function App() {
                                   </a>
                                 )}
                               </div>
-                            </div>
+                            </motion.div>
                           );
                         })()}
                         {/* Keyboard */}
@@ -1554,7 +1636,11 @@ export default function App() {
                           const proKb = matches[0].gear.keyboard || '';
                           const same = myKb && proKb && myKb.toLowerCase() === proKb.toLowerCase();
                           return (
-                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                            <motion.div
+                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
+                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
+                              transition={{ duration: 0.15 }}
+                            >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Keyboard size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
                                 <span className={`text-[10px] truncate ${myKb ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myKb || t.notEntered}</span>
@@ -1572,7 +1658,7 @@ export default function App() {
                                   </a>
                                 )}
                               </div>
-                            </div>
+                            </motion.div>
                           );
                         })()}
                         {/* Monitor */}
@@ -1581,7 +1667,11 @@ export default function App() {
                           const proMon = matches[0].gear.monitor || '';
                           const same = myMon && proMon && myMon.toLowerCase() === proMon.toLowerCase();
                           return (
-                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                            <motion.div
+                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
+                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
+                              transition={{ duration: 0.15 }}
+                            >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Monitor size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
                                 <span className={`text-[10px] truncate ${myMon ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myMon || t.notEntered}</span>
@@ -1599,7 +1689,7 @@ export default function App() {
                                   </a>
                                 )}
                               </div>
-                            </div>
+                            </motion.div>
                           );
                         })()}
                         {/* Mousepad */}
@@ -1608,7 +1698,11 @@ export default function App() {
                           const proPad = matches[0].gear.mousepad || '';
                           const same = myPad && proPad && myPad.toLowerCase() === proPad.toLowerCase();
                           return (
-                            <div className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
+                            <motion.div
+                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
+                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
+                              transition={{ duration: 0.15 }}
+                            >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Layers size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
                                 <span className={`text-[10px] truncate ${myPad ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myPad || t.notEntered}</span>
@@ -1626,7 +1720,7 @@ export default function App() {
                                   </a>
                                 )}
                               </div>
-                            </div>
+                            </motion.div>
                           );
                         })()}
                       </div>
@@ -1819,49 +1913,42 @@ export default function App() {
             exit={{ opacity: 0 }}
             className={`fixed inset-0 z-[70] ${theme === 'dark' ? 'bg-black/90' : 'bg-white/90'} backdrop-blur-md flex flex-col items-center justify-center text-center p-8`}
           >
-            {/* 오비트 애니메이션 */}
+            {/* 로고 스핀 애니메이션 */}
             <style>{`
-              @keyframes pgm-orbit {
-                from { transform: rotate(0deg) translateX(72px) rotate(0deg); }
-                to   { transform: rotate(360deg) translateX(72px) rotate(-360deg); }
+              @keyframes pgm-spin {
+                from { transform: rotate(0deg); }
+                to   { transform: rotate(360deg); }
               }
-              @keyframes pgm-orbit2 {
-                from { transform: rotate(180deg) translateX(72px) rotate(-180deg); }
-                to   { transform: rotate(540deg) translateX(72px) rotate(-540deg); }
-              }
-              @keyframes pgm-pulse-ring {
-                0%, 100% { transform: scale(1); opacity: 0.4; }
-                50% { transform: scale(1.12); opacity: 0.8; }
+              @keyframes pgm-ring-pulse {
+                0%, 100% { opacity: 0.3; transform: scale(1); }
+                50%       { opacity: 0.7; transform: scale(1.06); }
               }
             `}</style>
 
-            <div className="relative flex items-center justify-center mb-10" style={{ width: 200, height: 200 }}>
-              {/* 외부 궤도 링 */}
-              <div className="absolute rounded-full border border-dashed border-emerald-500/20"
-                style={{ width: 160, height: 160 }} />
+            <div className="relative flex items-center justify-center mb-10" style={{ width: 140, height: 140 }}>
+              {/* 배경 글로우 */}
+              <div className="absolute inset-0 rounded-full"
+                style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 70%)' }} />
 
-              {/* 내부 펄스 링 */}
+              {/* 외부 펄스 링 */}
               <div className="absolute rounded-full border border-emerald-500/30"
-                style={{ width: 80, height: 80, animation: 'pgm-pulse-ring 2s ease-in-out infinite' }} />
+                style={{ width: 130, height: 130, animation: 'pgm-ring-pulse 2s ease-in-out infinite' }} />
 
-              {/* 중심 원 */}
-              <div className="absolute w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/40 flex items-center justify-center"
-                style={{ boxShadow: '0 0 20px rgba(16,185,129,0.3)' }}>
-                <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"
-                  style={{ boxShadow: '0 0 10px rgba(16,185,129,0.8)' }} />
-              </div>
+              {/* 중간 링 */}
+              <div className="absolute rounded-full border border-dashed border-emerald-500/15"
+                style={{ width: 108, height: 108 }} />
 
-              {/* 로고 오비트 (정방향) */}
-              <div className="absolute" style={{ animation: 'pgm-orbit 2.4s linear infinite' }}>
-                <img src="/favicon.svg" alt="PGM" className="w-9 h-9"
-                  style={{ filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.9)) drop-shadow(0 0 12px rgba(16,185,129,0.4))' }} />
-              </div>
-
-              {/* 작은 점 오비트 (역방향 약간 느리게) */}
-              <div className="absolute" style={{ animation: 'pgm-orbit2 3.2s linear infinite' }}>
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400"
-                  style={{ boxShadow: '0 0 8px rgba(16,185,129,0.9)' }} />
-              </div>
+              {/* 로고 스핀 */}
+              <img
+                src="/favicon.svg"
+                alt="PGM"
+                style={{
+                  width: 72,
+                  height: 72,
+                  animation: 'pgm-spin 1.8s linear infinite',
+                  filter: 'drop-shadow(0 0 8px rgba(16,185,129,0.8)) drop-shadow(0 0 20px rgba(16,185,129,0.4))',
+                }}
+              />
             </div>
 
             <p className="text-emerald-500 font-mono text-sm animate-pulse uppercase tracking-[0.3em]">{t.scanning}</p>
@@ -1896,6 +1983,7 @@ export default function App() {
       )}
 
       {/* Main page comment section */}
+      <ScrollFade>
       <div className="max-w-2xl mx-auto mt-12 px-4">
         <div className={`rounded-2xl border p-6 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
           <CommentSection
@@ -1906,10 +1994,12 @@ export default function App() {
           />
         </div>
       </div>
+      </ScrollFade>
 
       {/* High Quality Content Sections for AdSense */}
       <div className="max-w-4xl mx-auto mt-20 space-y-16 pb-20">
         {/* About Section */}
+        <ScrollFade direction="up">
         <section className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-8`}>
           <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} mb-4 uppercase tracking-wider flex items-center gap-2`}>
             <Shield size={24} /> {t.aboutTitle}
@@ -1918,6 +2008,7 @@ export default function App() {
             {t.aboutDesc}
           </p>
         </section>
+        </ScrollFade>
 
         {/* Gear Guide Section */}
         <section className="space-y-8">
@@ -1925,6 +2016,7 @@ export default function App() {
             <Flame size={24} /> {t.guideTitle}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <ScrollFade delay={0}>
             <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 hover:border-emerald-500/50 transition-colors`}>
               <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-600/10 text-emerald-600'} rounded-lg flex items-center justify-center mb-4`}>
                 <Target size={20} />
@@ -1932,6 +2024,8 @@ export default function App() {
               <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">DPI</h3>
               <p className={`text-xs ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} leading-relaxed`}>{t.guideDpi}</p>
             </div>
+            </ScrollFade>
+            <ScrollFade delay={0.1}>
             <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 hover:border-emerald-500/50 transition-colors`}>
               <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-600/10 text-emerald-600'} rounded-lg flex items-center justify-center mb-4`}>
                 <Zap size={20} />
@@ -1939,6 +2033,8 @@ export default function App() {
               <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">Sensitivity</h3>
               <p className={`text-xs ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} leading-relaxed`}>{t.guideSens}</p>
             </div>
+            </ScrollFade>
+            <ScrollFade delay={0.2}>
             <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 hover:border-emerald-500/50 transition-colors`}>
               <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-600/10 text-emerald-600'} rounded-lg flex items-center justify-center mb-4`}>
                 <Layers size={20} />
@@ -1946,6 +2042,7 @@ export default function App() {
               <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">eDPI</h3>
               <p className={`text-xs ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} leading-relaxed`}>{t.guideEdpi}</p>
             </div>
+            </ScrollFade>
           </div>
         </section>
       </div>
@@ -1957,6 +2054,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4`}>
+        <ScrollFade>
         {/* Amazon Associates Disclosure */}
         <div className={`max-w-4xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#222]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
           <span className={`${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'} font-semibold`}>Amazon Associates</span>
@@ -1968,9 +2066,11 @@ export default function App() {
             <p className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} text-xs font-mono uppercase tracking-widest`}>{t.footerRights}</p>
           </div>
           <div className={`flex flex-wrap justify-center gap-6 text-[10px] font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-widest`}>
-            <button onClick={() => setActivePolicy('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
-            <button onClick={() => setActivePolicy('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>
-            <button onClick={() => setActivePolicy('contact')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.contactUs}</button>
+            <button onClick={() => navigate('how-it-works')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '작동 방식' : 'How It Works'}</button>
+            <button onClick={() => navigate('about')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '소개' : 'About'}</button>
+            <button onClick={() => navigate('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
+            <button onClick={() => navigate('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>
+            <button onClick={() => navigate('affiliate')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '제휴 공시' : 'Affiliate'}</button>
             {user ? (
               <button onClick={handleLogout} className="flex items-center gap-1 text-red-500 hover:text-red-400 transition-colors">
                 <LogOut size={10} /> {t.logout}
@@ -1982,6 +2082,7 @@ export default function App() {
             )}
           </div>
         </div>
+        </ScrollFade>
       </footer>
 
       {/* Policy Modals */}
@@ -3128,10 +3229,14 @@ function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, o
 
 function StatBlock({ label, value, theme }: { label: string, value: string, theme: 'dark' | 'light' }) {
   return (
-    <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-3 rounded-xl`}>
+    <motion.div
+      whileHover={{ scale: 1.04, y: -2 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-3 rounded-xl`}
+    >
       <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-widest block mb-1`}>{label}</span>
       <span className={`text-2xl font-bold tracking-tighter ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{value}</span>
-    </div>
+    </motion.div>
   );
 }
 
@@ -3849,4 +3954,151 @@ function TodayProCard({ pro, theme, currentGame, onMove }: {
   );
 }
 
+function StaticPageView({ page, theme, lang, t, onNavigate }: {
+  page: PageType;
+  theme: 'dark' | 'light';
+  lang: Language;
+  t: typeof translations['en'];
+  onNavigate: (p: PageType) => void;
+}) {
+  const isDark = theme === 'dark';
+  const isKo = lang === 'ko';
 
+  const pages: Record<PageType, { title: string; subtitle: string; icon: string; sections: { heading: string; body: string }[] }> = {
+    home: { title: '', subtitle: '', icon: '', sections: [] },
+    'how-it-works': {
+      title: isKo ? '작동 방식' : 'How It Works',
+      subtitle: isKo ? 'Pro Gear Match는 어떻게 프로게이머를 찾아드리나요?' : 'How does Pro Gear Match find your pro twin?',
+      icon: '🎯',
+      sections: [
+        { heading: isKo ? '1. 장비 설정 입력' : '1. Enter Your Settings', body: isKo ? '마우스, 키보드, 모니터, 마우스패드와 DPI·감도를 입력하세요. 일부 항목을 모르더라도 DPI와 감도만으로 매칭이 가능합니다.' : 'Enter your mouse, keyboard, monitor, mousepad, DPI, and sensitivity. Even if you only know your DPI and sensitivity, we can still find your match.' },
+        { heading: isKo ? '2. 게임 선택' : '2. Select Your Game', body: isKo ? 'Valorant, CS2, Overwatch 2, Apex Legends 중 주로 플레이하는 게임을 선택하세요. 게임별로 별도의 프로 선수 데이터베이스가 운용됩니다.' : 'Choose your main game from Valorant, CS2, Overwatch 2, or Apex Legends. Each game has its own dedicated pro player database.' },
+        { heading: isKo ? '3. eDPI 기반 매칭 알고리즘' : '3. eDPI-Based Matching Algorithm', body: isKo ? '입력된 DPI × 감도로 계산된 eDPI(유효 DPI)를 기준으로 데이터베이스의 모든 프로 선수와 비교합니다. eDPI가 가장 근접한 선수를 최우선으로 매칭하며, 동일한 장비 사용 여부도 점수에 반영됩니다.' : 'We calculate your eDPI (Effective DPI = DPI × Sensitivity) and compare it against every pro in our database. The closest eDPI match is prioritized, with gear overlap also factored into the score.' },
+        { heading: isKo ? '4. 결과 확인' : '4. View Your Results', body: isKo ? '매칭된 프로의 이름, 팀, eDPI 분포 상 나의 위치, 장비 비교표를 확인할 수 있습니다. 아마존 제휴 링크를 통해 프로와 같은 장비를 바로 구매할 수도 있습니다.' : "See your matched pro's name, team, your position in the eDPI distribution chart, and a side-by-side gear comparison. You can also buy the same gear via Amazon affiliate links." },
+      ],
+    },
+    about: {
+      title: isKo ? 'Pro Gear Match 소개' : 'About Pro Gear Match',
+      subtitle: isKo ? '프로게이머의 설정으로 당신의 게임을 업그레이드하세요' : 'Upgrade your game with pro settings',
+      icon: '🏆',
+      sections: [
+        { heading: isKo ? '우리는 누구인가요?' : 'Who We Are', body: isKo ? 'Pro Gear Match는 e스포츠 팬과 게이머를 위해 만들어진 무료 도구입니다. 전 세계 300명 이상의 프로 선수 데이터를 수집하고 유지 관리하여 여러분의 설정과 가장 유사한 프로를 찾아드립니다.' : 'Pro Gear Match is a free tool built for esports fans and gamers. We collect and maintain data on 300+ professional players worldwide to help you find the pro whose settings match yours most closely.' },
+        { heading: isKo ? '데이터 출처' : 'Our Data Sources', body: isKo ? '모든 프로 선수 데이터는 ProSettings.net, Liquipedia 등 공개적으로 검증된 출처에서 수집됩니다. 데이터는 정기적으로 업데이트되며, 선수의 설정 변경 사항을 반영합니다.' : 'All pro player data is collected from publicly verified sources including ProSettings.net and Liquipedia. Data is regularly updated to reflect players\' latest settings changes.' },
+        { heading: isKo ? '우리의 미션' : 'Our Mission', body: isKo ? '감도 설정은 게임 실력에 큰 영향을 미칩니다. 하지만 어떤 감도가 자신에게 맞는지 찾기 어렵습니다. Pro Gear Match는 자신과 비슷한 설정을 사용하는 프로를 기준점으로 삼아, 더 빠르게 최적의 설정을 찾을 수 있도록 돕습니다.' : 'Sensitivity settings can greatly impact your gameplay. But finding the right sensitivity is hard. Pro Gear Match helps you use a pro with similar settings as a reference point to find your optimal setup faster.' },
+        { heading: isKo ? '문의하기' : 'Contact', body: 'wjsrkdgns123a@gmail.com' },
+      ],
+    },
+    privacy: {
+      title: isKo ? '개인정보처리방침' : 'Privacy Policy',
+      subtitle: isKo ? '귀하의 개인정보는 안전하게 보호됩니다' : 'Your privacy is protected',
+      icon: '🔒',
+      sections: [
+        { heading: isKo ? '1. 수집하는 정보' : '1. Information We Collect', body: isKo ? 'Pro Gear Match는 개인 식별 정보를 수집하지 않습니다. 서비스 이용 시 입력하는 장비 설정(DPI, 감도, 게임 선택 등)은 매칭 목적으로만 사용되며 서버에 저장되지 않습니다. 댓글 기능 이용 시에는 닉네임과 댓글 내용이 Firebase에 저장됩니다.' : 'Pro Gear Match does not collect personally identifiable information. Gear settings you enter (DPI, sensitivity, game, etc.) are used only for matching and are not stored on our servers. If you use the comment feature, your nickname and comment text are stored in Firebase.' },
+        { heading: isKo ? '2. 쿠키 및 광고' : '2. Cookies & Advertising', body: isKo ? '본 사이트는 Google AdSense를 사용하여 광고를 표시합니다. Google은 귀하의 광고 경험을 개인화하기 위해 쿠키를 사용할 수 있습니다. 브라우저 설정에서 쿠키를 비활성화할 수 있습니다.' : 'This site uses Google AdSense to display advertisements. Google may use cookies to personalize your ad experience. You can disable cookies in your browser settings.' },
+        { heading: isKo ? '3. 제3자 서비스' : '3. Third-Party Services', body: isKo ? '본 사이트는 Firebase(Google), Google AdSense, Amazon Associates 등 제3자 서비스를 사용합니다. 각 서비스의 개인정보처리방침이 별도로 적용됩니다.' : 'This site uses third-party services including Firebase (Google), Google AdSense, and Amazon Associates. Each service\'s own privacy policy applies separately.' },
+        { heading: isKo ? '4. 데이터 보안' : '4. Data Security', body: isKo ? '저장되는 댓글 데이터는 Firebase의 보안 규칙으로 보호됩니다. 당사는 귀하의 데이터를 제3자에게 판매하거나 공유하지 않습니다.' : 'Stored comment data is protected by Firebase security rules. We do not sell or share your data with third parties.' },
+        { heading: isKo ? '5. 문의' : '5. Contact', body: isKo ? '개인정보 관련 문의사항은 wjsrkdgns123a@gmail.com 으로 연락해 주세요.' : 'For privacy-related inquiries, please contact wjsrkdgns123a@gmail.com.' },
+      ],
+    },
+    terms: {
+      title: isKo ? '서비스 이용약관' : 'Terms of Service',
+      subtitle: isKo ? 'Pro Gear Match 이용에 관한 약관입니다' : 'Terms governing the use of Pro Gear Match',
+      icon: '📋',
+      sections: [
+        { heading: isKo ? '1. 서비스 이용' : '1. Use of Service', body: isKo ? 'Pro Gear Match는 참고용 무료 도구입니다. 프로 선수 설정 데이터는 공개 출처에서 수집되며, 데이터의 정확성이나 최신성을 보장하지 않습니다. 프로 선수들의 설정은 언제든지 변경될 수 있습니다.' : 'Pro Gear Match is a free reference tool. Pro player settings data is collected from public sources, and we do not guarantee the accuracy or timeliness of the data. Pro settings may change at any time.' },
+        { heading: isKo ? '2. 지적 재산권' : '2. Intellectual Property', body: isKo ? '본 사이트의 디자인, 코드, 콘텐츠에 대한 권리는 Pro Gear Match에 있습니다. 프로 선수 데이터는 각 공개 출처의 저작권 정책을 따릅니다.' : 'Rights to the site\'s design, code, and content belong to Pro Gear Match. Pro player data follows the copyright policies of their respective public sources.' },
+        { heading: isKo ? '3. 면책 조항' : '3. Disclaimer', body: isKo ? '본 사이트에서 제공하는 정보는 게임 실력 향상을 보장하지 않습니다. 매칭 결과는 알고리즘에 의한 참고 정보이며, 실제 프로 선수의 추천이나 보증이 아닙니다.' : 'Information provided on this site does not guarantee improvement in gaming performance. Match results are algorithmic references only and do not represent endorsements from professional players.' },
+        { heading: isKo ? '4. 변경 및 중단' : '4. Changes & Termination', body: isKo ? '본 서비스는 사전 고지 없이 변경되거나 중단될 수 있습니다. 서비스 변경으로 인한 손해에 대해 책임을 지지 않습니다.' : 'This service may be changed or discontinued without prior notice. We are not liable for any damages resulting from service changes.' },
+        { heading: isKo ? '5. 문의' : '5. Contact', body: 'wjsrkdgns123a@gmail.com' },
+      ],
+    },
+    affiliate: {
+      title: isKo ? '제휴 마케팅 공시' : 'Affiliate Disclosure',
+      subtitle: isKo ? 'Amazon Associates 프로그램 참여 공시' : 'Amazon Associates Program Disclosure',
+      icon: '🔗',
+      sections: [
+        { heading: isKo ? 'Amazon Associates 프로그램' : 'Amazon Associates Program', body: isKo ? 'Pro Gear Match는 Amazon.com, Inc. 및 그 계열사의 제휴 마케팅 프로그램인 Amazon Associates 프로그램의 참여자입니다. 본 프로그램은 사이트 운영비를 충당하기 위한 광고 수수료를 제공합니다.' : 'Pro Gear Match is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means to earn fees by linking to Amazon.com and affiliated sites.' },
+        { heading: isKo ? '제휴 링크 작동 방식' : 'How Affiliate Links Work', body: isKo ? '매칭 결과 페이지의 "가격 확인" 버튼을 클릭하면 Amazon 제품 페이지로 이동합니다. 해당 링크를 통해 구매하시면 추가 비용 없이 소정의 수수료가 발생하며, 이는 사이트 운영과 데이터베이스 유지에 사용됩니다.' : "When you click \"Check Price\" buttons on match result pages, you'll be directed to Amazon product pages. If you make a purchase through these links, we may earn a small commission at no additional cost to you. This helps support site operations and database maintenance." },
+        { heading: isKo ? '가격 및 제품 정보' : 'Pricing & Product Information', body: isKo ? '제품 가격 및 재고는 변동될 수 있으며, 최종 가격은 Amazon 사이트에서 확인하시기 바랍니다. 당사는 제품 품질이나 배송에 대한 책임을 지지 않습니다.' : 'Product prices and availability are subject to change. Please verify final pricing on Amazon. We are not responsible for product quality or shipping.' },
+        { heading: isKo ? 'FTC 공시' : 'FTC Disclosure', body: isKo ? '미국 연방거래위원회(FTC) 지침에 따라, 본 사이트의 일부 링크는 제휴 링크임을 공시합니다. 해당 링크를 통한 구매 시 수수료를 받을 수 있으나, 이는 추천 내용에 영향을 미치지 않습니다.' : 'In accordance with FTC guidelines, we disclose that some links on this site are affiliate links. We may receive a commission on purchases made through these links, but this does not influence our recommendations.' },
+      ],
+    },
+  };
+
+  const content = pages[page];
+
+  return (
+    <div className={`min-h-screen ${isDark ? 'bg-[#050507] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans`}>
+      {isDark && (
+        <div className="fixed inset-0 pointer-events-none" style={{backgroundImage: 'linear-gradient(rgba(16,185,129,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.02) 1px, transparent 1px)', backgroundSize: '44px 44px'}} />
+      )}
+
+      {/* Nav */}
+      <nav className={`sticky top-0 z-50 border-b ${isDark ? 'bg-[#050507]/90 border-[#1a1a1a]' : 'bg-white/90 border-[#e5e7eb]'} backdrop-blur-md`}>
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
+          <button
+            onClick={() => onNavigate('home')}
+            className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest transition-colors ${isDark ? 'text-[#555] hover:text-emerald-400' : 'text-[#9ca3af] hover:text-emerald-600'}`}
+          >
+            <ArrowLeft size={14} /> {isKo ? '홈으로' : 'Back to Home'}
+          </button>
+          <span className={`${isDark ? 'text-[#333]' : 'text-[#d1d5db]'}`}>·</span>
+          <span className={`text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-[#444]' : 'text-[#9ca3af]'}`}>{content.title}</span>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <div className={`border-b ${isDark ? 'border-[#111]' : 'border-[#e5e7eb]'} py-16 px-6`}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-4xl mb-4">{content.icon}</div>
+          <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 ${isDark ? 'text-white' : 'text-[#111]'}`}>
+            {content.title}
+          </h1>
+          <p className={`text-sm font-mono ${isDark ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest`}>
+            {content.subtitle}
+          </p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-4xl mx-auto px-6 py-16 space-y-10">
+        {content.sections.map((section, i) => (
+          <div key={i} className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+            <h2 className={`text-base font-black uppercase tracking-wide mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+              {section.heading}
+            </h2>
+            <p className={`text-sm leading-relaxed ${isDark ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+              {section.body}
+            </p>
+          </div>
+        ))}
+
+        {/* Back link */}
+        <div className="pt-4">
+          <button
+            onClick={() => onNavigate('home')}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-emerald-400 transition-colors"
+          >
+            <ArrowLeft size={12} /> {isKo ? '홈으로 돌아가기' : 'Back to Home'}
+          </button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className={`border-t ${isDark ? 'border-[#111] bg-[#0a0a0a]' : 'border-[#e5e7eb] bg-[#f8f9fa]'} py-8 px-6`}>
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className={`text-xs font-mono ${isDark ? 'text-emerald-500' : 'text-emerald-600'} font-bold uppercase tracking-widest`}>
+            Pro Gear Match
+          </span>
+          <div className={`flex flex-wrap gap-4 text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+            <button onClick={() => onNavigate('how-it-works')} className="hover:text-emerald-500 transition-colors">{isKo ? '작동 방식' : 'How It Works'}</button>
+            <button onClick={() => onNavigate('about')} className="hover:text-emerald-500 transition-colors">{isKo ? '소개' : 'About'}</button>
+            <button onClick={() => onNavigate('privacy')} className="hover:text-emerald-500 transition-colors">{isKo ? '개인정보처리방침' : 'Privacy'}</button>
+            <button onClick={() => onNavigate('terms')} className="hover:text-emerald-500 transition-colors">{isKo ? '이용약관' : 'Terms'}</button>
+            <button onClick={() => onNavigate('affiliate')} className="hover:text-emerald-500 transition-colors">{isKo ? '제휴 공시' : 'Affiliate'}</button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
