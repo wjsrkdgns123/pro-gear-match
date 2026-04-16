@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil, Play, MessageCircle, Flag, Send } from 'lucide-react';
+import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil, Play, MessageCircle, Flag, Send, ShoppingCart } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
@@ -1389,17 +1389,17 @@ export default function App() {
                       step="100"
                       value={settings.dpi}
                       onChange={(e) => setSettings({ ...settings, dpi: Number(e.target.value) })}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
                     />
                   </label>
                   <label className="block">
                     <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-2 block`}>{t.sensitivity}</span>
-                    <input 
+                    <input
                       type="number"
                       step="0.1"
                       value={settings.sensitivity}
                       onChange={(e) => setSettings({ ...settings, sensitivity: Number(e.target.value) })}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
                     />
                   </label>
                 </div>
@@ -1605,10 +1605,8 @@ export default function App() {
                           const proMouse = matches[0].gear.mouse || matches[0].gear.controller || '';
                           const same = myMouse && proMouse && myMouse.toLowerCase() === proMouse.toLowerCase();
                           return (
-                            <motion.div
+                            <div
                               className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
-                              transition={{ duration: 0.15 }}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Mouse size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
@@ -1622,12 +1620,12 @@ export default function App() {
                                 <span className={`text-[10px] truncate text-right ${proMouse ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proMouse || '-'}</span>
                                 {proMouse && (
                                   <a href={getAmazonLink(proMouse)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
-                                    {t.priceCheck} <ExternalLink size={7} />
+                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
+                                    {t.priceCheck} <ExternalLink size={9} />
                                   </a>
                                 )}
                               </div>
-                            </motion.div>
+                            </div>
                           );
                         })()}
                         {/* Keyboard */}
@@ -1636,10 +1634,8 @@ export default function App() {
                           const proKb = matches[0].gear.keyboard || '';
                           const same = myKb && proKb && myKb.toLowerCase() === proKb.toLowerCase();
                           return (
-                            <motion.div
+                            <div
                               className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
-                              transition={{ duration: 0.15 }}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Keyboard size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
@@ -1653,12 +1649,12 @@ export default function App() {
                                 <span className={`text-[10px] truncate text-right ${proKb ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proKb || '-'}</span>
                                 {proKb && (
                                   <a href={getAmazonLink(proKb)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
-                                    {t.priceCheck} <ExternalLink size={7} />
+                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
+                                    {t.priceCheck} <ExternalLink size={9} />
                                   </a>
                                 )}
                               </div>
-                            </motion.div>
+                            </div>
                           );
                         })()}
                         {/* Monitor */}
@@ -1667,10 +1663,8 @@ export default function App() {
                           const proMon = matches[0].gear.monitor || '';
                           const same = myMon && proMon && myMon.toLowerCase() === proMon.toLowerCase();
                           return (
-                            <motion.div
+                            <div
                               className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
-                              transition={{ duration: 0.15 }}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Monitor size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
@@ -1684,12 +1678,12 @@ export default function App() {
                                 <span className={`text-[10px] truncate text-right ${proMon ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proMon || '-'}</span>
                                 {proMon && (
                                   <a href={getAmazonLink(proMon)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
-                                    {t.priceCheck} <ExternalLink size={7} />
+                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
+                                    {t.priceCheck} <ExternalLink size={9} />
                                   </a>
                                 )}
                               </div>
-                            </motion.div>
+                            </div>
                           );
                         })()}
                         {/* Mousepad */}
@@ -1698,10 +1692,8 @@ export default function App() {
                           const proPad = matches[0].gear.mousepad || '';
                           const same = myPad && proPad && myPad.toLowerCase() === proPad.toLowerCase();
                           return (
-                            <motion.div
+                            <div
                               className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                              whileHover={{ backgroundColor: theme === 'dark' ? 'rgba(16,185,129,0.05)' : 'rgba(16,185,129,0.03)' }}
-                              transition={{ duration: 0.15 }}
                             >
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Layers size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
@@ -1715,16 +1707,95 @@ export default function App() {
                                 <span className={`text-[10px] truncate text-right ${proPad ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proPad || '-'}</span>
                                 {proPad && (
                                   <a href={getAmazonLink(proPad)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[8px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#777] hover:text-amber-400 hover:border-amber-500/50' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#999] hover:text-amber-600 hover:border-amber-400'}`}>
-                                    {t.priceCheck} <ExternalLink size={7} />
+                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
+                                    {t.priceCheck} <ExternalLink size={9} />
                                   </a>
                                 )}
                               </div>
-                            </motion.div>
+                            </div>
                           );
                         })()}
                       </div>
                     </div>
+
+                    {/* Pro Gear Showcase */}
+                    {(() => {
+                      const proGear = matches[0].gear;
+                      const gearItems = [
+                        { key: 'mouse', label: lang === 'ko' ? '마우스' : 'Mouse', name: proGear.mouse || proGear.controller || '', icon: 'mouse' },
+                        { key: 'keyboard', label: lang === 'ko' ? '키보드' : 'Keyboard', name: proGear.keyboard || '', icon: 'keyboard' },
+                        { key: 'monitor', label: lang === 'ko' ? '모니터' : 'Monitor', name: proGear.monitor || '', icon: 'monitor' },
+                        { key: 'mousepad', label: lang === 'ko' ? '마우스패드' : 'Mousepad', name: proGear.mousepad || '', icon: 'mousepad' },
+                      ].filter(g => g.name);
+                      if (gearItems.length === 0) return null;
+                      return (
+                        <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
+                          <p className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase tracking-widest mb-4 flex items-center gap-2`}>
+                            <ShoppingCart size={12} className="text-emerald-500" />
+                            {lang === 'ko' ? `${matches[0].name}의 사용 장비` : `${matches[0].name}'s Gear`}
+                          </p>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {gearItems.map(item => {
+                              const imgUrl = getGearImageUrl(item.name);
+                              const amazonLink = getAmazonLink(item.name);
+                              return (
+                                <div key={item.key} className={`flex flex-col rounded-xl overflow-hidden border ${theme === 'dark' ? 'bg-[#0d0d0f] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
+                                  {/* Image area */}
+                                  <div className={`flex items-center justify-center h-28 ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f5f5f5]'} relative`}>
+                                    {imgUrl ? (
+                                      <img
+                                        src={imgUrl}
+                                        alt={item.name}
+                                        className="w-full h-full object-contain p-3"
+                                        onError={(e) => {
+                                          const target = e.currentTarget;
+                                          target.style.display = 'none';
+                                          const fallback = target.nextElementSibling as HTMLElement;
+                                          if (fallback) fallback.style.display = 'flex';
+                                        }}
+                                      />
+                                    ) : null}
+                                    <div
+                                      className="absolute inset-0 items-center justify-center"
+                                      style={{ display: imgUrl ? 'none' : 'flex' }}
+                                    >
+                                      {item.icon === 'mouse' && <Mouse size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
+                                      {item.icon === 'keyboard' && <Keyboard size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
+                                      {item.icon === 'monitor' && <Monitor size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
+                                      {item.icon === 'mousepad' && <Layers size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
+                                    </div>
+                                  </div>
+                                  {/* Info area */}
+                                  <div className="p-2.5 flex flex-col gap-2 flex-1">
+                                    <span className={`text-[8px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>{item.label}</span>
+                                    <span className={`text-[11px] font-semibold leading-tight ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#222]'}`}>{item.name}</span>
+                                    {amazonLink ? (
+                                      <a
+                                        href={amazonLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'}`}
+                                      >
+                                        <ShoppingCart size={10} /> {lang === 'ko' ? '아마존 구매' : 'Buy on Amazon'}
+                                      </a>
+                                    ) : (
+                                      <a
+                                        href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border border-[#333] text-[#555] hover:text-[#777]' : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#aaa] hover:text-[#888]'}`}
+                                      >
+                                        <ExternalLink size={10} /> {lang === 'ko' ? '검색' : 'Search'}
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {loadingHighlights && (
                       <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'} flex flex-col items-center justify-center py-8`}>
@@ -3189,7 +3260,7 @@ function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, o
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-          className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-[#9ca3af]`}
+          className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'} transition-colors placeholder:text-[#9ca3af]`}
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -3215,7 +3286,7 @@ function InputGroup({ label, icon, value, placeholder, hint, onChange, listId, o
                   setSuggestions([]);
                   setShowDropdown(false);
                 }}
-                className={`w-full text-left px-4 py-2 text-xs font-mono ${theme === 'dark' ? 'hover:bg-emerald-500/10 text-[#aaa] hover:text-emerald-400' : 'hover:bg-emerald-50 text-[#4b5563] hover:text-emerald-600'} transition-colors border-b last:border-0 ${theme === 'dark' ? 'border-[#333]' : 'border-[#f3f4f6]'}`}
+                className={`w-full text-left px-4 py-2 text-xs font-mono ${theme === 'dark' ? 'hover:bg-[#1e1e22] text-[#aaa] hover:text-[#ccc]' : 'hover:bg-[#f3f4f6] text-[#4b5563] hover:text-[#1f2937]'} transition-colors border-b last:border-0 ${theme === 'dark' ? 'border-[#333]' : 'border-[#f3f4f6]'}`}
               >
                 {suggestion}
               </button>
@@ -3390,6 +3461,64 @@ function normalizeGearName(s: string): string {
   return s.replace(COLOR_WORDS_RE, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
+function getGearImageUrl(productName: string): string | null {
+  const key = productName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const map: Record<string, string> = {
+    // Logitech Mice
+    'logitechgproxsuperlight2': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x2-superlight/pro-x2-superlight-gallery-1.png',
+    'logitechgproxsuperlight': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-superlight/pro-x-superlight-gallery-1.png',
+    'logitechgprowireless': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-wireless-mouse/pro-wireless-mouse-gallery-1.png',
+    'logitechg502xplus': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g502-x-plus/g502-x-plus-gallery-1.png',
+    'logitechg502hero': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g502-hero/g502-hero-gallery-1.png',
+    'logitechg305lightspeed': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g305-gaming-mouse/g305-gaming-mouse-gallery-1.png',
+    // Razer Mice
+    'razerdeathadderv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-deathadder-v3-pro-500x500.png',
+    'razerviperv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-viper-v3-pro-500x500.png',
+    'razerviperv2pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-viper-v2-pro-500x500.png',
+    'razerdeathadderv2pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-deathadder-v2-pro-500x500.png',
+    'razerdeathadderv2': 'https://assets2.razerzone.com/images/pnx.assets/razer-deathadder-v2-500x500.png',
+    'razerbasiliksv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-basilisk-v3-pro-500x500.png',
+    'razercobrapro': 'https://assets2.razerzone.com/images/pnx.assets/razer-cobra-pro-500x500.png',
+    'razerviperultimate': 'https://assets2.razerzone.com/images/pnx.assets/razer-viper-ultimate-500x500.png',
+    // SteelSeries Mice
+    'steelseriesprimewireless': 'https://media.steelseriescdn.com/thumbs/catalog/items/62593/57b4b5e7f25d4a98add7b9e82e1ca0ef.png.500x400_q100_crop-fit_optimize.png',
+    'steelseriesaeronxwireless': 'https://media.steelseriescdn.com/thumbs/catalog/items/62605/c7b3f5b7e8104e4281e8e61d64a39ed9.png.500x400_q100_crop-fit_optimize.png',
+    // Zowie Mice
+    'zowieec2c': 'https://zowie.benq.com/content/dam/zowie/global/product/mice/ec2-c/ec2c-pdt-img-01.png',
+    'zowieec2cw': 'https://zowie.benq.com/content/dam/zowie/global/product/mice/ec2-cw/ec2cw-pdt-img-01.png',
+    'zowieec1cw': 'https://zowie.benq.com/content/dam/zowie/global/product/mice/ec1-cw/ec1cw-pdt-img-01.png',
+    // Pulsar Mice
+    'pulsarx2v2': 'https://cdn.shopify.com/s/files/1/0550/5632/products/X2V2_Main.png',
+    'pulsarxlitev3': 'https://cdn.shopify.com/s/files/1/0550/5632/products/XLiteV3_Main.png',
+    // Logitech Keyboards
+    'logitechgproxtkl': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-tkl/pro-x-tkl-gallery-1.png',
+    'logitechgproxtkl2': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-tkl-2/pro-x-tkl-2-gallery-1.png',
+    'logitechgpro': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-keyboard/pro-keyboard-gallery-1.png',
+    // Razer Keyboards
+    'razerhuntsmanv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-v3-pro-tkl-500x500.png',
+    'razerhuntsmanv3protkl': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-v3-pro-tkl-500x500.png',
+    'razerhuntsmantournamentedition': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-tournament-edition-500x500.png',
+    'razerhuntsmanv2tkl': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-v2-tkl-500x500.png',
+    // SteelSeries Keyboards
+    'steelseriesapex2': 'https://media.steelseriescdn.com/thumbs/catalog/items/64646/fe1d0fda51d944adad3af7c764f9db0f.png.500x400_q100_crop-fit_optimize.png',
+    'steelseriesapexprotkl': 'https://media.steelseriescdn.com/thumbs/catalog/items/64734/9e5f5a2f33c4448f9a7caeabc99e9ab3.png.500x400_q100_crop-fit_optimize.png',
+    // Zowie Monitors
+    'zowiexl2546k': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2546k/xl2546k-pdt-img-01.png',
+    'zowiexl2546': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2546/xl2546-pdt-img-01.png',
+    'zowiexl2566k': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2566k/xl2566k-pdt-img-01.png',
+    'zowiexl2411k': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2411k/xl2411k-pdt-img-01.png',
+    // Artisan Mousepads
+    'artisanzerox': 'https://en.artisan-jp.com/img/products/fx/top_img.jpg',
+    'artisantype99': 'https://en.artisan-jp.com/img/products/type99/top_img.jpg',
+    // SteelSeries Mousepads
+    'steelseriesqckxl': 'https://media.steelseriescdn.com/thumbs/catalog/items/63836/main.png.500x400_q100_crop-fit_optimize.png',
+    'steelseriesqckheavyxxl': 'https://media.steelseriescdn.com/thumbs/catalog/items/63008/main.png.500x400_q100_crop-fit_optimize.png',
+    // Logitech G640
+    'logitechg640': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g640-gaming-mouse-pad/g640-gaming-mouse-pad-gallery-1.png',
+  };
+  return map[key] || null;
+}
+
 function getAmazonLink(productName: string): string {
   if (!productName) return '';
   return AMAZON_LINKS_NORMALIZED[normalizeGearName(productName)] || '';
@@ -3431,8 +3560,8 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
   };
   const gColor = gameHex[game] || '#10b981';
 
-  const SW = 500, SH = 130;
-  const PL = 28, PR = 16, PT = 18, PB = 28;
+  const SW = 500, SH = 140;
+  const PL = 28, PR = 16, PT = 18, PB = 38;
   const CW = SW - PL - PR;
   const CH = SH - PT - PB;
 
@@ -3446,26 +3575,26 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
   return (
     <div className={`mt-6 p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <p className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
+        <p className={`text-xs font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
           {game} eDPI {lang === 'ko' ? '분포' : 'Distribution'} · {edpiValues.length}{lang === 'ko' ? '명' : ' pros'}
         </p>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className={`text-[10px] font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+            <span className={`text-xs font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
               {lang === 'ko' ? '나' : 'You'} {formatEdpi(userEdpi)} · {lang === 'ko' ? `상위 ${topPercent}%` : `Top ${topPercent}%`}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: gColor }} />
-            <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#555]'}`}>
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: gColor }} />
+            <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#555]'}`}>
               {proName} {formatEdpi(proEdpi)}
             </span>
           </div>
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full" style={{ height: '130px' }}>
+      <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full" style={{ height: '140px' }}>
         {/* 그리드 */}
         {[0.25, 0.5, 0.75, 1].map(r => (
           <line key={r} x1={PL} y1={PT + CH * (1 - r)} x2={PL + CW} y2={PT + CH * (1 - r)}
@@ -3490,28 +3619,28 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
 
         {/* 프로 마커 */}
         <line x1={proX} y1={PT} x2={proX} y2={PT + CH}
-          stroke={gColor} strokeWidth={1.5} strokeDasharray="3,2" opacity={0.8} />
-        <polygon points={`${proX},${PT + CH + 3} ${proX - 3},${PT + CH + 9} ${proX + 3},${PT + CH + 9}`}
-          fill={gColor} opacity={0.8} />
+          stroke={gColor} strokeWidth={2} strokeDasharray="4,3" opacity={1} />
+        <polygon points={`${proX},${PT + CH + 3} ${proX - 4},${PT + CH + 10} ${proX + 4},${PT + CH + 10}`}
+          fill={gColor} />
         {!tooClose && (
-          <text x={proX} y={PT - 5} textAnchor="middle" fontSize={7}
-            fill={gColor} fontFamily="monospace">{proName.split(' ')[0]}</text>
+          <text x={proX} y={PT - 5} textAnchor="middle" fontSize={9}
+            fill={gColor} fontFamily="monospace" fontWeight="bold">{proName.split(' ')[0]}</text>
         )}
 
         {/* 유저 마커 */}
         <line x1={userX} y1={PT} x2={userX} y2={PT + CH}
-          stroke="#10b981" strokeWidth={2} strokeDasharray="3,2" />
-        <polygon points={`${userX},${PT + CH + 3} ${userX - 3},${PT + CH + 9} ${userX + 3},${PT + CH + 9}`}
+          stroke="#10b981" strokeWidth={2.5} strokeDasharray="4,3" />
+        <polygon points={`${userX},${PT + CH + 3} ${userX - 4},${PT + CH + 10} ${userX + 4},${PT + CH + 10}`}
           fill="#10b981" />
-        <text x={userX} y={PT - 5} textAnchor="middle" fontSize={8}
+        <text x={userX} y={PT - 5} textAnchor="middle" fontSize={10}
           fill="#10b981" fontFamily="monospace" fontWeight="bold">
           {lang === 'ko' ? '나' : 'You'}
         </text>
 
         {/* X축 레이블 */}
         {[0, 0.25, 0.5, 0.75, 1].map(r => (
-          <text key={r} x={PL + r * CW} y={SH - 4} textAnchor="middle" fontSize={7}
-            fill={theme === 'dark' ? '#444' : '#9ca3af'} fontFamily="monospace">
+          <text key={r} x={PL + r * CW} y={SH - 6} textAnchor="middle" fontSize={10}
+            fill={theme === 'dark' ? '#666' : '#9ca3af'} fontFamily="monospace">
             {Math.round(r * numBins * binSize)}
           </text>
         ))}
