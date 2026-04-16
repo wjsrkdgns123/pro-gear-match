@@ -120,6 +120,8 @@ export default function App() {
 
   const [loading, setLoading] = useState(false);
   const [matches, setMatches] = useState<ProGamer[] | null>(null);
+  const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
+  const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const [error, setError] = useState<string | null>(null);
   const [showList, setShowList] = useState(false);
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
@@ -891,6 +893,7 @@ export default function App() {
     try {
       const results = await matchProGamer(settings, lang);
       setMatches(results);
+      setSelectedMatchIdx(0);
 
       if (results.length > 0) {
         setLoadingHighlights(true);
@@ -1450,99 +1453,121 @@ export default function App() {
           >
             <div className="max-w-6xl mx-auto">
               <button 
-                onClick={() => { setMatches(null); setHighlights([]); }}
+                onClick={() => { setMatches(null); setHighlights([]); setSelectedMatchIdx(0); }}
                 className={`mb-8 flex items-center gap-2 ${theme === 'dark' ? 'text-[#888] bg-[#151619] border-[#333]' : 'text-[#4b5563] bg-white border-[#d1d5db]'} hover:text-emerald-400 transition-colors font-mono text-sm uppercase tracking-widest px-4 py-2 rounded-lg border`}
               >
                 <ArrowLeft size={18} /> {t.back}
               </button>
 
-              <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12">
-                {/* Left Runner Up */}
-                {matches[1] && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 0.6, x: 0 }}
-                    whileHover={{ opacity: 1, scale: 1.05 }}
-                    className={`hidden lg:block w-64 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-2xl p-6 space-y-4 flex-shrink-0`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest`}>{t.similarMatch}</span>
-                      <Zap size={12} className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="overflow-hidden">
-                        <h3 className="font-black uppercase tracking-tighter truncate">{matches[1].name}</h3>
-                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{matches[1].team}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
-                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>DPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[1].settings.dpi}</span>
-                      </div>
-                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>eDPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(matches[1].settings.edpi)}</span>
-                      </div>
-                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>SENS</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[1].settings.sensitivity}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        {matches[1].gear.mouse ? (
-                          <Mouse size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        ) : (
-                          <Gamepad2 size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        )}
-                        <span className="truncate">{matches[1].gear.mouse || matches[1].gear.controller}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Keyboard size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[1].gear.keyboard}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Monitor size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[1].gear.monitor}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Layers size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[1].gear.mousepad}</span>
-                      </div>
-                    </div>
-                    <a 
-                      href={matches[1].profileUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className={`w-full py-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888]' : 'bg-[#f9f9f9] border-[#eee] text-[#666]'} border rounded-lg text-[10px] font-mono hover:text-emerald-400 hover:border-emerald-500/50 flex items-center justify-center gap-2 transition-all uppercase tracking-widest`}
-                    >
-                      {t.viewProfile} <ExternalLink size={10} />
-                    </a>
-                  </motion.div>
+              <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10">
+
+                {/* Left Runner Up Cards */}
+                <div className="hidden lg:flex flex-col gap-4">
+                  {matches.slice(1).map((m, i) => {
+                    const idx = i + 1;
+                    const isActive = selectedMatchIdx === idx;
+                    return (
+                      <motion.button
+                        key={idx}
+                        onClick={() => {
+                          setSlideDir(idx > selectedMatchIdx ? 1 : -1);
+                          setSelectedMatchIdx(idx);
+                        }}
+                        animate={{ opacity: isActive ? 1 : 0.55, scale: isActive ? 1.02 : 1 }}
+                        whileHover={{ opacity: 1, scale: 1.04 }}
+                        transition={{ duration: 0.2 }}
+                        className={`w-60 text-left ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} ${isActive ? (theme === 'dark' ? 'border-emerald-500/50' : 'border-emerald-500') : ''} border rounded-2xl p-5 space-y-3 flex-shrink-0 cursor-pointer`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest`}>{t.similarMatch}</span>
+                          <Zap size={12} className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                        </div>
+                        <div>
+                          <h3 className="font-black uppercase tracking-tighter truncate text-sm">{m.name}</h3>
+                          <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{m.team}</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
+                          {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
+                            <div key={label} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                              <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase text-[8px]`}>{label}</span>
+                              <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} text-[10px]`}>{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="space-y-1">
+                          {[
+                            { icon: m.gear.mouse ? <Mouse size={10} /> : <Gamepad2 size={10} />, val: m.gear.mouse || m.gear.controller },
+                            { icon: <Keyboard size={10} />, val: m.gear.keyboard },
+                            { icon: <Monitor size={10} />, val: m.gear.monitor },
+                            { icon: <Layers size={10} />, val: m.gear.mousepad },
+                          ].filter(g => g.val).map((g, gi) => (
+                            <div key={gi} className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono truncate`}>
+                              <span className={theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}>{g.icon}</span>
+                              <span className="truncate">{g.val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile tab bar */}
+                {matches.length > 1 && (
+                  <div className={`lg:hidden w-full flex gap-2 mb-4 p-1 rounded-2xl ${theme === 'dark' ? 'bg-[#0e0e10]' : 'bg-[#e5e7eb]'}`}>
+                    {matches.map((m, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          if (idx === selectedMatchIdx) return;
+                          setSlideDir(idx > selectedMatchIdx ? 1 : -1);
+                          setSelectedMatchIdx(idx);
+                        }}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all ${
+                          selectedMatchIdx === idx
+                            ? 'bg-emerald-500 text-black'
+                            : theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'
+                        }`}
+                      >
+                        {idx === 0 ? <Trophy size={10} /> : <Zap size={10} />}
+                        <span className="truncate">{m.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 )}
 
                 {/* Main Match */}
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className={`w-full max-w-2xl ${theme === 'dark' ? 'bg-[#151619] border-emerald-500/30' : 'bg-[#f8f9fa] border-emerald-500/50'} border rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(16,185,129,0.15)] flex-shrink-0`}
+                <div className="w-full overflow-hidden">
+                <AnimatePresence mode="wait" custom={slideDir}>
+                <motion.div
+                  key={selectedMatchIdx}
+                  custom={slideDir}
+                  variants={{
+                    enter: (dir: number) => ({ x: dir * 60, opacity: 0 }),
+                    center: { x: 0, opacity: 1 },
+                    exit: (dir: number) => ({ x: dir * -60, opacity: 0 }),
+                  }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-emerald-500/30' : 'bg-[#f8f9fa] border-emerald-500/50'} border rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(16,185,129,0.15)]`}
                 >
-                  <div className="bg-emerald-500 p-6 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-black">
-                      <Trophy size={24} />
-                      <span className="text-xl font-black uppercase tracking-tighter">{t.perfectMatch}</span>
+                  <div className={`p-6 flex items-center justify-between ${selectedMatchIdx === 0 ? 'bg-emerald-500' : theme === 'dark' ? 'bg-[#1e2a22]' : 'bg-emerald-100'}`}>
+                    <div className={`flex items-center gap-3 ${selectedMatchIdx === 0 ? 'text-black' : theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                      {selectedMatchIdx === 0 ? <Trophy size={24} /> : <Zap size={24} />}
+                      <span className="text-xl font-black uppercase tracking-tighter">{selectedMatchIdx === 0 ? t.perfectMatch : (lang === 'ko' ? '비슷한 매칭' : 'Similar Match')}</span>
                     </div>
-                    <span className="text-black/60 font-mono text-sm">{matches[0].game}</span>
+                    <span className={`font-mono text-sm ${selectedMatchIdx === 0 ? 'text-black/60' : theme === 'dark' ? 'text-emerald-400/60' : 'text-emerald-700/60'}`}>{matches[selectedMatchIdx].game}</span>
                   </div>
                   
                   <div className="p-8 space-y-8">
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                       <div className="text-center md:text-left flex-1">
                         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-2">
-                          <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">{matches[0].name}</h2>
+                          <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">{matches[selectedMatchIdx].name}</h2>
                           <a 
-                            href={matches[0].profileUrl} 
+                            href={matches[selectedMatchIdx].profileUrl} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className={`inline-flex items-center gap-2 px-3 py-1.5 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888]' : 'bg-white border-[#d1d5db] text-[#4b5563]'} border rounded-lg text-[10px] font-mono hover:text-emerald-400 hover:border-emerald-500/50 transition-all uppercase tracking-widest mb-1 md:mb-2`}
@@ -1550,15 +1575,15 @@ export default function App() {
                             {t.viewProfile} <ExternalLink size={10} />
                           </a>
                         </div>
-                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xl uppercase tracking-widest mb-4`}>{matches[0].team}</p>
+                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xl uppercase tracking-widest mb-4`}>{matches[selectedMatchIdx].team}</p>
                         
-                        {matches[0].matchReasons && matches[0].matchReasons.length > 0 && (
+                        {matches[selectedMatchIdx].matchReasons && matches[selectedMatchIdx].matchReasons.length > 0 && (
                           <div className={`mt-4 p-4 rounded-xl ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} border`}>
                             <p className="text-[10px] font-mono text-[#555] uppercase tracking-widest mb-2 flex items-center gap-2">
                               <Zap size={10} className="text-emerald-500" /> {t.matchPoints}
                             </p>
                             <ul className="space-y-1">
-                              {matches[0].matchReasons.map((reason, idx) => (
+                              {matches[selectedMatchIdx].matchReasons.map((reason, idx) => (
                                 <li key={idx} className="text-xs font-sans text-emerald-500 flex items-start gap-2">
                                   <span className="mt-1.5 w-1 h-1 rounded-full bg-emerald-500 flex-shrink-0" />
                                   {reason}
@@ -1571,156 +1596,26 @@ export default function App() {
                     </div>
  
                       <div className="grid grid-cols-3 gap-6">
-                        <StatBlock label="DPI" value={matches[0].settings.dpi.toString()} theme={theme} />
-                        <StatBlock label={t.edpi} value={formatEdpi(matches[0].settings.edpi)} theme={theme} />
-                        <StatBlock label={t.sensitivity} value={matches[0].settings.sensitivity.toString()} theme={theme} />
+                        <StatBlock label="DPI" value={matches[selectedMatchIdx].settings.dpi.toString()} theme={theme} />
+                        <StatBlock label={t.edpi} value={formatEdpi(matches[selectedMatchIdx].settings.edpi)} theme={theme} />
+                        <StatBlock label={t.sensitivity} value={matches[selectedMatchIdx].settings.sensitivity.toString()} theme={theme} />
                       </div>
  
                     {/* eDPI Distribution Chart */}
                     <EdpiDistributionChart
                       proList={proList}
                       userEdpi={settings.dpi * settings.sensitivity}
-                      proEdpi={matches[0].settings.edpi}
-                      proName={matches[0].name}
+                      proEdpi={matches[selectedMatchIdx].settings.edpi}
+                      proName={matches[selectedMatchIdx].name}
                       game={settings.game}
                       theme={theme}
                       lang={lang}
                     />
 
-                    {/* 나 vs 프로 장비 비교 */}
-                    <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
-                      <p className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase tracking-widest mb-4 flex items-center gap-2`}>
-                        <Target size={12} className="text-emerald-500" /> {t.gearComparison}
-                      </p>
-                      <div className="space-y-3">
-                        {/* Header */}
-                        <div className="grid grid-cols-[1fr_auto_1fr] gap-2 items-center mb-1">
-                          <span className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{t.myGear}</span>
-                          <span className={`text-[9px] font-mono uppercase tracking-widest text-center w-16 ${theme === 'dark' ? 'text-[#555]' : 'text-[#aaa]'}`}></span>
-                          <span className={`text-[9px] font-mono uppercase tracking-widest text-right ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>{matches[0].name}</span>
-                        </div>
-                        {/* Mouse */}
-                        {(() => {
-                          const myMouse = settings.mouse;
-                          const proMouse = matches[0].gear.mouse || matches[0].gear.controller || '';
-                          const same = myMouse && proMouse && myMouse.toLowerCase() === proMouse.toLowerCase();
-                          return (
-                            <div
-                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <Mouse size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
-                                <span className={`text-[10px] truncate ${myMouse ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myMouse || t.notEntered}</span>
-                              </div>
-                              <div className="flex flex-col items-center w-16 flex-shrink-0">
-                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>{t.mouse}</span>
-                                {same ? <span className="text-emerald-500 text-[9px]">{t.sameGear}</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
-                              </div>
-                              <div className="flex items-center gap-1.5 justify-end min-w-0">
-                                <span className={`text-[10px] truncate text-right ${proMouse ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proMouse || '-'}</span>
-                                {proMouse && (
-                                  <a href={getAmazonLink(proMouse)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
-                                    {t.priceCheck} <ExternalLink size={9} />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
-                        {/* Keyboard */}
-                        {(() => {
-                          const myKb = settings.keyboard;
-                          const proKb = matches[0].gear.keyboard || '';
-                          const same = myKb && proKb && myKb.toLowerCase() === proKb.toLowerCase();
-                          return (
-                            <div
-                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <Keyboard size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
-                                <span className={`text-[10px] truncate ${myKb ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myKb || t.notEntered}</span>
-                              </div>
-                              <div className="flex flex-col items-center w-16 flex-shrink-0">
-                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>{t.keyboard}</span>
-                                {same ? <span className="text-emerald-500 text-[9px]">{t.sameGear}</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
-                              </div>
-                              <div className="flex items-center gap-1.5 justify-end min-w-0">
-                                <span className={`text-[10px] truncate text-right ${proKb ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proKb || '-'}</span>
-                                {proKb && (
-                                  <a href={getAmazonLink(proKb)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
-                                    {t.priceCheck} <ExternalLink size={9} />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
-                        {/* Monitor */}
-                        {(() => {
-                          const myMon = settings.monitor;
-                          const proMon = matches[0].gear.monitor || '';
-                          const same = myMon && proMon && myMon.toLowerCase() === proMon.toLowerCase();
-                          return (
-                            <div
-                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <Monitor size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
-                                <span className={`text-[10px] truncate ${myMon ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myMon || t.notEntered}</span>
-                              </div>
-                              <div className="flex flex-col items-center w-16 flex-shrink-0">
-                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>{t.monitor}</span>
-                                {same ? <span className="text-emerald-500 text-[9px]">{t.sameGear}</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
-                              </div>
-                              <div className="flex items-center gap-1.5 justify-end min-w-0">
-                                <span className={`text-[10px] truncate text-right ${proMon ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proMon || '-'}</span>
-                                {proMon && (
-                                  <a href={getAmazonLink(proMon)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
-                                    {t.priceCheck} <ExternalLink size={9} />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
-                        {/* Mousepad */}
-                        {(() => {
-                          const myPad = settings.mousepad;
-                          const proPad = matches[0].gear.mousepad || '';
-                          const same = myPad && proPad && myPad.toLowerCase() === proPad.toLowerCase();
-                          return (
-                            <div
-                              className={`grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-white'} border ${same ? 'border-emerald-500/40' : theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <Layers size={10} className={theme === 'dark' ? 'text-[#555] flex-shrink-0' : 'text-[#aaa] flex-shrink-0'} />
-                                <span className={`text-[10px] truncate ${myPad ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{myPad || t.notEntered}</span>
-                              </div>
-                              <div className="flex flex-col items-center w-16 flex-shrink-0">
-                                <span className={`text-[8px] font-mono uppercase ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>{t.mousepad}</span>
-                                {same ? <span className="text-emerald-500 text-[9px]">{t.sameGear}</span> : <span className={`text-[9px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#ccc]'}`}>vs</span>}
-                              </div>
-                              <div className="flex items-center gap-1.5 justify-end min-w-0">
-                                <span className={`text-[10px] truncate text-right ${proPad ? (theme === 'dark' ? 'text-[#ccc]' : 'text-[#333]') : (theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]')}`}>{proPad || '-'}</span>
-                                {proPad && (
-                                  <a href={getAmazonLink(proPad)} target="_blank" rel="noopener noreferrer"
-                                    className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded text-[10px] font-mono border transition-all ${theme === 'dark' ? 'bg-[#111] border-[#333] text-[#555] hover:text-[#888] hover:border-[#444]' : 'bg-[#f9f9f9] border-[#e5e7eb] text-[#bbb] hover:text-[#999] hover:border-[#ccc]'}`}>
-                                    {t.priceCheck} <ExternalLink size={9} />
-                                  </a>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
 
                     {/* Pro Gear Showcase */}
                     {(() => {
-                      const proGear = matches[0].gear;
+                      const proGear = matches[selectedMatchIdx].gear;
                       const gearItems = [
                         { key: 'mouse', label: lang === 'ko' ? '마우스' : 'Mouse', name: proGear.mouse || proGear.controller || '', icon: 'mouse' },
                         { key: 'keyboard', label: lang === 'ko' ? '키보드' : 'Keyboard', name: proGear.keyboard || '', icon: 'keyboard' },
@@ -1732,39 +1627,19 @@ export default function App() {
                         <div className={`pt-8 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                           <p className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase tracking-widest mb-4 flex items-center gap-2`}>
                             <ShoppingCart size={12} className="text-emerald-500" />
-                            {lang === 'ko' ? `${matches[0].name}의 사용 장비` : `${matches[0].name}'s Gear`}
+                            {lang === 'ko' ? `${matches[selectedMatchIdx].name}의 사용 장비` : `${matches[selectedMatchIdx].name}'s Gear`}
                           </p>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {gearItems.map(item => {
-                              const imgUrl = getGearImageUrl(item.name);
                               const amazonLink = getAmazonLink(item.name);
                               return (
                                 <div key={item.key} className={`flex flex-col rounded-xl overflow-hidden border ${theme === 'dark' ? 'bg-[#0d0d0f] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
-                                  {/* Image area */}
-                                  <div className={`flex items-center justify-center h-28 ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f5f5f5]'} relative`}>
-                                    {imgUrl ? (
-                                      <img
-                                        src={imgUrl}
-                                        alt={item.name}
-                                        className="w-full h-full object-contain p-3"
-                                        onError={(e) => {
-                                          const target = e.currentTarget;
-                                          target.style.display = 'none';
-                                          const fallback = target.nextElementSibling as HTMLElement;
-                                          if (fallback) fallback.style.display = 'flex';
-                                        }}
-                                      />
-                                    ) : null}
-                                    <div
-                                      className="absolute inset-0 items-center justify-center"
-                                      style={{ display: imgUrl ? 'none' : 'flex' }}
-                                    >
-                                      {item.icon === 'mouse' && <Mouse size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
-                                      {item.icon === 'keyboard' && <Keyboard size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
-                                      {item.icon === 'monitor' && <Monitor size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
-                                      {item.icon === 'mousepad' && <Layers size={32} className={theme === 'dark' ? 'text-[#333]' : 'text-[#ccc]'} />}
-                                    </div>
-                                  </div>
+                                  {/* Image area — 서버에서 아마존 og:image 스크랩 */}
+                                  <GearImage
+                                    productName={item.name}
+                                    icon={item.icon as 'mouse' | 'keyboard' | 'monitor' | 'mousepad'}
+                                    theme={theme}
+                                  />
                                   {/* Info area */}
                                   <div className="p-2.5 flex flex-col gap-2 flex-1">
                                     <span className={`text-[8px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>{item.label}</span>
@@ -1842,7 +1717,7 @@ export default function App() {
 
                     <div className={`pt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                       <a
-                        href={`https://www.youtube.com/results?search_query=${matches[0].name}+${matches[0].game}+highlights`}
+                        href={`https://www.youtube.com/results?search_query=${matches[selectedMatchIdx].name}+${matches[selectedMatchIdx].game}+highlights`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-emerald-500 hover:text-emerald-400 flex items-center gap-2 transition-colors px-6 py-3 border border-emerald-500/20 rounded-xl bg-emerald-500/5"
@@ -1853,122 +1728,15 @@ export default function App() {
 
                     {/* Comments */}
                     <CommentSection
-                      proId={matches[0].id || matches[0].name}
+                      proId={matches[selectedMatchIdx].id || matches[selectedMatchIdx].name}
                       theme={theme}
                       t={t}
                       isAdmin={user?.email === ADMIN_EMAIL}
                     />
                   </div>
                 </motion.div>
-
-                {/* Right Runner Up */}
-                {matches[2] && (
-                  <motion.div 
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 0.6, x: 0 }}
-                    whileHover={{ opacity: 1, scale: 1.05 }}
-                    className={`hidden lg:block w-64 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-2xl p-6 space-y-4 flex-shrink-0`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest`}>{t.similarMatch}</span>
-                      <Zap size={12} className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="overflow-hidden">
-                        <h3 className="font-black uppercase tracking-tighter truncate">{matches[2].name}</h3>
-                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{matches[2].team}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-[10px] font-mono">
-                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>DPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[2].settings.dpi}</span>
-                      </div>
-                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>eDPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(matches[2].settings.edpi)}</span>
-                      </div>
-                      <div className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} p-2 rounded-lg border`}>
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase`}>SENS</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{matches[2].settings.sensitivity}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        {matches[2].gear.mouse ? (
-                          <Mouse size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        ) : (
-                          <Gamepad2 size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        )}
-                        <span className="truncate">{matches[2].gear.mouse || matches[2].gear.controller}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Keyboard size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[2].gear.keyboard}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Monitor size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[2].gear.monitor}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Layers size={10} className={`${theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}`} />
-                        <span className="truncate">{matches[2].gear.mousepad}</span>
-                      </div>
-                    </div>
-                    <a 
-                      href={matches[2].profileUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className={`w-full py-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888]' : 'bg-[#f9f9f9] border-[#eee] text-[#666]'} border rounded-lg text-[10px] font-mono hover:text-emerald-400 hover:border-emerald-500/50 flex items-center justify-center gap-2 transition-all uppercase tracking-widest`}
-                    >
-                      {t.viewProfile} <ExternalLink size={10} />
-                    </a>
-                  </motion.div>
-                )}
-              </div>
-
-              {/* Mobile Runner Ups */}
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
-                {[matches[1], matches[2]].filter(Boolean).map((m, idx) => (
-                  <div key={idx} className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-4 flex flex-col gap-4`}>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest`}>{t.similarMatch}</span>
-                      <Zap size={12} className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 overflow-hidden">
-                        <h3 className="font-black uppercase tracking-tighter truncate">{m!.name}</h3>
-                        <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{m!.team}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} font-mono text-[10px] block uppercase`}>eDPI</span>
-                        <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xs`}>{formatEdpi(m!.settings.edpi)}</span>
-                      </div>
-                    </div>
-                    <div className={`grid grid-cols-1 gap-1 py-2 border-y ${theme === 'dark' ? 'border-[#333]/50' : 'border-[#e5e7eb]'}`}>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        {m!.gear.mouse ? <Mouse size={10} /> : <Gamepad2 size={10} />} <span className="truncate">{m!.gear.mouse || m!.gear.controller}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Keyboard size={10} /> <span className="truncate">{m!.gear.keyboard}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Monitor size={10} /> <span className="truncate">{m!.gear.monitor}</span>
-                      </div>
-                      <div className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono uppercase truncate`}>
-                        <Layers size={10} /> <span className="truncate">{m!.gear.mousepad}</span>
-                      </div>
-                    </div>
-                    <a 
-                      href={m!.profileUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className={`w-full py-3 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f9fafb] border-[#e5e7eb]'} border rounded-xl text-xs font-mono text-[#888] hover:text-emerald-400 hover:border-emerald-500/50 flex items-center justify-center gap-2 transition-all uppercase tracking-widest`}
-                    >
-                      {t.viewProfile} <ExternalLink size={12} />
-                    </a>
-                  </div>
-                ))}
+                </AnimatePresence>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -3461,62 +3229,55 @@ function normalizeGearName(s: string): string {
   return s.replace(COLOR_WORDS_RE, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-function getGearImageUrl(productName: string): string | null {
-  const key = productName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const map: Record<string, string> = {
-    // Logitech Mice
-    'logitechgproxsuperlight2': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x2-superlight/pro-x2-superlight-gallery-1.png',
-    'logitechgproxsuperlight': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-superlight/pro-x-superlight-gallery-1.png',
-    'logitechgprowireless': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-wireless-mouse/pro-wireless-mouse-gallery-1.png',
-    'logitechg502xplus': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g502-x-plus/g502-x-plus-gallery-1.png',
-    'logitechg502hero': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g502-hero/g502-hero-gallery-1.png',
-    'logitechg305lightspeed': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g305-gaming-mouse/g305-gaming-mouse-gallery-1.png',
-    // Razer Mice
-    'razerdeathadderv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-deathadder-v3-pro-500x500.png',
-    'razerviperv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-viper-v3-pro-500x500.png',
-    'razerviperv2pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-viper-v2-pro-500x500.png',
-    'razerdeathadderv2pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-deathadder-v2-pro-500x500.png',
-    'razerdeathadderv2': 'https://assets2.razerzone.com/images/pnx.assets/razer-deathadder-v2-500x500.png',
-    'razerbasiliksv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-basilisk-v3-pro-500x500.png',
-    'razercobrapro': 'https://assets2.razerzone.com/images/pnx.assets/razer-cobra-pro-500x500.png',
-    'razerviperultimate': 'https://assets2.razerzone.com/images/pnx.assets/razer-viper-ultimate-500x500.png',
-    // SteelSeries Mice
-    'steelseriesprimewireless': 'https://media.steelseriescdn.com/thumbs/catalog/items/62593/57b4b5e7f25d4a98add7b9e82e1ca0ef.png.500x400_q100_crop-fit_optimize.png',
-    'steelseriesaeronxwireless': 'https://media.steelseriescdn.com/thumbs/catalog/items/62605/c7b3f5b7e8104e4281e8e61d64a39ed9.png.500x400_q100_crop-fit_optimize.png',
-    // Zowie Mice
-    'zowieec2c': 'https://zowie.benq.com/content/dam/zowie/global/product/mice/ec2-c/ec2c-pdt-img-01.png',
-    'zowieec2cw': 'https://zowie.benq.com/content/dam/zowie/global/product/mice/ec2-cw/ec2cw-pdt-img-01.png',
-    'zowieec1cw': 'https://zowie.benq.com/content/dam/zowie/global/product/mice/ec1-cw/ec1cw-pdt-img-01.png',
-    // Pulsar Mice
-    'pulsarx2v2': 'https://cdn.shopify.com/s/files/1/0550/5632/products/X2V2_Main.png',
-    'pulsarxlitev3': 'https://cdn.shopify.com/s/files/1/0550/5632/products/XLiteV3_Main.png',
-    // Logitech Keyboards
-    'logitechgproxtkl': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-tkl/pro-x-tkl-gallery-1.png',
-    'logitechgproxtkl2': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-x-tkl-2/pro-x-tkl-2-gallery-1.png',
-    'logitechgpro': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-keyboard/pro-keyboard-gallery-1.png',
-    // Razer Keyboards
-    'razerhuntsmanv3pro': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-v3-pro-tkl-500x500.png',
-    'razerhuntsmanv3protkl': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-v3-pro-tkl-500x500.png',
-    'razerhuntsmantournamentedition': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-tournament-edition-500x500.png',
-    'razerhuntsmanv2tkl': 'https://assets2.razerzone.com/images/pnx.assets/razer-huntsman-v2-tkl-500x500.png',
-    // SteelSeries Keyboards
-    'steelseriesapex2': 'https://media.steelseriescdn.com/thumbs/catalog/items/64646/fe1d0fda51d944adad3af7c764f9db0f.png.500x400_q100_crop-fit_optimize.png',
-    'steelseriesapexprotkl': 'https://media.steelseriescdn.com/thumbs/catalog/items/64734/9e5f5a2f33c4448f9a7caeabc99e9ab3.png.500x400_q100_crop-fit_optimize.png',
-    // Zowie Monitors
-    'zowiexl2546k': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2546k/xl2546k-pdt-img-01.png',
-    'zowiexl2546': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2546/xl2546-pdt-img-01.png',
-    'zowiexl2566k': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2566k/xl2566k-pdt-img-01.png',
-    'zowiexl2411k': 'https://zowie.benq.com/content/dam/zowie/global/product/monitor/xl2411k/xl2411k-pdt-img-01.png',
-    // Artisan Mousepads
-    'artisanzerox': 'https://en.artisan-jp.com/img/products/fx/top_img.jpg',
-    'artisantype99': 'https://en.artisan-jp.com/img/products/type99/top_img.jpg',
-    // SteelSeries Mousepads
-    'steelseriesqckxl': 'https://media.steelseriescdn.com/thumbs/catalog/items/63836/main.png.500x400_q100_crop-fit_optimize.png',
-    'steelseriesqckheavyxxl': 'https://media.steelseriescdn.com/thumbs/catalog/items/63008/main.png.500x400_q100_crop-fit_optimize.png',
-    // Logitech G640
-    'logitechg640': 'https://resource.logitechg.com/w_386,ar_1.0,c_limit,f_auto,q_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/g640-gaming-mouse-pad/g640-gaming-mouse-pad-gallery-1.png',
-  };
-  return map[key] || null;
+// ── Gear Image: 아마존 og:image 서버 스크랩 ──────────────────────────
+function GearImage({ productName, icon, theme }: {
+  productName: string;
+  icon: 'mouse' | 'keyboard' | 'monitor' | 'mousepad';
+  theme: 'dark' | 'light';
+}) {
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading');
+  const amazonUrl = getAmazonLink(productName);
+
+  useEffect(() => {
+    if (!amazonUrl) { setStatus('error'); return; }
+    let cancelled = false;
+    fetch(`/api/gear-image?url=${encodeURIComponent(amazonUrl)}`)
+      .then(r => r.json())
+      .then((d: { image: string | null }) => {
+        if (cancelled) return;
+        if (d.image) { setImgUrl(d.image); setStatus('ok'); }
+        else setStatus('error');
+      })
+      .catch(() => { if (!cancelled) setStatus('error'); });
+    return () => { cancelled = true; };
+  }, [amazonUrl]);
+
+  const FallbackIcon = () => (
+    <div className="absolute inset-0 flex items-center justify-center">
+      {icon === 'mouse'    && <Mouse    size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
+      {icon === 'keyboard' && <Keyboard size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
+      {icon === 'monitor'  && <Monitor  size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
+      {icon === 'mousepad' && <Layers   size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
+    </div>
+  );
+
+  return (
+    <div className={`relative flex items-center justify-center h-28 ${theme === 'dark' ? 'bg-[#0e0e10]' : 'bg-[#f5f5f5]'}`}>
+      {status === 'loading' && (
+        <Loader2 size={20} className="animate-spin text-emerald-500/40" />
+      )}
+      {status === 'ok' && imgUrl && (
+        <img
+          src={imgUrl}
+          alt={productName}
+          className="w-full h-full object-contain p-3"
+          onError={() => setStatus('error')}
+        />
+      )}
+      {status === 'error' && <FallbackIcon />}
+    </div>
+  );
 }
 
 function getAmazonLink(productName: string): string {
@@ -3537,10 +3298,18 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
   const edpiValues = proList.map(p => p.settings.edpi).filter(e => e > 0);
   if (edpiValues.length < 3) return null;
 
-  const maxVal = Math.max(...edpiValues, userEdpi, proEdpi);
-  const rawBinSize = maxVal / 14;
-  const binSize = Math.ceil(rawBinSize / 50) * 50 || 50;
-  const numBins = Math.ceil((maxVal + binSize) / binSize);
+  // 게임별 고정 X축 스케일 — 일관성 유지
+  const GAME_MAX: Record<string, number> = {
+    'Valorant':    1200,
+    'CS2':         1400,
+    'Overwatch 2': 3200,
+    'Apex Legends':2400,
+  };
+  const chartMax = GAME_MAX[game] ?? Math.ceil(Math.max(...edpiValues, userEdpi, proEdpi, 400) / 200) * 200;
+
+  // 200 단위 bin
+  const binSize = 200;
+  const numBins = chartMax / binSize;
 
   const bins = Array(numBins).fill(0);
   edpiValues.forEach(e => {
@@ -3560,12 +3329,12 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
   };
   const gColor = gameHex[game] || '#10b981';
 
-  const SW = 500, SH = 140;
-  const PL = 28, PR = 16, PT = 18, PB = 38;
+  const SW = 500, SH = 136;
+  const PL = 28, PR = 16, PT = 18, PB = 30;
   const CW = SW - PL - PR;
   const CH = SH - PT - PB;
 
-  const toX = (val: number) => PL + (val / (numBins * binSize)) * CW;
+  const toX = (val: number) => PL + (val / chartMax) * CW;
   const barW = Math.max(CW / numBins - 1, 1);
 
   const userX = toX(userEdpi);
@@ -3594,7 +3363,7 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full" style={{ height: '140px' }}>
+      <svg viewBox={`0 0 ${SW} ${SH}`} className="w-full" style={{ height: '136px' }}>
         {/* 그리드 */}
         {[0.25, 0.5, 0.75, 1].map(r => (
           <line key={r} x1={PL} y1={PT + CH * (1 - r)} x2={PL + CW} y2={PT + CH * (1 - r)}
@@ -3617,33 +3386,44 @@ function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, game, them
         <line x1={PL} y1={PT + CH} x2={PL + CW} y2={PT + CH}
           stroke={theme === 'dark' ? '#2a2a2a' : '#e5e7eb'} strokeWidth={1} />
 
-        {/* 프로 마커 */}
+        {/* 프로 마커 — 배경 하이라이트 + 굵은 점선 + 라벨 박스 */}
+        <rect x={proX - 1} y={PT} width={2} height={CH} fill={gColor} opacity={0.15} />
         <line x1={proX} y1={PT} x2={proX} y2={PT + CH}
-          stroke={gColor} strokeWidth={2} strokeDasharray="4,3" opacity={1} />
-        <polygon points={`${proX},${PT + CH + 3} ${proX - 4},${PT + CH + 10} ${proX + 4},${PT + CH + 10}`}
+          stroke={gColor} strokeWidth={2} strokeDasharray="5,3" opacity={1} />
+        <polygon points={`${proX},${PT + CH + 2} ${proX - 5},${PT + CH + 11} ${proX + 5},${PT + CH + 11}`}
           fill={gColor} />
         {!tooClose && (
-          <text x={proX} y={PT - 5} textAnchor="middle" fontSize={9}
-            fill={gColor} fontFamily="monospace" fontWeight="bold">{proName.split(' ')[0]}</text>
+          <>
+            <rect x={proX - 20} y={PT - 16} width={40} height={14} rx={3} fill={gColor} opacity={0.9} />
+            <text x={proX} y={PT - 5} textAnchor="middle" fontSize={9}
+              fill="#000" fontFamily="monospace" fontWeight="bold">{proName.split(' ')[0]}</text>
+          </>
         )}
 
         {/* 유저 마커 */}
         <line x1={userX} y1={PT} x2={userX} y2={PT + CH}
-          stroke="#10b981" strokeWidth={2.5} strokeDasharray="4,3" />
-        <polygon points={`${userX},${PT + CH + 3} ${userX - 4},${PT + CH + 10} ${userX + 4},${PT + CH + 10}`}
+          stroke="#10b981" strokeWidth={2.5} strokeDasharray="5,3" />
+        <polygon points={`${userX},${PT + CH + 2} ${userX - 5},${PT + CH + 11} ${userX + 5},${PT + CH + 11}`}
           fill="#10b981" />
         <text x={userX} y={PT - 5} textAnchor="middle" fontSize={10}
           fill="#10b981" fontFamily="monospace" fontWeight="bold">
           {lang === 'ko' ? '나' : 'You'}
         </text>
 
-        {/* X축 레이블 */}
-        {[0, 0.25, 0.5, 0.75, 1].map(r => (
-          <text key={r} x={PL + r * CW} y={SH - 6} textAnchor="middle" fontSize={10}
-            fill={theme === 'dark' ? '#666' : '#9ca3af'} fontFamily="monospace">
-            {Math.round(r * numBins * binSize)}
-          </text>
-        ))}
+        {/* X축 레이블 — 200 단위 */}
+        {Array.from({ length: numBins + 1 }, (_, i) => i * binSize)
+          .filter(v => v <= chartMax)
+          .filter(v => {
+            // 너무 촘촘하면 간격 조정
+            const step = chartMax <= 1400 ? 200 : chartMax <= 2400 ? 400 : 600;
+            return v % step === 0;
+          })
+          .map(v => (
+            <text key={v} x={toX(v)} y={PT + CH + 22} textAnchor="middle" fontSize={11}
+              fill={theme === 'dark' ? '#777' : '#9ca3af'} fontFamily="monospace">
+              {v}
+            </text>
+          ))}
       </svg>
     </div>
   );

@@ -323,6 +323,69 @@ Use real, well-known highlight videos if you know them. Do not include any expla
     }
   });
 
+  // ── Gear image scraper: Amazon og:image ──────────────────────────
+  const gearImageCache = new Map<string, string | null>();
+
+  app.get("/api/gear-image", async (req, res) => {
+    const url = req.query.url as string;
+    if (!url) return res.json({ image: null });
+
+    if (gearImageCache.has(url)) {
+      return res.json({ image: gearImageCache.get(url) ?? null });
+    }
+
+    try {
+      const response = await axios.get(url, {
+        timeout: 8000,
+        maxRedirects: 5,
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+        },
+      });
+
+      const html: string = response.data;
+
+      // 1) og:image
+      let match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+        ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+
+      // 2) landingImage (Amazon main product img)
+      if (!match) {
+        const landingMatch = html.match(/["']landingImage["'][^>]*data-old-hires=["']([^"']+)["']/i)
+          ?? html.match(/id=["']landingImage["'][^>]*src=["']([^"']+)["']/i);
+        if (landingMatch) match = landingMatch;
+      }
+
+      // 3) media-amazon CDN fallback
+      if (!match) {
+        const cdnMatch = html.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%+._-]+\.jpg/);
+        if (cdnMatch) {
+          const clean = cdnMatch[0].split('._')[0] + '._AC_SL500_.jpg';
+          gearImageCache.set(url, clean);
+          return res.json({ image: clean });
+        }
+      }
+
+      if (match && match[1] && match[1].startsWith('http')) {
+        // Resize to reasonable size
+        const img = match[1].replace(/\._[^.]+_\./, '._AC_SL500_.');
+        gearImageCache.set(url, img);
+        return res.json({ image: img });
+      }
+
+      gearImageCache.set(url, null);
+      return res.json({ image: null });
+    } catch {
+      gearImageCache.set(url, null);
+      return res.json({ image: null });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
