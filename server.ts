@@ -323,8 +323,25 @@ Use real, well-known highlight videos if you know them. Do not include any expla
     }
   });
 
-  // ── Gear image scraper: Amazon og:image ──────────────────────────
+  // ── Gear image scraper: Amazon product image ──────────────────────────
   const gearImageCache = new Map<string, string | null>();
+
+  /** media-amazon URL에서 크기 수정자를 제거해 원본 사이즈로 정규화 */
+  function cleanAmazonImg(raw: string): string {
+    // ._XX_ 형식 modifier 제거 후 _AC_SL500_ 붙이기
+    return raw.replace(/\._[A-Z0-9,_]+_\./, '.') // ._SX300_SY300_ etc
+              .replace(/\.jpg$/, '._AC_SL500_.jpg');
+  }
+
+  /** URL이 실제 상품 이미지인지 확인 (Amazon 로고 등 제외) */
+  function isProductImage(imgUrl: string): boolean {
+    if (!imgUrl.startsWith('http')) return false;
+    if (imgUrl.includes('amazon.com/favicon') || imgUrl.includes('/g/') ) return false;
+    if (imgUrl.includes('media-amazon.com/images/I/')) return true;
+    if (imgUrl.includes('images-na.ssl-images-amazon.com/images/I/')) return true;
+    if (imgUrl.includes('images-eu.ssl-images-amazon.com/images/I/')) return true;
+    return false;
+  }
 
   app.get("/api/gear-image", async (req, res) => {
     const url = req.query.url as string;
@@ -336,8 +353,8 @@ Use real, well-known highlight videos if you know them. Do not include any expla
 
     try {
       const response = await axios.get(url, {
-        timeout: 8000,
-        maxRedirects: 5,
+        timeout: 10000,
+        maxRedirects: 10,
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -345,35 +362,62 @@ Use real, well-known highlight videos if you know them. Do not include any expla
           "Accept-Encoding": "gzip, deflate, br",
           "Cache-Control": "no-cache",
           "Pragma": "no-cache",
+          "Sec-Fetch-Dest": "document",
+          "Sec-Fetch-Mode": "navigate",
+          "Sec-Fetch-Site": "none",
         },
       });
 
       const html: string = response.data;
 
-      // 1) og:image
-      let match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+      // 1) data-old-hires — landingImage의 hi-res 버전 (가장 정확)
+      const oldHiresMatch = html.match(/data-old-hires=["'](https:\/\/[^"']+)["']/i);
+      if (oldHiresMatch && isProductImage(oldHiresMatch[1])) {
+        const img = cleanAmazonImg(oldHiresMatch[1]);
+        gearImageCache.set(url, img);
+        return res.json({ image: img });
+      }
+
+      // 2) data-a-dynamic-image — JSON 객체에서 가장 큰 이미지 추출
+      const dynMatch = html.match(/data-a-dynamic-image=["'](\{[^"']+\})["']/i);
+      if (dynMatch) {
+        try {
+          const decoded = dynMatch[1].replace(/&quot;/g, '"');
+          const imgMap = JSON.parse(decoded) as Record<string, [number, number]>;
+          // 가장 큰 이미지 선택
+          const best = Object.entries(imgMap)
+            .sort(([, [w1]], [, [w2]]) => w2 - w1)
+            .find(([imgUrl]) => isProductImage(imgUrl));
+          if (best) {
+            const img = cleanAmazonImg(best[0]);
+            gearImageCache.set(url, img);
+            return res.json({ image: img });
+          }
+        } catch { /* ignore */ }
+      }
+
+      // 3) landingImage src
+      const landingMatch = html.match(/id=["']landingImage["'][^>]*src=["'](https:\/\/[^"']+)["']/i)
+        ?? html.match(/id=["']imgBlkFront["'][^>]*src=["'](https:\/\/[^"']+)["']/i);
+      if (landingMatch && isProductImage(landingMatch[1])) {
+        const img = cleanAmazonImg(landingMatch[1]);
+        gearImageCache.set(url, img);
+        return res.json({ image: img });
+      }
+
+      // 4) og:image — 상품 이미지인 경우만 사용
+      const ogMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
         ?? html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
-
-      // 2) landingImage (Amazon main product img)
-      if (!match) {
-        const landingMatch = html.match(/["']landingImage["'][^>]*data-old-hires=["']([^"']+)["']/i)
-          ?? html.match(/id=["']landingImage["'][^>]*src=["']([^"']+)["']/i);
-        if (landingMatch) match = landingMatch;
+      if (ogMatch && isProductImage(ogMatch[1])) {
+        const img = cleanAmazonImg(ogMatch[1]);
+        gearImageCache.set(url, img);
+        return res.json({ image: img });
       }
 
-      // 3) media-amazon CDN fallback
-      if (!match) {
-        const cdnMatch = html.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%+._-]+\.jpg/);
-        if (cdnMatch) {
-          const clean = cdnMatch[0].split('._')[0] + '._AC_SL500_.jpg';
-          gearImageCache.set(url, clean);
-          return res.json({ image: clean });
-        }
-      }
-
-      if (match && match[1] && match[1].startsWith('http')) {
-        // Resize to reasonable size
-        const img = match[1].replace(/\._[^.]+_\./, '._AC_SL500_.');
+      // 5) media-amazon CDN URL 첫 번째 발견 — 마지막 수단
+      const cdnMatch = html.match(/https:\/\/m\.media-amazon\.com\/images\/I\/[A-Za-z0-9%+._-]+\.jpg/);
+      if (cdnMatch) {
+        const img = cleanAmazonImg(cdnMatch[0]);
         gearImageCache.set(url, img);
         return res.json({ image: img });
       }

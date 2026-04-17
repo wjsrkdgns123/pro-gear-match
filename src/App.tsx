@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil, Play, MessageCircle, Flag, Send, ShoppingCart } from 'lucide-react';
+import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil, Play, MessageCircle, Flag, Send, ShoppingCart, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
@@ -12,10 +12,10 @@ import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectRes
 import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, increment, setDoc, serverTimestamp, query, orderBy, collectionGroup, where } from 'firebase/firestore';
 
 const GAMES = [
-  { name: 'Valorant', emoji: '🎯' },
-  { name: 'CS2', emoji: '🔫' },
-  { name: 'Overwatch 2', emoji: '🛡️' },
-  { name: 'Apex Legends', emoji: '🏃' },
+  { name: 'Valorant',     emoji: '🎯', logo: '/logos/valorant.png' },
+  { name: 'CS2',          emoji: '🔫', logo: '/logos/cs2.svg' },
+  { name: 'Overwatch 2',  emoji: '🛡️', logo: '/logos/overwatch.png' },
+  { name: 'Apex Legends', emoji: '🏃', logo: '/logos/apexlegends.png' },
 ];
 
 const GAME_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -122,6 +122,9 @@ export default function App() {
   const [matches, setMatches] = useState<ProGamer[] | null>(null);
   const [selectedMatchIdx, setSelectedMatchIdx] = useState(0);
   const [slideDir, setSlideDir] = useState<1 | -1>(1);
+  const [topGearIdx, setTopGearIdx] = useState<Record<string, number>>({ mouse: 0, keyboard: 0, monitor: 0, mousepad: 0 });
+  const [topGearDir, setTopGearDir] = useState<Record<string, 1 | -1>>({ mouse: 1, keyboard: 1, monitor: 1, mousepad: 1 });
+  const [allProList, setAllProList] = useState<ProGamer[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showList, setShowList] = useState(false);
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
@@ -993,6 +996,19 @@ export default function App() {
     updateStats();
   }, [settings.game]);
 
+  // 전 게임 합산 Top Gear 계산용 — 최초 1회 로드
+  useEffect(() => {
+    const loadAllPros = async () => {
+      try {
+        const results = await Promise.all(GAMES.map(g => getProGamerList(g.name)));
+        setAllProList(results.flat());
+      } catch (err) {
+        console.error("Failed to load all pros:", err);
+      }
+    };
+    loadAllPros();
+  }, []);
+
   const fetchProList = async (force = false) => {
     setShowList(true);
     setSearchTerm(''); // Reset search when opening
@@ -1037,7 +1053,7 @@ export default function App() {
           <div className="fixed bottom-[5%] right-[0%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(6,182,212,0.03) 0%, transparent 65%)'}} />
         </>
       )}
-      <div className="relative max-w-4xl mx-auto px-4 md:px-8 py-4 md:py-8">
+      <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-4 md:py-8">
         {/* Hero Section */}
         <section className="relative mb-8">
           {/* Nav strip */}
@@ -1210,10 +1226,10 @@ export default function App() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className={`relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1c1c20]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl max-w-2xl mx-auto w-full overflow-hidden`}
+            className={`relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1c1c20]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl max-w-3xl mx-auto w-full overflow-hidden`}
           >
             {theme === 'dark' && <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />}
-            <form onSubmit={handleMatch} className="space-y-6">
+            <form id="match-form" onSubmit={handleMatch} className="space-y-6">
               <div className="space-y-4">
                 <div>
                   <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-3 block`}>{t.selectGame}</span>
@@ -1233,8 +1249,8 @@ export default function App() {
                           key={game.name}
                           type="button"
                           onClick={() => setSettings({ ...settings, game: game.name })}
-                          style={isActive ? { boxShadow: `0 0 0 1.5px ${glow}, 0 4px 24px ${glow}30` } : undefined}
-                          className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border transition-all duration-300 gap-2 overflow-hidden group ${
+                          style={{ width: '100%', height: '90px', ...(isActive ? { boxShadow: `0 0 0 1.5px ${glow}` } : {}) }}
+                          className={`relative group rounded-2xl border transition-all duration-300 ${
                             isActive
                               ? `${colors.bg} border-transparent ${colors.text}`
                               : (theme === 'dark'
@@ -1245,17 +1261,16 @@ export default function App() {
                           whileTap={{ scale: 0.96 }}
                           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
                         >
-                          {/* 액티브 하단 글로우 라인 */}
-                          {isActive && (
-                            <div className="absolute bottom-0 left-1/4 right-1/4 h-[2px] rounded-full"
-                              style={{ background: `linear-gradient(90deg, transparent, ${glow}, transparent)` }} />
-                          )}
-                          {/* 이모지 */}
-                          <span className={`text-2xl transition-all duration-300 ${isActive ? 'scale-115 drop-shadow-lg' : 'opacity-20 grayscale group-hover:opacity-50 group-hover:grayscale-[50%]'}`}>
-                            {game.emoji}
-                          </span>
-                          {/* 게임명 */}
-                          <span className={`text-[9px] font-bold uppercase tracking-widest truncate w-full text-center leading-tight transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-50'}`}>
+                          {/* 게임 로고 이미지 — 세로 중앙 고정 */}
+                          <div className="absolute inset-0 flex items-center justify-center" style={{ top: '6px', bottom: '22px' }}>
+                            <img
+                              src={game.logo}
+                              alt={game.name}
+                              className={`object-contain transition-all duration-300 ${game.name === 'CS2' ? 'w-14 h-14' : 'w-8 h-8'} ${isActive ? 'opacity-100' :'opacity-25 grayscale group-hover:opacity-60 group-hover:grayscale-[40%]'}`}
+                            />
+                          </div>
+                          {/* 게임명 — 하단 고정 */}
+                          <span className={`absolute bottom-2 left-0 right-0 text-[9px] font-bold uppercase tracking-widest text-center leading-tight transition-all duration-300 px-1 ${isActive ? 'opacity-100' : 'opacity-50'}`}>
                             {game.name}
                           </span>
                         </motion.button>
@@ -1459,82 +1474,72 @@ export default function App() {
                 <ArrowLeft size={18} /> {t.back}
               </button>
 
-              <div className="flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-10">
+              {/* Carousel dot indicators (mobile) */}
+              {matches.length > 1 && (
+                <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
+                  {matches.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => { setSlideDir(idx > selectedMatchIdx ? 1 : -1); setSelectedMatchIdx(idx); }}
+                      className={`rounded-full transition-all ${selectedMatchIdx === idx ? 'w-6 h-2 bg-emerald-500' : 'w-2 h-2 bg-[#333]'}`}
+                    />
+                  ))}
+                </div>
+              )}
 
-                {/* Left Runner Up Cards */}
-                <div className="hidden lg:flex flex-col gap-4">
-                  {matches.slice(1).map((m, i) => {
-                    const idx = i + 1;
-                    const isActive = selectedMatchIdx === idx;
-                    return (
+              <div className="flex flex-row items-center justify-center gap-4 lg:gap-6 w-full">
+
+                {/* Left side card — 이전 매칭 (순환) */}
+                {matches.length > 1 && (() => {
+                  const prevIdx = (selectedMatchIdx - 1 + matches.length) % matches.length;
+                  const m = matches[prevIdx];
+                  return (
+                    <div className="hidden lg:block w-56 flex-shrink-0">
                       <motion.button
-                        key={idx}
-                        onClick={() => {
-                          setSlideDir(idx > selectedMatchIdx ? 1 : -1);
-                          setSelectedMatchIdx(idx);
-                        }}
-                        animate={{ opacity: isActive ? 1 : 0.55, scale: isActive ? 1.02 : 1 }}
-                        whileHover={{ opacity: 1, scale: 1.04 }}
+                        key={`left-${prevIdx}`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 0.6, x: 0 }}
+                        whileHover={{ opacity: 1, scale: 1.03, x: 4 }}
                         transition={{ duration: 0.2 }}
-                        className={`w-60 text-left ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} ${isActive ? (theme === 'dark' ? 'border-emerald-500/50' : 'border-emerald-500') : ''} border rounded-2xl p-5 space-y-3 flex-shrink-0 cursor-pointer`}
+                        onClick={() => { setSlideDir(-1); setSelectedMatchIdx(prevIdx); }}
+                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#2a2a2a]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
                       >
+                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                          <ChevronLeft size={12} className="text-emerald-400" />
+                        </div>
                         <div className="flex items-center justify-between">
-                          <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest`}>{t.similarMatch}</span>
-                          <Zap size={12} className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                          <span className={`text-[9px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#aaa]'} uppercase tracking-widest`}>{prevIdx === 0 ? t.perfectMatch : t.similarMatch}</span>
+                          {prevIdx === 0 ? <Trophy size={11} className="text-emerald-500" /> : <Zap size={11} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />}
                         </div>
                         <div>
                           <h3 className="font-black uppercase tracking-tighter truncate text-sm">{m.name}</h3>
-                          <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[10px] uppercase tracking-widest truncate`}>{m.team}</p>
+                          <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[9px] uppercase tracking-widest truncate`}>{m.team}</p>
                         </div>
-                        <div className="grid grid-cols-3 gap-1.5 text-[10px] font-mono">
+                        <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
                           {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
-                            <div key={label} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
-                              <span className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} block uppercase text-[8px]`}>{label}</span>
-                              <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} text-[10px]`}>{val}</span>
+                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#222]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                              <span className={`${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} block uppercase text-[7px]`}>{label}</span>
+                              <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{val}</span>
                             </div>
                           ))}
                         </div>
                         <div className="space-y-1">
                           {[
-                            { icon: m.gear.mouse ? <Mouse size={10} /> : <Gamepad2 size={10} />, val: m.gear.mouse || m.gear.controller },
-                            { icon: <Keyboard size={10} />, val: m.gear.keyboard },
-                            { icon: <Monitor size={10} />, val: m.gear.monitor },
-                            { icon: <Layers size={10} />, val: m.gear.mousepad },
-                          ].filter(g => g.val).map((g, gi) => (
-                            <div key={gi} className={`flex items-center gap-2 text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} font-mono truncate`}>
-                              <span className={theme === 'dark' ? 'text-emerald-500/50' : 'text-emerald-600/60'}>{g.icon}</span>
+                            { icon: m.gear.mouse ? <Mouse size={9} /> : <Gamepad2 size={9} />, val: m.gear.mouse || m.gear.controller },
+                            { icon: <Keyboard size={9} />, val: m.gear.keyboard },
+                            { icon: <Monitor size={9} />, val: m.gear.monitor },
+                            { icon: <Layers size={9} />, val: m.gear.mousepad },
+                          ].filter(g => g.val).slice(0, 3).map((g, gi) => (
+                            <div key={gi} className={`flex items-center gap-1.5 text-[9px] ${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} font-mono truncate`}>
+                              <span className={theme === 'dark' ? 'text-emerald-500/40' : 'text-emerald-600/50'}>{g.icon}</span>
                               <span className="truncate">{g.val}</span>
                             </div>
                           ))}
                         </div>
                       </motion.button>
-                    );
-                  })}
-                </div>
-
-                {/* Mobile tab bar */}
-                {matches.length > 1 && (
-                  <div className={`lg:hidden w-full flex gap-2 mb-4 p-1 rounded-2xl ${theme === 'dark' ? 'bg-[#0e0e10]' : 'bg-[#e5e7eb]'}`}>
-                    {matches.map((m, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          if (idx === selectedMatchIdx) return;
-                          setSlideDir(idx > selectedMatchIdx ? 1 : -1);
-                          setSelectedMatchIdx(idx);
-                        }}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all ${
-                          selectedMatchIdx === idx
-                            ? 'bg-emerald-500 text-black'
-                            : theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'
-                        }`}
-                      >
-                        {idx === 0 ? <Trophy size={10} /> : <Zap size={10} />}
-                        <span className="truncate">{m.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  );
+                })()}
 
                 {/* Main Match */}
                 <div className="w-full overflow-hidden">
@@ -1551,7 +1556,7 @@ export default function App() {
                   animate="center"
                   exit="exit"
                   transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-emerald-500/30' : 'bg-[#f8f9fa] border-emerald-500/50'} border rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(16,185,129,0.15)]`}
+                  className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-emerald-500/30' : 'bg-[#f8f9fa] border-emerald-500/50'} border rounded-3xl overflow-hidden`}
                 >
                   <div className={`p-6 flex items-center justify-between ${selectedMatchIdx === 0 ? 'bg-emerald-500' : theme === 'dark' ? 'bg-[#1e2a22]' : 'bg-emerald-100'}`}>
                     <div className={`flex items-center gap-3 ${selectedMatchIdx === 0 ? 'text-black' : theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'}`}>
@@ -1737,6 +1742,59 @@ export default function App() {
                 </motion.div>
                 </AnimatePresence>
                 </div>
+
+                {/* Right side card — 다음 매칭 (순환) */}
+                {matches.length > 1 && (() => {
+                  const nextIdx = (selectedMatchIdx + 1) % matches.length;
+                  const m = matches[nextIdx];
+                  return (
+                    <div className="hidden lg:block w-56 flex-shrink-0">
+                      <motion.button
+                        key={`right-${nextIdx}`}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 0.6, x: 0 }}
+                        whileHover={{ opacity: 1, scale: 1.03, x: -4 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={() => { setSlideDir(1); setSelectedMatchIdx(nextIdx); }}
+                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#2a2a2a]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
+                      >
+                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
+                          <ChevronRight size={12} className="text-emerald-400" />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[9px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#aaa]'} uppercase tracking-widest`}>{nextIdx === 0 ? t.perfectMatch : t.similarMatch}</span>
+                          {nextIdx === 0 ? <Trophy size={11} className="text-emerald-500" /> : <Zap size={11} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />}
+                        </div>
+                        <div>
+                          <h3 className="font-black uppercase tracking-tighter truncate text-sm">{m.name}</h3>
+                          <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[9px] uppercase tracking-widest truncate`}>{m.team}</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
+                          {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
+                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#222]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                              <span className={`${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} block uppercase text-[7px]`}>{label}</span>
+                              <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="space-y-1">
+                          {[
+                            { icon: m.gear.mouse ? <Mouse size={9} /> : <Gamepad2 size={9} />, val: m.gear.mouse || m.gear.controller },
+                            { icon: <Keyboard size={9} />, val: m.gear.keyboard },
+                            { icon: <Monitor size={9} />, val: m.gear.monitor },
+                            { icon: <Layers size={9} />, val: m.gear.mousepad },
+                          ].filter(g => g.val).slice(0, 3).map((g, gi) => (
+                            <div key={gi} className={`flex items-center gap-1.5 text-[9px] ${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} font-mono truncate`}>
+                              <span className={theme === 'dark' ? 'text-emerald-500/40' : 'text-emerald-600/50'}>{g.icon}</span>
+                              <span className="truncate">{g.val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.button>
+                    </div>
+                  );
+                })()}
+
               </div>
             </div>
           </motion.div>
@@ -1785,7 +1843,6 @@ export default function App() {
                   width: 72,
                   height: 72,
                   animation: 'pgm-spin 1.8s linear infinite',
-                  filter: 'drop-shadow(0 0 8px rgba(16,185,129,0.8)) drop-shadow(0 0 20px rgba(16,185,129,0.4))',
                 }}
               />
             </div>
@@ -1806,7 +1863,7 @@ export default function App() {
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
-                    className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                    className="h-full bg-emerald-500"
                   />
                 </div>
               </div>
@@ -1821,70 +1878,291 @@ export default function App() {
         </div>
       )}
 
-      {/* Main page comment section */}
-      <ScrollFade>
-      <div className="max-w-2xl mx-auto mt-12 px-4">
-        <div className={`rounded-2xl border p-6 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
-          <CommentSection
-            proId="general"
-            theme={theme}
-            t={t}
-            isAdmin={user?.email === ADMIN_EMAIL}
-          />
-        </div>
-      </div>
-      </ScrollFade>
+      {/* ── Top Pro Gear Section ── */}
+      {allProList.length > 0 && (() => {
+        const getTopGear = (field: 'mouse' | 'keyboard' | 'monitor' | 'mousepad', n = 5) => {
+          const counts: Record<string, number> = {};
+          allProList.forEach(p => {
+            const val = field === 'mouse'
+              ? (p.gear.mouse || p.gear.controller || '')
+              : (p.gear[field] || '');
+            const trimmed = val.trim();
+            if (trimmed) counts[trimmed] = (counts[trimmed] || 0) + 1;
+          });
+          return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, n)
+            .map(([name, count], i) => ({ name, count, rank: i + 1 }));
+        };
 
-      {/* High Quality Content Sections for AdSense */}
-      <div className="max-w-4xl mx-auto mt-20 space-y-16 pb-20">
-        {/* About Section */}
+        const categories: { key: 'mouse' | 'keyboard' | 'monitor' | 'mousepad'; label: string; icon: React.ReactNode }[] = [
+          { key: 'mouse',    label: lang === 'ko' ? '마우스'    : 'Mouse',     icon: <Mouse    size={14} /> },
+          { key: 'keyboard', label: lang === 'ko' ? '키보드'    : 'Keyboard',  icon: <Keyboard size={14} /> },
+          { key: 'monitor',  label: lang === 'ko' ? '모니터'    : 'Monitor',   icon: <Monitor  size={14} /> },
+          { key: 'mousepad', label: lang === 'ko' ? '마우스패드' : 'Mousepad',  icon: <Layers   size={14} /> },
+        ];
+
+        const goGear = (key: string, dir: 1 | -1, len: number) => {
+          setTopGearDir(prev => ({ ...prev, [key]: dir }));
+          setTopGearIdx(prev => {
+            const next = (prev[key] ?? 0) + dir;
+            return { ...prev, [key]: Math.max(0, Math.min(len - 1, next)) };
+          });
+        };
+
+        return (
+          <ScrollFade>
+          <div className="max-w-5xl mx-auto mt-16 px-4">
+            <div className="mb-6 flex items-center gap-3">
+              <Trophy size={18} className="text-emerald-500" />
+              <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#222]'}`}>
+                {lang === 'ko' ? '프로게이머 TOP 5 장비' : 'Pro Gamer Top 5 Gear'}
+              </h2>
+              <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} uppercase tracking-widest ml-1`}>
+                {lang === 'ko' ? `전 게임 ${allProList.length}명 기준` : `all games · ${allProList.length} pros`}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {categories.map(cat => {
+                const items = getTopGear(cat.key);
+                const idx = topGearIdx[cat.key] ?? 0;
+                const dir = topGearDir[cat.key] ?? 1;
+                const item = items[idx];
+                if (!item) return null;
+                const amazonLink = getAmazonLink(item.name);
+                return (
+                  <div key={cat.key} className={`flex flex-col rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
+
+                    {/* Category header */}
+                    <div className={`flex items-center justify-between px-3 py-2 border-b ${theme === 'dark' ? 'border-[#1e1e1e] bg-[#111]' : 'border-[#f0f0f0] bg-[#fafafa]'}`}>
+                      <span className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        {cat.icon}{cat.label}
+                      </span>
+                      {/* dot indicators */}
+                      <div className="flex items-center gap-1">
+                        {items.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { setTopGearDir(prev => ({ ...prev, [cat.key]: (i > idx ? 1 : -1) as 1 | -1 })); setTopGearIdx(prev => ({ ...prev, [cat.key]: i })); }}
+                            className={`rounded-full transition-all ${i === idx ? 'w-3.5 h-1.5 bg-emerald-500' : `w-1.5 h-1.5 ${theme === 'dark' ? 'bg-[#333]' : 'bg-[#ddd]'}`}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Up button */}
+                    <button
+                      onClick={() => goGear(cat.key, -1, items.length)}
+                      disabled={idx === 0}
+                      className={`flex items-center justify-center py-1 transition-colors border-b ${theme === 'dark' ? 'border-[#1a1a1a]' : 'border-[#f0f0f0]'} ${idx === 0 ? 'opacity-20 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-[#151515] text-[#555]' : 'hover:bg-[#f5f5f5] text-[#bbb]'}`}
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+
+                    {/* Rank badge + image + info — 세로 슬라이드 */}
+                    <div className="overflow-hidden">
+                      <AnimatePresence mode="wait" custom={dir}>
+                        <motion.div
+                          key={`${cat.key}-${idx}`}
+                          custom={dir}
+                          variants={{
+                            enter: (d: number) => ({ y: d * 40, opacity: 0 }),
+                            center: { y: 0, opacity: 1 },
+                            exit: (d: number) => ({ y: d * -40, opacity: 0 }),
+                          }}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        >
+                          {/* Image with rank badge */}
+                          <div className="relative">
+                            <div className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shadow-lg
+                              ${idx === 0 ? 'bg-amber-400 text-black' : idx === 1 ? 'bg-[#c0c0c0] text-black' : idx === 2 ? 'bg-amber-700 text-white' : theme === 'dark' ? 'bg-[#222] text-[#777]' : 'bg-[#e5e7eb] text-[#888]'}`}>
+                              {item.rank}
+                            </div>
+                            <GearImage productName={item.name} icon={cat.key} theme={theme} />
+                          </div>
+
+                          {/* Info */}
+                          <div className="p-3 flex flex-col gap-2">
+                            <div>
+                              <p className={`text-[11px] font-bold leading-tight ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#222]'}`}>{item.name}</p>
+                              <p className={`text-[9px] font-mono mt-0.5 ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>
+                                {lang === 'ko' ? `${item.count}명 사용` : `${item.count} pros`}
+                              </p>
+                            </div>
+                            {amazonLink ? (
+                              <a href={amazonLink} target="_blank" rel="noopener noreferrer"
+                                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'}`}>
+                                <ShoppingCart size={10} /> {lang === 'ko' ? '아마존' : 'Amazon'}
+                              </a>
+                            ) : (
+                              <a href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`} target="_blank" rel="noopener noreferrer"
+                                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border border-[#333] text-[#555] hover:text-[#777]' : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#aaa] hover:text-[#888]'}`}>
+                                <ExternalLink size={10} /> {lang === 'ko' ? '검색' : 'Search'}
+                              </a>
+                            )}
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Down button */}
+                    <button
+                      onClick={() => goGear(cat.key, 1, items.length)}
+                      disabled={idx >= items.length - 1}
+                      className={`flex items-center justify-center py-1 transition-colors border-t mt-auto ${theme === 'dark' ? 'border-[#1a1a1a]' : 'border-[#f0f0f0]'} ${idx >= items.length - 1 ? 'opacity-20 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-[#151515] text-[#555]' : 'hover:bg-[#f5f5f5] text-[#bbb]'}`}
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          </ScrollFade>
+        );
+      })()}
+
+      {/* Main page comment section — hidden */}
+
+      {/* ── Content Sections ── */}
+      <div className="max-w-5xl mx-auto mt-20 space-y-16 pb-20 px-4">
+
+        {/* How It Works — 3 steps */}
         <ScrollFade direction="up">
-        <section className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-8`}>
-          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} mb-4 uppercase tracking-wider flex items-center gap-2`}>
-            <Shield size={24} /> {t.aboutTitle}
-          </h2>
-          <p className={`${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'} leading-relaxed`}>
-            {t.aboutDesc}
+        <section>
+          <div className="flex items-center gap-3 mb-8">
+            <Target size={18} className="text-emerald-500" />
+            <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#111]'}`}>
+              {lang === 'ko' ? '어떻게 작동하나요?' : 'How It Works'}
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { step: '01', icon: <Keyboard size={20} />, title: lang === 'ko' ? '장비 & 감도 입력' : 'Enter Your Setup', body: lang === 'ko' ? 'DPI, 인게임 감도, 마우스·키보드·모니터·마우스패드를 입력하세요. 일부 항목을 몰라도 DPI와 감도만으로 매칭 가능합니다.' : 'Enter your DPI, in-game sensitivity, and gear. Even with just DPI and sensitivity, we can find your match.' },
+              { step: '02', icon: <Target size={20} />, title: lang === 'ko' ? 'eDPI 기반 매칭' : 'eDPI Matching', body: lang === 'ko' ? 'eDPI(DPI × 감도)를 기준으로 전체 프로 DB와 비교합니다. 동일 장비 사용 여부도 매칭 점수에 반영됩니다.' : 'We calculate your eDPI (DPI × Sensitivity) and compare it against our full pro database, factoring in gear overlap.' },
+              { step: '03', icon: <Trophy size={20} />, title: lang === 'ko' ? '프로 트윈 확인' : 'Meet Your Pro Twin', body: lang === 'ko' ? '가장 가까운 프로와 eDPI 분포 상 위치, 사용 장비 및 아마존 구매 링크를 확인하세요.' : "See your closest pro match, your position in the eDPI distribution, gear comparison, and Amazon links." },
+            ].map((s, i) => (
+              <React.Fragment key={i}>
+              <ScrollFade delay={i * 0.08}>
+              <div className={`relative p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                <span className={`absolute top-4 right-4 text-4xl font-black ${theme === 'dark' ? 'text-[#151515]' : 'text-[#f0f0f0]'} select-none`}>{s.step}</span>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>{s.icon}</div>
+                <h3 className={`font-black uppercase tracking-tight text-sm mb-2 ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#111]'}`}>{s.title}</h3>
+                <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>{s.body}</p>
+              </div>
+              </ScrollFade>
+              </React.Fragment>
+            ))}
+          </div>
+        </section>
+        </ScrollFade>
+
+        {/* eDPI Guide */}
+        <ScrollFade direction="up">
+        <section className={`rounded-2xl border p-8 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+          <div className="flex items-center gap-3 mb-6">
+            <Zap size={18} className="text-emerald-500" />
+            <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#111]'}`}>
+              {lang === 'ko' ? 'eDPI란 무엇인가요?' : 'What is eDPI?'}
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                {lang === 'ko'
+                  ? 'eDPI(Effective DPI, 유효 DPI)는 마우스 DPI와 인게임 감도를 곱한 값으로, 서로 다른 설정을 동일한 기준으로 비교할 수 있게 해주는 지표입니다.'
+                  : 'eDPI (Effective DPI) is calculated by multiplying your mouse DPI by your in-game sensitivity. It allows fair comparison of setups across different hardware configurations.'}
+              </p>
+              <div className={`p-4 rounded-xl font-mono text-center ${theme === 'dark' ? 'bg-[#111] border border-[#222]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                <span className={`text-lg font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>eDPI = DPI × Sensitivity</span>
+              </div>
+              <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
+                {lang === 'ko'
+                  ? '예) DPI 800 × 감도 0.35 = eDPI 280 (Valorant 상위권 프로 평균대)'
+                  : 'Example: DPI 800 × Sensitivity 0.35 = eDPI 280 (around the top-end pro average in Valorant)'}
+              </p>
+            </div>
+            <div className="space-y-3">
+              {[
+                { game: 'Valorant', range: '200 – 400', color: 'text-rose-400' },
+                { game: 'CS2',      range: '600 – 1000', color: 'text-orange-400' },
+                { game: 'Overwatch 2', range: '1200 – 2400', color: 'text-sky-400' },
+                { game: 'Apex Legends', range: '800 – 1600', color: 'text-red-400' },
+              ].map(g => (
+                <div key={g.game} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                  <span className={`text-xs font-bold ${theme === 'dark' ? 'text-[#bbb]' : 'text-[#374151]'}`}>{g.game}</span>
+                  <span className={`text-xs font-mono font-bold ${g.color}`}>{lang === 'ko' ? `프로 평균 eDPI ${g.range}` : `Pro avg eDPI ${g.range}`}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        </ScrollFade>
+
+        {/* About */}
+        <ScrollFade direction="up">
+        <section className={`rounded-2xl border p-8 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+          <div className="flex items-center gap-3 mb-6">
+            <Shield size={18} className="text-emerald-500" />
+            <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#111]'}`}>
+              {lang === 'ko' ? 'Pro Gear Match 소개' : 'About Pro Gear Match'}
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            {[
+              { val: '300+', label: lang === 'ko' ? '프로 선수 DB' : 'Pro Players' },
+              { val: '4',    label: lang === 'ko' ? '지원 게임'    : 'Games Covered' },
+              { val: '100%', label: lang === 'ko' ? '무료 서비스'  : 'Free to Use' },
+            ].map(s => (
+              <div key={s.val} className={`p-4 rounded-xl text-center ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                <p className={`text-2xl font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{s.val}</p>
+                <p className={`text-[10px] font-mono uppercase tracking-widest mt-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+          <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+            {lang === 'ko'
+              ? 'Pro Gear Match는 e스포츠 팬과 FPS 게이머를 위한 무료 매칭 도구입니다. Valorant, CS2, Overwatch 2, Apex Legends 4개 게임의 프로 선수 300명 이상의 감도·장비 데이터를 분석해, 당신과 가장 설정이 비슷한 프로를 찾아드립니다. 데이터는 ProSettings.net, Liquipedia 등 공개 검증된 출처에서 수집되며 정기적으로 업데이트됩니다.'
+              : 'Pro Gear Match is a free matching tool for esports fans and FPS gamers. We analyze sensitivity and gear data from 300+ professional players across Valorant, CS2, Overwatch 2, and Apex Legends to find the pro whose setup most closely matches yours. Data is sourced from publicly verified sources including ProSettings.net and Liquipedia, and is regularly updated.'}
           </p>
         </section>
         </ScrollFade>
 
-        {/* Gear Guide Section */}
-        <section className="space-y-8">
-          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-wider flex items-center gap-2 px-2`}>
-            <Flame size={24} /> {t.guideTitle}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <ScrollFade delay={0}>
-            <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 hover:border-emerald-500/50 transition-colors`}>
-              <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-600/10 text-emerald-600'} rounded-lg flex items-center justify-center mb-4`}>
-                <Target size={20} />
-              </div>
-              <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">DPI</h3>
-              <p className={`text-xs ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} leading-relaxed`}>{t.guideDpi}</p>
-            </div>
-            </ScrollFade>
-            <ScrollFade delay={0.1}>
-            <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 hover:border-emerald-500/50 transition-colors`}>
-              <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-600/10 text-emerald-600'} rounded-lg flex items-center justify-center mb-4`}>
-                <Zap size={20} />
-              </div>
-              <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">Sensitivity</h3>
-              <p className={`text-xs ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} leading-relaxed`}>{t.guideSens}</p>
-            </div>
-            </ScrollFade>
-            <ScrollFade delay={0.2}>
-            <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 hover:border-emerald-500/50 transition-colors`}>
-              <div className={`w-10 h-10 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-600/10 text-emerald-600'} rounded-lg flex items-center justify-center mb-4`}>
-                <Layers size={20} />
-              </div>
-              <h3 className="font-bold mb-2 uppercase text-sm tracking-widest">eDPI</h3>
-              <p className={`text-xs ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} leading-relaxed`}>{t.guideEdpi}</p>
-            </div>
-            </ScrollFade>
-          </div>
-        </section>
       </div>
+
+      {/* ── CTA Banner ── */}
+      <ScrollFade direction="up">
+      <div className="max-w-5xl mx-auto px-4 mb-16">
+        <div className={`relative overflow-hidden rounded-2xl border p-8 md:p-12 text-center ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+          {/* 배경 글로우 */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(16,185,129,0.07) 0%, transparent 70%)' }} />
+          <p className={`text-[11px] font-mono uppercase tracking-widest mb-3 ${theme === 'dark' ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>
+            {lang === 'ko' ? '지금 바로 시작하기' : 'Get started now'}
+          </p>
+          <h2 className={`text-2xl md:text-3xl font-black uppercase tracking-tighter mb-3 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+            {lang === 'ko' ? '나의 프로 트윈을 찾아보세요' : 'Find Your Pro Twin'}
+          </h2>
+          <p className={`text-sm mb-8 max-w-md mx-auto ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
+            {lang === 'ko'
+              ? 'DPI와 감도만 입력하면 30초 안에 나와 가장 비슷한 프로게이머를 찾아드립니다.'
+              : 'Enter your DPI and sensitivity — find the pro with the closest setup in under 30 seconds.'}
+          </p>
+          <button
+            onClick={() => {
+              const form = document.getElementById('match-form');
+              if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black font-black uppercase tracking-widest text-sm rounded-xl transition-colors"
+          >
+            <Target size={16} />
+            {lang === 'ko' ? '매칭 시작하기' : 'Start Matching'}
+          </button>
+        </div>
+      </div>
+      </ScrollFade>
 
       {/* Ad Section */}
       <div className="max-w-4xl mx-auto px-4">
@@ -2630,7 +2908,7 @@ export default function App() {
                   <button 
                     type="submit"
                     disabled={loading}
-                    className="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs bg-emerald-500 text-black hover:bg-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all disabled:opacity-50"
+                    className="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs bg-emerald-500 text-black hover:bg-emerald-400 transition-all disabled:opacity-50"
                   >
                     {loading ? t.updating : t.save}
                   </button>
@@ -2676,7 +2954,7 @@ export default function App() {
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
-                        className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                        className="h-full bg-emerald-500"
                       />
                     </div>
                   </div>
@@ -3255,15 +3533,15 @@ function GearImage({ productName, icon, theme }: {
 
   const FallbackIcon = () => (
     <div className="absolute inset-0 flex items-center justify-center">
-      {icon === 'mouse'    && <Mouse    size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
-      {icon === 'keyboard' && <Keyboard size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
-      {icon === 'monitor'  && <Monitor  size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
-      {icon === 'mousepad' && <Layers   size={36} className={theme === 'dark' ? 'text-[#2a2a2a]' : 'text-[#d1d5db]'} />}
+      {icon === 'mouse'    && <Mouse    size={36} className="text-[#d1d5db]" />}
+      {icon === 'keyboard' && <Keyboard size={36} className="text-[#d1d5db]" />}
+      {icon === 'monitor'  && <Monitor  size={36} className="text-[#d1d5db]" />}
+      {icon === 'mousepad' && <Layers   size={36} className="text-[#d1d5db]" />}
     </div>
   );
 
   return (
-    <div className={`relative flex items-center justify-center h-28 ${theme === 'dark' ? 'bg-[#0e0e10]' : 'bg-[#f5f5f5]'}`}>
+    <div className="relative flex items-center justify-center h-28 bg-white">
       {status === 'loading' && (
         <Loader2 size={20} className="animate-spin text-emerald-500/40" />
       )}
@@ -3873,94 +4151,316 @@ function StaticPageView({ page, theme, lang, t, onNavigate }: {
   const isDark = theme === 'dark';
   const isKo = lang === 'ko';
 
-  const pages: Record<PageType, { title: string; subtitle: string; icon: string; sections: { heading: string; body: string }[] }> = {
-    home: { title: '', subtitle: '', icon: '', sections: [] },
+  // ── Page content data ────────────────────────────────────────────
+  type Section = { heading: string; body: React.ReactNode };
+  type PageData = { title: string; subtitle: string; emoji: string; sections: Section[] };
+
+  const pages: Record<string, PageData> = {
     'how-it-works': {
       title: isKo ? '작동 방식' : 'How It Works',
-      subtitle: isKo ? 'Pro Gear Match는 어떻게 프로게이머를 찾아드리나요?' : 'How does Pro Gear Match find your pro twin?',
-      icon: '🎯',
+      subtitle: isKo ? 'Pro Gear Match가 나의 프로 트윈을 찾는 방법' : 'How Pro Gear Match finds your pro twin',
+      emoji: '🎯',
       sections: [
-        { heading: isKo ? '1. 장비 설정 입력' : '1. Enter Your Settings', body: isKo ? '마우스, 키보드, 모니터, 마우스패드와 DPI·감도를 입력하세요. 일부 항목을 모르더라도 DPI와 감도만으로 매칭이 가능합니다.' : 'Enter your mouse, keyboard, monitor, mousepad, DPI, and sensitivity. Even if you only know your DPI and sensitivity, we can still find your match.' },
-        { heading: isKo ? '2. 게임 선택' : '2. Select Your Game', body: isKo ? 'Valorant, CS2, Overwatch 2, Apex Legends 중 주로 플레이하는 게임을 선택하세요. 게임별로 별도의 프로 선수 데이터베이스가 운용됩니다.' : 'Choose your main game from Valorant, CS2, Overwatch 2, or Apex Legends. Each game has its own dedicated pro player database.' },
-        { heading: isKo ? '3. eDPI 기반 매칭 알고리즘' : '3. eDPI-Based Matching Algorithm', body: isKo ? '입력된 DPI × 감도로 계산된 eDPI(유효 DPI)를 기준으로 데이터베이스의 모든 프로 선수와 비교합니다. eDPI가 가장 근접한 선수를 최우선으로 매칭하며, 동일한 장비 사용 여부도 점수에 반영됩니다.' : 'We calculate your eDPI (Effective DPI = DPI × Sensitivity) and compare it against every pro in our database. The closest eDPI match is prioritized, with gear overlap also factored into the score.' },
-        { heading: isKo ? '4. 결과 확인' : '4. View Your Results', body: isKo ? '매칭된 프로의 이름, 팀, eDPI 분포 상 나의 위치, 장비 비교표를 확인할 수 있습니다. 아마존 제휴 링크를 통해 프로와 같은 장비를 바로 구매할 수도 있습니다.' : "See your matched pro's name, team, your position in the eDPI distribution chart, and a side-by-side gear comparison. You can also buy the same gear via Amazon affiliate links." },
+        {
+          heading: isKo ? '1단계 — 설정 입력' : 'Step 1 — Enter Your Setup',
+          body: isKo
+            ? '게임을 선택하고 마우스 DPI, 인게임 감도, 사용 중인 마우스·키보드·모니터·마우스패드를 입력하세요. 장비 정보를 모두 알 필요는 없습니다. DPI와 감도만 입력해도 매칭이 가능합니다. 입력 필드 옆 "현재 프로 평균" 힌트를 참고해 내 설정이 프로 기준으로 어느 수준인지 바로 확인할 수 있습니다.'
+            : 'Select your game and enter your mouse DPI, in-game sensitivity, and your gear (mouse, keyboard, monitor, mousepad). You don\'t need all fields — DPI and sensitivity alone are enough to get a match. Use the "Pro Average" hints next to each field to gauge where your settings stand.',
+        },
+        {
+          heading: isKo ? '2단계 — eDPI 알고리즘 매칭' : 'Step 2 — eDPI Algorithm Matching',
+          body: isKo
+            ? 'eDPI(Effective DPI) = DPI × 인게임 감도. 이 단일 수치로 서로 다른 마우스·게임 설정을 동일한 기준에서 비교할 수 있습니다. Pro Gear Match는 입력된 eDPI를 데이터베이스의 모든 프로 선수와 비교해 가장 가까운 eDPI를 가진 선수를 1순위로 매칭하고, 동일 장비 사용 여부를 추가 점수로 반영합니다.'
+            : 'eDPI (Effective DPI) = DPI × In-Game Sensitivity. This single number lets us compare setups across different hardware and games on equal footing. We compare your eDPI against every pro in the database and rank matches by closeness, with additional weight given to gear overlap.',
+        },
+        {
+          heading: isKo ? '3단계 — 결과 분석' : 'Step 3 — Analyze Your Results',
+          body: isKo
+            ? '매칭 결과 카드에서 다음을 확인할 수 있습니다: ① 매칭된 프로의 이름·팀·프로필 링크 ② eDPI 분포 히스토그램 (같은 게임 전체 프로 중 내 위치) ③ 프로의 사용 장비 이미지 및 아마존 구매 링크 ④ 비슷한 설정의 다른 프로들 (캐러셀로 탐색 가능). 완벽한 매칭 외에 비슷한 매칭도 함께 제공되어 여러 프로를 참고할 수 있습니다.'
+            : 'Your result card shows: ① Matched pro\'s name, team, and profile link ② eDPI histogram showing your position among all pros in that game ③ Pro\'s gear with product images and Amazon buy links ④ Similar matches navigable via a carousel. Beyond your top match, you also get similar matches to explore multiple reference points.',
+        },
+        {
+          heading: isKo ? 'eDPI 범위 참고표' : 'eDPI Reference Ranges',
+          body: (
+            <div className="space-y-2 mt-2">
+              {[
+                { game: 'Valorant', range: '200 – 500', note: isKo ? '낮은 감도 선호 경향' : 'Low sensitivity tendency', color: 'text-rose-400' },
+                { game: 'CS2',      range: '600 – 1200', note: isKo ? '중간 감도 선호 경향' : 'Mid sensitivity tendency', color: 'text-orange-400' },
+                { game: 'Overwatch 2', range: '1200 – 2800', note: isKo ? '히어로별 차이 큼' : 'Varies widely by hero', color: 'text-sky-400' },
+                { game: 'Apex Legends', range: '800 – 1800', note: isKo ? '중~높은 감도 경향' : 'Mid-to-high sensitivity tendency', color: 'text-red-400' },
+              ].map(g => (
+                <div key={g.game} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-xl ${isDark ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                  <span className={`font-bold text-sm ${isDark ? 'text-[#bbb]' : 'text-[#374151]'}`}>{g.game}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`font-mono font-bold text-sm ${g.color}`}>{g.range}</span>
+                    <span className={`text-[10px] font-mono ${isDark ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{g.note}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ),
+        },
       ],
     },
+
     about: {
       title: isKo ? 'Pro Gear Match 소개' : 'About Pro Gear Match',
-      subtitle: isKo ? '프로게이머의 설정으로 당신의 게임을 업그레이드하세요' : 'Upgrade your game with pro settings',
-      icon: '🏆',
+      subtitle: isKo ? '프로게이머의 설정으로 당신의 게임을 업그레이드하세요' : 'Find your pro twin. Upgrade your setup.',
+      emoji: '🏆',
       sections: [
-        { heading: isKo ? '우리는 누구인가요?' : 'Who We Are', body: isKo ? 'Pro Gear Match는 e스포츠 팬과 게이머를 위해 만들어진 무료 도구입니다. 전 세계 300명 이상의 프로 선수 데이터를 수집하고 유지 관리하여 여러분의 설정과 가장 유사한 프로를 찾아드립니다.' : 'Pro Gear Match is a free tool built for esports fans and gamers. We collect and maintain data on 300+ professional players worldwide to help you find the pro whose settings match yours most closely.' },
-        { heading: isKo ? '데이터 출처' : 'Our Data Sources', body: isKo ? '모든 프로 선수 데이터는 ProSettings.net, Liquipedia 등 공개적으로 검증된 출처에서 수집됩니다. 데이터는 정기적으로 업데이트되며, 선수의 설정 변경 사항을 반영합니다.' : 'All pro player data is collected from publicly verified sources including ProSettings.net and Liquipedia. Data is regularly updated to reflect players\' latest settings changes.' },
-        { heading: isKo ? '우리의 미션' : 'Our Mission', body: isKo ? '감도 설정은 게임 실력에 큰 영향을 미칩니다. 하지만 어떤 감도가 자신에게 맞는지 찾기 어렵습니다. Pro Gear Match는 자신과 비슷한 설정을 사용하는 프로를 기준점으로 삼아, 더 빠르게 최적의 설정을 찾을 수 있도록 돕습니다.' : 'Sensitivity settings can greatly impact your gameplay. But finding the right sensitivity is hard. Pro Gear Match helps you use a pro with similar settings as a reference point to find your optimal setup faster.' },
-        { heading: isKo ? '문의하기' : 'Contact', body: 'wjsrkdgns123a@gmail.com' },
+        {
+          heading: isKo ? '서비스 소개' : 'What Is Pro Gear Match?',
+          body: isKo
+            ? 'Pro Gear Match는 FPS e스포츠 팬과 게이머를 위한 무료 감도 매칭 도구입니다. Valorant, CS2, Overwatch 2, Apex Legends 4개 게임에서 활동하는 프로 선수 300명 이상의 마우스 DPI, 인게임 감도, 사용 장비 데이터를 수집·분석하여, 사용자의 설정과 가장 유사한 프로를 찾아드립니다. 완전 무료로 운영되며 회원가입 없이 즉시 이용 가능합니다.'
+            : 'Pro Gear Match is a free sensitivity matching tool for FPS esports fans and gamers. We collect and analyze mouse DPI, in-game sensitivity, and gear data from 300+ professional players across Valorant, CS2, Overwatch 2, and Apex Legends to find the pro whose setup most closely matches yours. It\'s completely free and requires no sign-up.',
+        },
+        {
+          heading: isKo ? '우리의 미션' : 'Our Mission',
+          body: isKo
+            ? '올바른 감도 설정을 찾는 것은 생각보다 어렵습니다. 수많은 유튜브 영상과 커뮤니티 글을 뒤지다 결국 "프로는 어떻게 하지?"라고 생각한 적이 있다면, Pro Gear Match가 그 해답을 드립니다. 나와 비슷한 감도를 쓰는 프로를 기준점으로 삼아 빠르게 최적 설정에 다가가세요.'
+            : 'Finding the right sensitivity is harder than it sounds. If you\'ve ever thought "what do the pros use?" while tweaking your settings, Pro Gear Match gives you that answer. Use a pro with similar settings as your reference point and get to your optimal setup faster.',
+        },
+        {
+          heading: isKo ? '데이터 출처 및 신뢰성' : 'Data Sources & Reliability',
+          body: isKo
+            ? '모든 프로 선수 데이터는 다음 공개 출처에서 수집됩니다: ProSettings.net, Liquipedia, 각 팀 공식 SNS. 데이터는 정기적으로 검증·업데이트되며, 선수의 설정 변경 사항이 반영됩니다. 단, 선수의 설정은 언제든 변경될 수 있으며 본 사이트의 데이터가 항상 최신임을 보장하지는 않습니다. 데이터 오류 발견 시 이메일로 제보해 주시면 빠르게 수정합니다.'
+            : 'All pro player data is sourced from: ProSettings.net, Liquipedia, and official team social media. Data is regularly verified and updated to reflect settings changes. However, pro settings can change at any time and we cannot guarantee our data is always current. If you find an error, email us and we\'ll fix it quickly.',
+        },
+        {
+          heading: isKo ? '지원 게임' : 'Supported Games',
+          body: (
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              {[
+                { game: 'VALORANT', emoji: '🎯', note: isKo ? '타이틀 경쟁 FPS' : 'Tactical FPS' },
+                { game: 'CS2', emoji: '🔫', note: isKo ? '전설의 FPS 타이틀' : 'Legendary FPS' },
+                { game: 'Overwatch 2', emoji: '🛡️', note: isKo ? '히어로 FPS' : 'Hero FPS' },
+                { game: 'Apex Legends', emoji: '🏃', note: isKo ? '배틀로얄 FPS' : 'Battle Royale FPS' },
+              ].map(g => (
+                <div key={g.game} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                  <span className="text-xl">{g.emoji}</span>
+                  <div>
+                    <p className={`text-sm font-bold ${isDark ? 'text-[#ddd]' : 'text-[#111]'}`}>{g.game}</p>
+                    <p className={`text-[10px] font-mono ${isDark ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{g.note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          heading: isKo ? '문의하기' : 'Contact Us',
+          body: (
+            <div className="space-y-2">
+              <p className={`text-sm ${isDark ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                {isKo ? '데이터 오류 제보, 서비스 제안, 광고 문의 등 모든 내용을 아래 이메일로 보내주세요.' : 'For data corrections, feature suggestions, or business inquiries, reach us at:'}
+              </p>
+              <a href="mailto:wjsrkdgns123a@gmail.com" className={`inline-flex items-center gap-2 font-mono text-sm font-bold ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'} transition-colors`}>
+                📧 wjsrkdgns123a@gmail.com
+              </a>
+            </div>
+          ),
+        },
       ],
     },
+
     privacy: {
       title: isKo ? '개인정보처리방침' : 'Privacy Policy',
-      subtitle: isKo ? '귀하의 개인정보는 안전하게 보호됩니다' : 'Your privacy is protected',
-      icon: '🔒',
+      subtitle: isKo ? '최종 업데이트: 2026년 4월' : 'Last updated: April 2026',
+      emoji: '🔒',
       sections: [
-        { heading: isKo ? '1. 수집하는 정보' : '1. Information We Collect', body: isKo ? 'Pro Gear Match는 개인 식별 정보를 수집하지 않습니다. 서비스 이용 시 입력하는 장비 설정(DPI, 감도, 게임 선택 등)은 매칭 목적으로만 사용되며 서버에 저장되지 않습니다. 댓글 기능 이용 시에는 닉네임과 댓글 내용이 Firebase에 저장됩니다.' : 'Pro Gear Match does not collect personally identifiable information. Gear settings you enter (DPI, sensitivity, game, etc.) are used only for matching and are not stored on our servers. If you use the comment feature, your nickname and comment text are stored in Firebase.' },
-        { heading: isKo ? '2. 쿠키 및 광고' : '2. Cookies & Advertising', body: isKo ? '본 사이트는 Google AdSense를 사용하여 광고를 표시합니다. Google은 귀하의 광고 경험을 개인화하기 위해 쿠키를 사용할 수 있습니다. 브라우저 설정에서 쿠키를 비활성화할 수 있습니다.' : 'This site uses Google AdSense to display advertisements. Google may use cookies to personalize your ad experience. You can disable cookies in your browser settings.' },
-        { heading: isKo ? '3. 제3자 서비스' : '3. Third-Party Services', body: isKo ? '본 사이트는 Firebase(Google), Google AdSense, Amazon Associates 등 제3자 서비스를 사용합니다. 각 서비스의 개인정보처리방침이 별도로 적용됩니다.' : 'This site uses third-party services including Firebase (Google), Google AdSense, and Amazon Associates. Each service\'s own privacy policy applies separately.' },
-        { heading: isKo ? '4. 데이터 보안' : '4. Data Security', body: isKo ? '저장되는 댓글 데이터는 Firebase의 보안 규칙으로 보호됩니다. 당사는 귀하의 데이터를 제3자에게 판매하거나 공유하지 않습니다.' : 'Stored comment data is protected by Firebase security rules. We do not sell or share your data with third parties.' },
-        { heading: isKo ? '5. 문의' : '5. Contact', body: isKo ? '개인정보 관련 문의사항은 wjsrkdgns123a@gmail.com 으로 연락해 주세요.' : 'For privacy-related inquiries, please contact wjsrkdgns123a@gmail.com.' },
+        {
+          heading: isKo ? '개요' : 'Overview',
+          body: isKo
+            ? 'Pro Gear Match(이하 "서비스")는 사용자의 개인정보 보호를 중요하게 생각합니다. 본 방침은 서비스 이용 시 어떤 정보가 수집되고 어떻게 사용되는지를 설명합니다.'
+            : 'Pro Gear Match ("the Service") takes user privacy seriously. This policy explains what information is collected when you use the Service and how it is used.',
+        },
+        {
+          heading: isKo ? '1. 수집하는 정보' : '1. Information We Collect',
+          body: isKo
+            ? '• 서비스 이용 데이터: DPI·감도·게임 선택 등 매칭을 위해 입력하는 정보는 서버에 저장되지 않으며, 브라우저 세션에서만 사용됩니다.\n• 댓글 데이터: 댓글 작성 시 닉네임(선택)과 댓글 내용이 Firebase(Google)에 저장됩니다.\n• Google 로그인: 관리자 기능 이용 시 Google OAuth를 통한 이메일 주소가 수집됩니다.\n• 로그 데이터: 일반적인 서버 접근 로그(IP 주소, 접속 시간 등)가 자동으로 기록될 수 있습니다.'
+            : '• Usage data: Settings you enter (DPI, sensitivity, game) are not stored on servers and only exist in your browser session.\n• Comment data: If you post a comment, your nickname (optional) and comment text are stored in Firebase (Google).\n• Google login: Admin users authenticate via Google OAuth, which shares an email address.\n• Log data: Standard server access logs (IP address, timestamp) may be automatically recorded.',
+        },
+        {
+          heading: isKo ? '2. 정보 이용 목적' : '2. How We Use Information',
+          body: isKo
+            ? '수집된 정보는 다음 목적으로만 사용됩니다:\n• 매칭 알고리즘 실행 (설정 데이터)\n• 댓글 서비스 운영 (댓글 데이터)\n• 관리자 인증 (로그인 데이터)\n\n사용자 정보를 제3자에게 판매하거나 마케팅 목적으로 사용하지 않습니다.'
+            : 'Collected information is used only for:\n• Running the matching algorithm (settings data)\n• Operating the comment feature (comment data)\n• Admin authentication (login data)\n\nWe do not sell user information or use it for marketing.',
+        },
+        {
+          heading: isKo ? '3. 제3자 서비스' : '3. Third-Party Services',
+          body: isKo
+            ? '본 서비스는 다음 제3자 서비스를 사용하며, 각각의 개인정보처리방침이 별도로 적용됩니다:\n• Firebase / Google Cloud (데이터 저장 및 인증)\n• Google AdSense (광고)\n• Amazon Associates (제휴 링크)'
+            : 'The Service uses the following third-party services, each governed by their own privacy policies:\n• Firebase / Google Cloud (data storage & auth)\n• Google AdSense (advertising)\n• Amazon Associates (affiliate links)',
+        },
+        {
+          heading: isKo ? '4. 쿠키 및 광고' : '4. Cookies & Advertising',
+          body: isKo
+            ? '본 사이트는 Google AdSense를 통해 광고를 표시합니다. Google은 광고 개인화를 위해 쿠키를 사용할 수 있습니다. 브라우저 설정에서 쿠키를 비활성화하거나 Google의 광고 설정 페이지(adssettings.google.com)에서 개인화 광고를 끌 수 있습니다.'
+            : 'This site displays ads via Google AdSense. Google may use cookies to personalize ads. You can disable cookies in your browser settings or opt out of personalized ads at adssettings.google.com.',
+        },
+        {
+          heading: isKo ? '5. 데이터 보안 및 보존' : '5. Data Security & Retention',
+          body: isKo
+            ? '댓글 데이터는 Firebase 보안 규칙으로 보호되며, 비인가 수정·삭제가 차단됩니다. 댓글 삭제를 원하시면 이메일로 요청해 주세요. 매칭 입력 데이터는 서버에 저장되지 않으므로 별도의 삭제 절차가 없습니다.'
+            : 'Comment data is protected by Firebase security rules that block unauthorized modification or deletion. To request comment deletion, contact us by email. Matching input data is never stored on servers, so no deletion process is needed.',
+        },
+        {
+          heading: isKo ? '6. 문의' : '6. Contact',
+          body: (
+            <a href="mailto:wjsrkdgns123a@gmail.com" className={`font-mono text-sm font-bold ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'} transition-colors`}>
+              wjsrkdgns123a@gmail.com
+            </a>
+          ),
+        },
       ],
     },
+
     terms: {
       title: isKo ? '서비스 이용약관' : 'Terms of Service',
-      subtitle: isKo ? 'Pro Gear Match 이용에 관한 약관입니다' : 'Terms governing the use of Pro Gear Match',
-      icon: '📋',
+      subtitle: isKo ? '최종 업데이트: 2026년 4월' : 'Last updated: April 2026',
+      emoji: '📋',
       sections: [
-        { heading: isKo ? '1. 서비스 이용' : '1. Use of Service', body: isKo ? 'Pro Gear Match는 참고용 무료 도구입니다. 프로 선수 설정 데이터는 공개 출처에서 수집되며, 데이터의 정확성이나 최신성을 보장하지 않습니다. 프로 선수들의 설정은 언제든지 변경될 수 있습니다.' : 'Pro Gear Match is a free reference tool. Pro player settings data is collected from public sources, and we do not guarantee the accuracy or timeliness of the data. Pro settings may change at any time.' },
-        { heading: isKo ? '2. 지적 재산권' : '2. Intellectual Property', body: isKo ? '본 사이트의 디자인, 코드, 콘텐츠에 대한 권리는 Pro Gear Match에 있습니다. 프로 선수 데이터는 각 공개 출처의 저작권 정책을 따릅니다.' : 'Rights to the site\'s design, code, and content belong to Pro Gear Match. Pro player data follows the copyright policies of their respective public sources.' },
-        { heading: isKo ? '3. 면책 조항' : '3. Disclaimer', body: isKo ? '본 사이트에서 제공하는 정보는 게임 실력 향상을 보장하지 않습니다. 매칭 결과는 알고리즘에 의한 참고 정보이며, 실제 프로 선수의 추천이나 보증이 아닙니다.' : 'Information provided on this site does not guarantee improvement in gaming performance. Match results are algorithmic references only and do not represent endorsements from professional players.' },
-        { heading: isKo ? '4. 변경 및 중단' : '4. Changes & Termination', body: isKo ? '본 서비스는 사전 고지 없이 변경되거나 중단될 수 있습니다. 서비스 변경으로 인한 손해에 대해 책임을 지지 않습니다.' : 'This service may be changed or discontinued without prior notice. We are not liable for any damages resulting from service changes.' },
-        { heading: isKo ? '5. 문의' : '5. Contact', body: 'wjsrkdgns123a@gmail.com' },
+        {
+          heading: isKo ? '1. 약관 동의' : '1. Acceptance of Terms',
+          body: isKo
+            ? 'Pro Gear Match 웹사이트(이하 "서비스")를 이용함으로써 본 약관에 동의하는 것으로 간주됩니다. 본 약관에 동의하지 않는 경우 서비스 이용을 중단해 주세요.'
+            : 'By accessing or using the Pro Gear Match website ("the Service"), you agree to be bound by these Terms of Service. If you do not agree, please discontinue use of the Service.',
+        },
+        {
+          heading: isKo ? '2. 서비스 설명' : '2. Description of Service',
+          body: isKo
+            ? 'Pro Gear Match는 프로 e스포츠 선수의 장비·감도 데이터를 기반으로 사용자와 유사한 설정을 가진 프로를 찾아주는 무료 참고 도구입니다. 서비스는 참고 목적으로만 제공되며, 게임 실력 향상을 보장하지 않습니다.'
+            : 'Pro Gear Match is a free reference tool that helps users find professional esports players with similar gear and sensitivity settings. The Service is provided for informational purposes only and does not guarantee any improvement in gaming performance.',
+        },
+        {
+          heading: isKo ? '3. 데이터 정확성' : '3. Data Accuracy',
+          body: isKo
+            ? '프로 선수 데이터는 공개 출처에서 수집되며, 정확성이나 최신성을 보장하지 않습니다. 선수의 설정은 언제든지 변경될 수 있습니다. 데이터 오류 발견 시 wjsrkdgns123a@gmail.com으로 제보해 주세요.'
+            : 'Pro player data is collected from public sources. We do not guarantee its accuracy or currency. Player settings may change at any time. If you find an error, please report it to wjsrkdgns123a@gmail.com.',
+        },
+        {
+          heading: isKo ? '4. 금지 행위' : '4. Prohibited Conduct',
+          body: isKo
+            ? '다음 행위를 금지합니다:\n• 서비스를 통한 자동화 크롤링 또는 스크래핑\n• 서비스 인프라에 과도한 부하를 주는 행위\n• 타인을 사칭하거나 허위 정보를 댓글로 작성하는 행위\n• 서비스를 상업적 목적으로 무단 복제하는 행위'
+            : 'The following are prohibited:\n• Automated crawling or scraping of the Service\n• Actions that place excessive load on Service infrastructure\n• Impersonating others or posting false information in comments\n• Unauthorized commercial reproduction of the Service',
+        },
+        {
+          heading: isKo ? '5. 지적 재산권' : '5. Intellectual Property',
+          body: isKo
+            ? '본 사이트의 디자인, 소스코드, 로고, 브랜드명은 Pro Gear Match에 귀속됩니다. 프로 선수 데이터는 각 공개 출처의 저작권 정책을 따릅니다. 사이트 콘텐츠를 무단으로 복제·배포하는 것을 금지합니다.'
+            : 'The site\'s design, source code, logo, and brand name belong to Pro Gear Match. Pro player data follows the copyright policies of their respective public sources. Unauthorized reproduction or distribution of site content is prohibited.',
+        },
+        {
+          heading: isKo ? '6. 면책 조항' : '6. Disclaimer of Warranties',
+          body: isKo
+            ? '서비스는 "있는 그대로(AS IS)" 제공되며, 명시적 또는 묵시적 보증이 없습니다. 서비스 이용으로 인한 직접적·간접적 손해에 대해 Pro Gear Match는 책임을 지지 않습니다. 여기에는 데이터 오류, 서비스 중단, 매칭 결과로 인한 손해가 포함됩니다.'
+            : 'The Service is provided "AS IS" without warranties of any kind, express or implied. Pro Gear Match is not liable for any direct or indirect damages arising from use of the Service, including data errors, service interruptions, or decisions made based on match results.',
+        },
+        {
+          heading: isKo ? '7. 서비스 변경 및 중단' : '7. Changes & Termination',
+          body: isKo
+            ? '서비스는 사전 고지 없이 변경, 일시 중단, 영구 종료될 수 있습니다. 서비스 변경으로 인한 손해에 대해 책임을 지지 않습니다. 약관은 서비스 개선에 따라 변경될 수 있으며, 변경 시 본 페이지에 게시됩니다.'
+            : 'The Service may be modified, suspended, or terminated at any time without notice. We are not liable for damages resulting from service changes. These Terms may be updated as the Service evolves; changes will be posted on this page.',
+        },
+        {
+          heading: isKo ? '8. 문의' : '8. Contact',
+          body: (
+            <a href="mailto:wjsrkdgns123a@gmail.com" className={`font-mono text-sm font-bold ${isDark ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'} transition-colors`}>
+              wjsrkdgns123a@gmail.com
+            </a>
+          ),
+        },
       ],
     },
+
     affiliate: {
       title: isKo ? '제휴 마케팅 공시' : 'Affiliate Disclosure',
-      subtitle: isKo ? 'Amazon Associates 프로그램 참여 공시' : 'Amazon Associates Program Disclosure',
-      icon: '🔗',
+      subtitle: isKo ? 'Amazon Associates 프로그램 참여 공시 (FTC 준수)' : 'Amazon Associates Program Disclosure — FTC Compliant',
+      emoji: '🔗',
       sections: [
-        { heading: isKo ? 'Amazon Associates 프로그램' : 'Amazon Associates Program', body: isKo ? 'Pro Gear Match는 Amazon.com, Inc. 및 그 계열사의 제휴 마케팅 프로그램인 Amazon Associates 프로그램의 참여자입니다. 본 프로그램은 사이트 운영비를 충당하기 위한 광고 수수료를 제공합니다.' : 'Pro Gear Match is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means to earn fees by linking to Amazon.com and affiliated sites.' },
-        { heading: isKo ? '제휴 링크 작동 방식' : 'How Affiliate Links Work', body: isKo ? '매칭 결과 페이지의 "가격 확인" 버튼을 클릭하면 Amazon 제품 페이지로 이동합니다. 해당 링크를 통해 구매하시면 추가 비용 없이 소정의 수수료가 발생하며, 이는 사이트 운영과 데이터베이스 유지에 사용됩니다.' : "When you click \"Check Price\" buttons on match result pages, you'll be directed to Amazon product pages. If you make a purchase through these links, we may earn a small commission at no additional cost to you. This helps support site operations and database maintenance." },
-        { heading: isKo ? '가격 및 제품 정보' : 'Pricing & Product Information', body: isKo ? '제품 가격 및 재고는 변동될 수 있으며, 최종 가격은 Amazon 사이트에서 확인하시기 바랍니다. 당사는 제품 품질이나 배송에 대한 책임을 지지 않습니다.' : 'Product prices and availability are subject to change. Please verify final pricing on Amazon. We are not responsible for product quality or shipping.' },
-        { heading: isKo ? 'FTC 공시' : 'FTC Disclosure', body: isKo ? '미국 연방거래위원회(FTC) 지침에 따라, 본 사이트의 일부 링크는 제휴 링크임을 공시합니다. 해당 링크를 통한 구매 시 수수료를 받을 수 있으나, 이는 추천 내용에 영향을 미치지 않습니다.' : 'In accordance with FTC guidelines, we disclose that some links on this site are affiliate links. We may receive a commission on purchases made through these links, but this does not influence our recommendations.' },
+        {
+          heading: isKo ? 'Amazon Associates 프로그램 참여' : 'Amazon Associates Participation',
+          body: isKo
+            ? 'Pro Gear Match는 Amazon Services LLC Associates Program의 참여자입니다. 이 프로그램은 Amazon.com 및 제휴 사이트로의 광고 링크를 통해 수수료를 받을 수 있도록 설계된 제휴 광고 프로그램입니다.'
+            : 'Pro Gear Match is a participant in the Amazon Services LLC Associates Program, an affiliate advertising program designed to provide a means for sites to earn advertising fees by advertising and linking to Amazon.com and affiliated sites.',
+        },
+        {
+          heading: isKo ? '제휴 링크 식별' : 'Identifying Affiliate Links',
+          body: isKo
+            ? '매칭 결과 페이지의 "아마존" 또는 "가격 확인" 버튼, 메인 페이지의 "TOP 5 장비" 섹션의 "아마존" 버튼은 제휴 링크입니다. 해당 링크를 통해 구매하시면 추가 비용 없이 소정의 수수료가 발생하며, 이는 서비스 운영·데이터베이스 유지에 사용됩니다.'
+            : 'The "Amazon" and "Check Price" buttons on match result pages, and "Amazon" buttons in the Top 5 Gear section, are affiliate links. Purchases made through these links may earn us a small commission at no additional cost to you. Commissions support service operations and database maintenance.',
+        },
+        {
+          heading: isKo ? '추천 공정성' : 'Editorial Independence',
+          body: isKo
+            ? '제휴 관계는 콘텐츠의 공정성에 영향을 미치지 않습니다. 장비 데이터는 실제 프로 선수의 사용 여부를 기준으로 수집되며, 제휴 수수료 발생 여부와 무관하게 동일하게 처리됩니다. 제휴 링크가 없는 장비의 경우 아마존 검색 링크가 제공됩니다.'
+            : 'Our affiliate relationship does not influence content fairness. Gear data is collected based solely on actual pro usage — not on whether an affiliate link exists. Gear without affiliate links is provided with a general Amazon search link.',
+        },
+        {
+          heading: isKo ? 'FTC 공시 (미국 연방거래위원회)' : 'FTC Disclosure',
+          body: isKo
+            ? '미국 연방거래위원회(FTC) 16 CFR Part 255 지침에 따라, 본 사이트의 일부 링크는 제휴 링크임을 명시합니다. 당사는 해당 링크를 통한 구매 시 수수료를 받을 수 있으나, 이는 추천 내용이나 데이터의 객관성에 영향을 주지 않습니다.'
+            : 'In accordance with FTC 16 CFR Part 255 guidelines, we explicitly disclose that some links on this site are affiliate links. We may receive commissions on purchases made through these links. This does not affect the objectivity of our recommendations or data.',
+        },
+        {
+          heading: isKo ? '가격 및 재고 정보' : 'Pricing & Availability',
+          body: isKo
+            ? '제품 가격 및 재고는 수시로 변동되며, 최종 가격은 Amazon 사이트에서 직접 확인하시기 바랍니다. 당사는 Amazon을 통해 구매된 제품의 품질, 배송, 환불 등에 대해 책임을 지지 않습니다.'
+            : 'Product prices and availability are subject to change without notice. Please verify all pricing and availability directly on Amazon. We are not responsible for product quality, shipping, or returns for purchases made through Amazon.',
+        },
       ],
     },
   };
 
-  const content = pages[page];
+  const content = pages[page] ?? pages['about'];
+  const allPages: { key: PageType; label: string }[] = [
+    { key: 'how-it-works', label: isKo ? '작동 방식' : 'How It Works' },
+    { key: 'about',        label: isKo ? '소개'      : 'About' },
+    { key: 'privacy',      label: isKo ? '개인정보'  : 'Privacy' },
+    { key: 'terms',        label: isKo ? '이용약관'  : 'Terms' },
+    { key: 'affiliate',    label: isKo ? '제휴 공시' : 'Affiliate' },
+  ];
 
   return (
     <div className={`min-h-screen ${isDark ? 'bg-[#050507] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans`}>
       {isDark && (
-        <div className="fixed inset-0 pointer-events-none" style={{backgroundImage: 'linear-gradient(rgba(16,185,129,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.02) 1px, transparent 1px)', backgroundSize: '44px 44px'}} />
+        <div className="fixed inset-0 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(16,185,129,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.02) 1px, transparent 1px)', backgroundSize: '44px 44px' }} />
       )}
 
-      {/* Nav */}
-      <nav className={`sticky top-0 z-50 border-b ${isDark ? 'bg-[#050507]/90 border-[#1a1a1a]' : 'bg-white/90 border-[#e5e7eb]'} backdrop-blur-md`}>
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <button
-            onClick={() => onNavigate('home')}
-            className={`flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest transition-colors ${isDark ? 'text-[#555] hover:text-emerald-400' : 'text-[#9ca3af] hover:text-emerald-600'}`}
-          >
-            <ArrowLeft size={14} /> {isKo ? '홈으로' : 'Back to Home'}
-          </button>
-          <span className={`${isDark ? 'text-[#333]' : 'text-[#d1d5db]'}`}>·</span>
-          <span className={`text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-[#444]' : 'text-[#9ca3af]'}`}>{content.title}</span>
+      {/* ── Sticky Nav ── */}
+      <nav className={`sticky top-0 z-50 border-b ${isDark ? 'bg-[#050507]/95 border-[#1a1a1a]' : 'bg-white/95 border-[#e5e7eb]'} backdrop-blur-md`}>
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => onNavigate('home')}
+              className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest transition-colors ${isDark ? 'text-[#555] hover:text-emerald-400' : 'text-[#9ca3af] hover:text-emerald-600'}`}
+            >
+              <ArrowLeft size={12} /> {isKo ? '홈' : 'Home'}
+            </button>
+            <span className={isDark ? 'text-[#222]' : 'text-[#d1d5db]'}>|</span>
+            <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{content.title}</span>
+          </div>
+          <div className="hidden md:flex items-center gap-1">
+            {allPages.map(p => (
+              <button
+                key={p.key}
+                onClick={() => onNavigate(p.key)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                  page === p.key
+                    ? isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
+                    : isDark ? 'text-[#555] hover:text-[#888]' : 'text-[#9ca3af] hover:text-[#6b7280]'
+                }`}
+              >{p.label}</button>
+            ))}
+          </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <div className={`border-b ${isDark ? 'border-[#111]' : 'border-[#e5e7eb]'} py-16 px-6`}>
-        <div className="max-w-4xl mx-auto">
-          <div className="text-4xl mb-4">{content.icon}</div>
-          <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter mb-4 ${isDark ? 'text-white' : 'text-[#111]'}`}>
+      {/* ── Hero ── */}
+      <div className={`border-b ${isDark ? 'border-[#111]' : 'border-[#e5e7eb]'} py-14 px-6`}>
+        <div className="max-w-5xl mx-auto">
+          <div className="text-5xl mb-5">{content.emoji}</div>
+          <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter mb-3 ${isDark ? 'text-white' : 'text-[#111]'}`}>
             {content.title}
           </h1>
           <p className={`text-sm font-mono ${isDark ? 'text-[#555]' : 'text-[#6b7280]'} uppercase tracking-widest`}>
@@ -3969,42 +4469,71 @@ function StaticPageView({ page, theme, lang, t, onNavigate }: {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-6 py-16 space-y-10">
+      {/* ── Content ── */}
+      <div className="max-w-5xl mx-auto px-6 py-14 space-y-6">
         {content.sections.map((section, i) => (
-          <div key={i} className={`p-6 rounded-2xl border ${isDark ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
-            <h2 className={`text-base font-black uppercase tracking-wide mb-3 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+          <div key={i} className={`p-6 md:p-8 rounded-2xl border ${isDark ? 'bg-[#0c0c0e] border-[#1a1a1e]' : 'bg-white border-[#e5e7eb]'}`}>
+            <h2 className={`text-sm font-black uppercase tracking-widest mb-4 pb-3 border-b ${isDark ? 'text-emerald-400 border-[#1e1e22]' : 'text-emerald-600 border-[#f3f4f6]'}`}>
               {section.heading}
             </h2>
-            <p className={`text-sm leading-relaxed ${isDark ? 'text-[#888]' : 'text-[#4b5563]'}`}>
-              {section.body}
-            </p>
+            {typeof section.body === 'string' ? (
+              <p className={`text-sm leading-relaxed whitespace-pre-line ${isDark ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                {section.body}
+              </p>
+            ) : (
+              <div className={`text-sm ${isDark ? 'text-[#888]' : 'text-[#4b5563]'}`}>
+                {section.body}
+              </div>
+            )}
           </div>
         ))}
 
-        {/* Back link */}
-        <div className="pt-4">
+        <div className="pt-4 flex flex-wrap gap-3">
           <button
             onClick={() => onNavigate('home')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-emerald-400 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs rounded-xl transition-colors"
           >
             <ArrowLeft size={12} /> {isKo ? '홈으로 돌아가기' : 'Back to Home'}
           </button>
+          {allPages.filter(p => p.key !== page).slice(0, 3).map(p => (
+            <button
+              key={p.key}
+              onClick={() => onNavigate(p.key)}
+              className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors border ${isDark ? 'border-[#222] text-[#555] hover:text-emerald-400 hover:border-emerald-500/40' : 'border-[#e5e7eb] text-[#9ca3af] hover:text-emerald-600 hover:border-emerald-300'}`}
+            >{p.label}</button>
+          ))}
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className={`border-t ${isDark ? 'border-[#111] bg-[#0a0a0a]' : 'border-[#e5e7eb] bg-[#f8f9fa]'} py-8 px-6`}>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <span className={`text-xs font-mono ${isDark ? 'text-emerald-500' : 'text-emerald-600'} font-bold uppercase tracking-widest`}>
-            Pro Gear Match
-          </span>
-          <div className={`flex flex-wrap gap-4 text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
-            <button onClick={() => onNavigate('how-it-works')} className="hover:text-emerald-500 transition-colors">{isKo ? '작동 방식' : 'How It Works'}</button>
-            <button onClick={() => onNavigate('about')} className="hover:text-emerald-500 transition-colors">{isKo ? '소개' : 'About'}</button>
-            <button onClick={() => onNavigate('privacy')} className="hover:text-emerald-500 transition-colors">{isKo ? '개인정보처리방침' : 'Privacy'}</button>
-            <button onClick={() => onNavigate('terms')} className="hover:text-emerald-500 transition-colors">{isKo ? '이용약관' : 'Terms'}</button>
-            <button onClick={() => onNavigate('affiliate')} className="hover:text-emerald-500 transition-colors">{isKo ? '제휴 공시' : 'Affiliate'}</button>
+      {/* ── Footer ── */}
+      <footer className={`border-t ${isDark ? 'border-[#111] bg-[#080808]' : 'border-[#e5e7eb] bg-[#f8f9fa]'} py-10 px-6`}>
+        <div className="max-w-5xl mx-auto">
+          <div className={`mb-6 p-3 rounded-xl text-center text-[11px] ${isDark ? 'bg-[#0d0d0d] border border-[#1a1a1a] text-[#555]' : 'bg-[#f0fdf4] border border-[#d1fae5] text-[#6b7280]'}`}>
+            <span className={isDark ? 'text-emerald-500 font-semibold' : 'text-emerald-600 font-semibold'}>Amazon Associates</span>
+            {' '}{isKo ? '— 이 사이트는 Amazon 제휴 링크를 포함하며, 구매 시 수수료가 발생할 수 있습니다.' : '— This site contains Amazon affiliate links. We may earn a commission on qualifying purchases.'}
+          </div>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <button onClick={() => onNavigate('home')} className={`text-base font-black uppercase tracking-tighter ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                Pro Gear Match
+              </button>
+              <p className={`text-[10px] font-mono mt-1 ${isDark ? 'text-[#444]' : 'text-[#9ca3af]'}`}>
+                {isKo ? '© 2025 Pro Gear Match. 무단 복제 금지.' : '© 2025 Pro Gear Match. All rights reserved.'}
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-1">
+              {allPages.map(p => (
+                <button
+                  key={p.key}
+                  onClick={() => onNavigate(p.key)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                    page === p.key
+                      ? isDark ? 'text-emerald-400' : 'text-emerald-600'
+                      : isDark ? 'text-[#444] hover:text-[#888]' : 'text-[#9ca3af] hover:text-[#6b7280]'
+                  }`}
+                >{p.label}</button>
+              ))}
+            </div>
           </div>
         </div>
       </footer>
