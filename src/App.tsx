@@ -1055,13 +1055,48 @@ export default function App() {
       )}
       <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-4 md:py-8">
         {/* Hero Section */}
-        <section className="relative mb-8">
+        <section className="relative mb-8 overflow-hidden">
+          {/* Background esports scene images — dark mode only */}
+          {theme === 'dark' && (
+            <div className="absolute inset-0 pointer-events-none select-none" style={{ zIndex: 0 }} aria-hidden="true">
+              {/* 좌측 — esports arena */}
+              <img
+                src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=60&auto=format"
+                alt=""
+                className="absolute object-cover"
+                style={{
+                  width: '100%', height: '100%',
+                  top: 0, left: 0,
+                  opacity: 0.22,
+                  filter: 'grayscale(15%)',
+                  maskImage: 'radial-gradient(ellipse 55% 80% at 8% 50%, black 0%, black 25%, transparent 75%)',
+                  WebkitMaskImage: 'radial-gradient(ellipse 55% 80% at 8% 50%, black 0%, black 25%, transparent 75%)',
+                }}
+              />
+              {/* 우측 — gaming LED setup */}
+              <img
+                src="https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=1200&q=60&auto=format"
+                alt=""
+                className="absolute object-cover"
+                style={{
+                  width: '100%', height: '100%',
+                  top: 0, left: 0,
+                  opacity: 0.18,
+                  filter: 'grayscale(15%)',
+                  maskImage: 'radial-gradient(ellipse 55% 80% at 92% 50%, black 0%, black 25%, transparent 75%)',
+                  WebkitMaskImage: 'radial-gradient(ellipse 55% 80% at 92% 50%, black 0%, black 25%, transparent 75%)',
+                }}
+              />
+            </div>
+          )}
+
           {/* Nav strip */}
           <motion.nav
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="flex items-center justify-between py-5 mb-4"
+            className="relative flex items-center justify-between py-5 mb-4"
+            style={{ zIndex: 1 }}
           >
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -1114,7 +1149,7 @@ export default function App() {
           </motion.nav>
 
           {/* Hero content */}
-          <div className="text-center py-6 md:py-14">
+          <div className="relative text-center py-6 md:py-14" style={{ zIndex: 1 }}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -3518,9 +3553,11 @@ function GearImage({ productName, icon, theme }: {
   const amazonUrl = getAmazonLink(productName);
 
   useEffect(() => {
-    if (!amazonUrl) { setStatus('error'); return; }
+    if (!productName) { setStatus('error'); return; }
     let cancelled = false;
-    fetch(`/api/gear-image?url=${encodeURIComponent(amazonUrl)}`)
+    const params = new URLSearchParams({ name: productName });
+    if (amazonUrl) params.set('url', amazonUrl);
+    fetch(`/api/gear-image?${params}`)
       .then(r => r.json())
       .then((d: { image: string | null }) => {
         if (cancelled) return;
@@ -3529,7 +3566,7 @@ function GearImage({ productName, icon, theme }: {
       })
       .catch(() => { if (!cancelled) setStatus('error'); });
     return () => { cancelled = true; };
-  }, [amazonUrl]);
+  }, [productName, amazonUrl]);
 
   const FallbackIcon = () => (
     <div className="absolute inset-0 flex items-center justify-center">
