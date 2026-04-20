@@ -27,6 +27,7 @@ import { InputGroup } from './components/InputGroup';
 import { StatBlock } from './components/StatBlock';
 import { ProGearItem } from './components/ProGearItem';
 import { TodayProCard } from './components/TodayProCard';
+import { ConsentBanner } from './components/ConsentBanner';
 
 
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
@@ -2240,6 +2241,9 @@ export default function App() {
         </div>
         </ScrollFade>
       </footer>
+
+      {/* GDPR cookie/consent banner — self-hides after user answers */}
+      <ConsentBanner lang={lang} />
 
       {/* Policy Modals */}
       <AnimatePresence>
