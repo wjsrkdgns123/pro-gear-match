@@ -54,8 +54,22 @@ export function createGearImageRouter(): Router {
     // Already saved — skip the network round-trip
     if (fs.existsSync(filePath)) return publicPath;
 
+    // Pick a plausible Referer per host. Amazon CDNs 403 on self-referrer;
+    // Newegg and most brand sites are fine with a matching-origin referer.
+    let referer = "";
     try {
-      const resp = await axios.get<ArrayBuffer>(remoteUrl, {
+      const u = new URL(remoteUrl);
+      if (u.hostname.includes("media-amazon") || u.hostname.includes("ssl-images-amazon")) {
+        referer = "https://www.amazon.com/";
+      } else {
+        referer = `${u.protocol}//${u.hostname}/`;
+      }
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      const resp = await axios.get(remoteUrl, {
         responseType: "arraybuffer",
         timeout: 10000,
         maxContentLength: 5 * 1024 * 1024,
@@ -63,13 +77,20 @@ export function createGearImageRouter(): Router {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
           Accept: "image/webp,image/avif,image/*,*/*;q=0.8",
-          Referer: remoteUrl,
+          ...(referer ? { Referer: referer } : {}),
         },
       });
+      const contentType = String(resp.headers["content-type"] || "");
+      if (!contentType.startsWith("image/")) {
+        console.warn("persistImage: non-image content-type", contentType, "for", remoteUrl);
+        return remoteUrl;
+      }
       fs.writeFileSync(filePath, Buffer.from(resp.data));
+      console.log("persistImage: saved", publicPath, `(${Buffer.from(resp.data).length} bytes)`);
       return publicPath;
     } catch (e) {
-      console.warn("persistImage failed, falling back to remote:", cacheKey, (e as Error).message);
+      const msg = e instanceof Error ? e.message : String(e);
+      console.warn("persistImage failed, falling back to remote:", cacheKey, "→", remoteUrl, msg);
       return remoteUrl;
     }
   }
