@@ -2226,6 +2226,7 @@ export default function App() {
             <button onClick={() => navigate('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
             <button onClick={() => navigate('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>
             <button onClick={() => navigate('affiliate')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '제휴 공시' : 'Affiliate'}</button>
+            <a href="mailto:wjsrkdgns123a@gmail.com?subject=ProGear%20Match%20Feedback" className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '문의' : 'Contact'}</a>
             {user ? (
               <button onClick={handleLogout} className="flex items-center gap-1 text-red-500 hover:text-red-400 transition-colors">
                 <LogOut size={10} /> {t.logout}
