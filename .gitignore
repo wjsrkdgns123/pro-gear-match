@@ -8,3 +8,9 @@ coverage/
 !.env.example
 service-account.json
 data/*.xlsx
+
+# Cached gear images downloaded at runtime — rebuild on demand.
+public/gear-images/
+
+# Claude Code per-project settings
+.claude/
