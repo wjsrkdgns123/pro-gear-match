@@ -3,6 +3,8 @@ import { db, OperationType, handleFirestoreError, auth } from "../firebase";
 import { collection, query, where, getDocs, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 
 import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS } from "../constants";
+import { cleanPlayerName, normalizeGameName } from "../utils/playerName";
+export { cleanPlayerName, normalizeGameName };
 
 /**
  * Scrapes pro gamer information from a URL using server-side Gemini API.
@@ -61,33 +63,6 @@ export async function getGearSuggestions(queryStr: string, category: 'mouse' | '
 }
 
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
-const VALID_GAMES = ['Valorant', 'CS2', 'Overwatch 2', 'Apex Legends'];
-
-function normalizeGameName(game: string): string {
-  if (!game) return "Valorant";
-  const found = VALID_GAMES.find(g => g.toLowerCase() === game.toLowerCase());
-  return found || game;
-}
-
-export function cleanPlayerName(name: string): string {
-  if (!name) return "";
-  
-  // Extract nickname from formats like: Tyson "TenZ" Ngo or Tyson 'TenZ' Ngo
-  const quoteMatch = name.match(/["'](.+)["']/);
-  if (quoteMatch) return quoteMatch[1].trim();
-  
-  // Extract from parentheses: Tyson (TenZ) Ngo
-  const parenMatch = name.match(/\((.+)\)/);
-  if (parenMatch) return parenMatch[1].trim();
-
-  // Extract from brackets: Tyson [TenZ] Ngo
-  const bracketMatch = name.match(/\[(.+)\]/);
-  if (bracketMatch) return bracketMatch[1].trim();
-  
-  // If it's a full name without markers, we can't easily guess the nickname.
-  // But the scraper prompt now handles this for URL fetches.
-  return name.trim();
-}
 
 export async function syncProGamerToDb(pro: ProGamer) {
   try {

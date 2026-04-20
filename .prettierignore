@@ -1,0 +1,6 @@
+dist
+node_modules
+.wrangler
+data
+package-lock.json
+*.min.js

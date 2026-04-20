@@ -1,5 +1,7 @@
-export const translations = {
-  en: {
+// English is the source of truth. `TranslationBundle` is derived from `en`,
+// and `ko` must satisfy the same shape — missing/extra keys become compile
+// errors instead of runtime fallbacks.
+const en = {
     title: "PRO GEAR MATCH",
     subtitle: "Find your pro gamer twin",
     selectGame: "Select Game",
@@ -130,8 +132,11 @@ export const translations = {
     viewReported: "View Reports",
     allComments: "All",
     proIdLabel: "Section",
-  },
-  ko: {
+};
+
+export type TranslationBundle = typeof en;
+
+const ko: TranslationBundle = {
     title: "PRO GEAR MATCH",
     subtitle: "나와 닮은 프로게이머 찾기",
     selectGame: "게임 선택",
@@ -262,8 +267,9 @@ export const translations = {
     viewReported: "신고 내역",
     allComments: "전체",
     proIdLabel: "섹션",
-  }
 };
+
+export const translations = { en, ko };
 
 export type Language = keyof typeof translations;
 
