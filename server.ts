@@ -14,6 +14,7 @@ import { createClaudeRouter } from "./src/server/routes/claude";
 import { createMicrosoftRouter } from "./src/server/routes/microsoft";
 import { createCheckUrlRouter } from "./src/server/routes/checkUrl";
 import { createGearImageRouter } from "./src/server/routes/gearImage";
+import { createProOgRouter } from "./src/server/routes/proOg";
 
 dotenv.config();
 
@@ -189,6 +190,9 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
+    // Per-pro OG meta rewrite — must come before the SPA catch-all so
+    // crawlers get rich previews for shared /pro/:slug URLs.
+    app.use("/", createProOgRouter(SITE_URL, firestore, distPath));
     app.get("*", (_req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });

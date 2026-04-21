@@ -4,6 +4,7 @@ import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, increment, s
 import { db } from '../firebase';
 import { translations } from '../translations';
 import { getAuthorToken } from '../utils/authorToken';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 export interface ProComment {
   id: string;
@@ -48,9 +49,12 @@ export function ReportedCommentsModal({ theme, t, onClose }: {
     return new Date(ts.seconds * 1000).toLocaleString();
   };
 
+  const modalRef = useModalA11y<HTMLDivElement>(true, onClose);
+
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div
+        ref={modalRef}
         className={`w-full max-w-2xl max-h-[80vh] flex flex-col rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#333]' : 'bg-white border-[#d1d5db]'}`}
         onClick={e => e.stopPropagation()}
       >

@@ -19,6 +19,7 @@ import { getAmazonLink } from './utils/gear';
 import type { PageType } from './utils/pageType';
 import { setSEO, seoForPage } from './utils/seo';
 import { errMsg } from './utils/errors';
+import { useEscapeKey } from './hooks/useModalA11y';
 import { cmPer360, formatCmPer360 } from './utils/sensitivity';
 import { GAMES, GAME_COLORS } from './constants/games';
 import { ScrollFade } from './components/ScrollFade';
@@ -145,6 +146,13 @@ export default function App() {
   const [showFixLinksConfirm, setShowFixLinksConfirm] = useState(false);
   const [showRevertConfirm, setShowRevertConfirm] = useState(false);
   const [showStripColorsConfirm, setShowStripColorsConfirm] = useState(false);
+  // ESC-to-close for all dismissible modals. The loading overlays (z-[70])
+  // intentionally don't have ESC — they auto-dismiss on completion.
+  useEscapeKey(showList, () => setShowList(false));
+  useEscapeKey(showMigrateConfirm, () => setShowMigrateConfirm(false));
+  useEscapeKey(showFixLinksConfirm, () => setShowFixLinksConfirm(false));
+  useEscapeKey(showRevertConfirm, () => setShowRevertConfirm(false));
+  useEscapeKey(showStripColorsConfirm, () => setShowStripColorsConfirm(false));
   const [notification, setNotification] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [claudeMessages, setClaudeMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
   const [claudeInput, setClaudeInput] = useState('');

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Target, X, Loader2, Search, CheckCircle2 } from 'lucide-react';
 import { ProGamer } from '../types';
 import { translations } from '../translations';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 type TranslationBundle = typeof translations['en'];
 
@@ -44,9 +45,12 @@ export function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer }: {
     setIsAuditing(false);
   };
 
+  const modalRef = useModalA11y<HTMLDivElement>(true, onClose);
+
   return (
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
       <motion.div
+        ref={modalRef}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
