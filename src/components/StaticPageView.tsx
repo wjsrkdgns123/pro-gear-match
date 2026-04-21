@@ -138,14 +138,14 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
         {
           heading: isKo ? '1. 수집하는 정보' : '1. Information We Collect',
           body: isKo
-            ? '• 서비스 이용 데이터: DPI·감도·게임 선택 등 매칭을 위해 입력하는 정보는 서버에 저장되지 않으며, 브라우저 세션에서만 사용됩니다.\n• 댓글 데이터: 댓글 작성 시 닉네임(선택)과 댓글 내용이 Firebase(Google)에 저장됩니다.\n• Google 로그인: 관리자 기능 이용 시 Google OAuth를 통한 이메일 주소가 수집됩니다.\n• 로그 데이터: 일반적인 서버 접근 로그(IP 주소, 접속 시간 등)가 자동으로 기록될 수 있습니다.'
-            : '• Usage data: Settings you enter (DPI, sensitivity, game) are not stored on servers and only exist in your browser session.\n• Comment data: If you post a comment, your nickname (optional) and comment text are stored in Firebase (Google).\n• Google login: Admin users authenticate via Google OAuth, which shares an email address.\n• Log data: Standard server access logs (IP address, timestamp) may be automatically recorded.',
+            ? '• 서비스 이용 데이터: DPI·감도·게임 선택 등 매칭을 위해 입력하는 정보는 서버에 저장되지 않으며, 브라우저 세션에서만 사용됩니다.\n• 댓글 데이터: 댓글 작성 시 닉네임(선택)과 댓글 내용이 Firebase(Google)에 저장됩니다.\n• 로그 데이터: 일반적인 서버 접근 로그(IP 주소, 접속 시간 등)가 자동으로 기록될 수 있습니다.'
+            : '• Usage data: Settings you enter (DPI, sensitivity, game) are not stored on servers and only exist in your browser session.\n• Comment data: If you post a comment, your nickname (optional) and comment text are stored in Firebase (Google).\n• Log data: Standard server access logs (IP address, timestamp) may be automatically recorded.',
         },
         {
           heading: isKo ? '2. 정보 이용 목적' : '2. How We Use Information',
           body: isKo
-            ? '수집된 정보는 다음 목적으로만 사용됩니다:\n• 매칭 알고리즘 실행 (설정 데이터)\n• 댓글 서비스 운영 (댓글 데이터)\n• 관리자 인증 (로그인 데이터)\n\n사용자 정보를 제3자에게 판매하거나 마케팅 목적으로 사용하지 않습니다.'
-            : 'Collected information is used only for:\n• Running the matching algorithm (settings data)\n• Operating the comment feature (comment data)\n• Admin authentication (login data)\n\nWe do not sell user information or use it for marketing.',
+            ? '수집된 정보는 다음 목적으로만 사용됩니다:\n• 매칭 알고리즘 실행 (설정 데이터)\n• 댓글 서비스 운영 (댓글 데이터)\n\n사용자 정보를 제3자에게 판매하거나 마케팅 목적으로 사용하지 않습니다.'
+            : 'Collected information is used only for:\n• Running the matching algorithm (settings data)\n• Operating the comment feature (comment data)\n\nWe do not sell user information or use it for marketing.',
         },
         {
           heading: isKo ? '3. 제3자 서비스' : '3. Third-Party Services',
@@ -202,8 +202,8 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
         {
           heading: isKo ? '4. 금지 행위' : '4. Prohibited Conduct',
           body: isKo
-            ? '다음 행위를 금지합니다:\n• 서비스를 통한 자동화 크롤링 또는 스크래핑\n• 서비스 인프라에 과도한 부하를 주는 행위\n• 타인을 사칭하거나 허위 정보를 댓글로 작성하는 행위\n• 서비스를 상업적 목적으로 무단 복제하는 행위'
-            : 'The following are prohibited:\n• Automated crawling or scraping of the Service\n• Actions that place excessive load on Service infrastructure\n• Impersonating others or posting false information in comments\n• Unauthorized commercial reproduction of the Service',
+            ? '다음 행위를 금지합니다:\n• 서비스를 통한 자동화 크롤링 또는 스크래핑\n• 서비스 인프라에 과도한 부하를 주는 행위\n• 타인을 사칭하거나 허위 정보를 댓글로 작성하는 행위'
+            : 'The following are prohibited:\n• Automated crawling or scraping of the Service\n• Actions that place excessive load on Service infrastructure\n• Impersonating others or posting false information in comments',
         },
         {
           heading: isKo ? '5. 지적 재산권' : '5. Intellectual Property',
