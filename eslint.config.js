@@ -26,7 +26,14 @@ export default tseslint.config(
       '@typescript-eslint/ban-ts-comment': 'off',
       'no-empty': ['error', { allowEmptyCatch: true }],
       'no-useless-escape': 'off',
+      'no-useless-assignment': 'warn',
       'prefer-const': 'warn',
+      // React-hooks v7 flags pre-existing patterns in this codebase
+      // (setState-in-effect, inline component defs) that we'll fix
+      // incrementally — keep visible as warnings, not CI blockers.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/error-boundaries': 'warn',
+      'react-hooks/component-hook-factories': 'warn',
     },
   },
 );

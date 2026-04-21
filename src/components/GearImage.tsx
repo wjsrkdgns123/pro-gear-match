@@ -27,7 +27,7 @@ export function GearImage({ productName, icon }: {
     return () => { cancelled = true; };
   }, [productName, amazonUrl]);
 
-  const FallbackIcon = () => (
+  const fallback = (
     <div className="absolute inset-0 flex items-center justify-center">
       {icon === 'mouse'    && <Mouse    size={36} className="text-[#d1d5db]" />}
       {icon === 'keyboard' && <Keyboard size={36} className="text-[#d1d5db]" />}
@@ -44,14 +44,16 @@ export function GearImage({ productName, icon }: {
       {status === 'ok' && imgUrl && (
         <img
           src={imgUrl}
-          alt={productName}
+          // Descriptive alt so screen readers announce the gear item in
+          // context (icon type + product name) rather than a bare name.
+          alt={productName ? `${icon} — ${productName}` : icon}
           loading="lazy"
           decoding="async"
           className="w-full h-full object-contain p-3"
           onError={() => setStatus('error')}
         />
       )}
-      {status === 'error' && <FallbackIcon />}
+      {status === 'error' && fallback}
     </div>
   );
 }

@@ -22,6 +22,17 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3010;
 
+  // Fail loud in prod if SESSION_SECRET is missing. The cookie-session
+  // fallback below uses a hardcoded key, which would let anyone forge
+  // admin sessions once the default is public. Dev keeps the fallback
+  // for convenience.
+  if (process.env.NODE_ENV === "production" && !process.env.SESSION_SECRET) {
+    console.error(
+      "FATAL: SESSION_SECRET is not set. Refusing to boot in production with the default signing key.",
+    );
+    process.exit(1);
+  }
+
   // Security headers.
   //
   // CSP is intentionally allowlist-based rather than nonce/strict-dynamic:

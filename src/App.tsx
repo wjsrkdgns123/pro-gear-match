@@ -243,12 +243,16 @@ export default function App() {
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
+      // checkExcelFile is defined below; this handler only fires after
+      // the user completes OAuth, so the TDZ concern is theoretical.
       if (event.data?.type === 'MICROSOFT_AUTH_SUCCESS') {
+        // eslint-disable-next-line react-hooks/immutability
         checkExcelFile();
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const connectMicrosoft = async () => {

@@ -25,8 +25,12 @@ jobs:
       - name: Type check
         run: npm run lint
 
+      - name: ESLint
+        # Ratcheting threshold — lower this number as warnings get cleaned up.
+        run: npm run lint:eslint
+
       - name: Unit tests
-        run: npm test
+        run: npm test -- --run
 
       - name: Build
         run: npm run build
@@ -34,3 +38,19 @@ jobs:
           # Dummy values so Vite doesn't fail on missing env — real values injected on deploy.
           GEMINI_API_KEY: ''
           ANTHROPIC_API_KEY: ''
+          APP_URL: https://example.com
+
+  audit:
+    name: npm audit (report-only)
+    runs-on: ubuntu-latest
+    # Report-only so a brand-new CVE in a transitive dep doesn't wedge
+    # every PR. Still surfaces in the check list for review.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm audit --audit-level=high

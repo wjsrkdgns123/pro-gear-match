@@ -2,10 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // ===============================================================
-    // Assumed Data Model
+    // Data Model
     // ===============================================================
-    // Collection: pro-gamers
-    // Fields: name, team, game, imageUrl, teamLogoUrl, profileUrl, gear, settings, source, updatedAt
+    // Collection: progamers   (matches client code + admin sitemap)
+    // Fields: name, team, game, imageUrl, teamLogoUrl, profileUrl,
+    //         gear, settings, source, updatedAt
 
     function isAuthenticated() {
       return request.auth != null;
@@ -16,10 +17,13 @@ service cloud.firestore {
         (request.auth.token.email == "wjsrkdgns123a@gmail.com" && request.auth.token.email_verified == true);
     }
 
-    match /pro-gamers/{gamerId} {
+    // IMPORTANT: collection id is `progamers` (no hyphen). An earlier
+    // version of this file used `pro-gamers`, which silently matched
+    // nothing — all reads/writes fell through to the project default.
+    match /progamers/{gamerId} {
       // Anyone can read pro gamer data
       allow read: if true;
-      // Only admins can write pro gamer data
+      // Only the verified admin email can mutate
       allow write: if isAdmin();
     }
 
