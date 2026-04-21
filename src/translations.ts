@@ -132,6 +132,15 @@ const en = {
     viewReported: "View Reports",
     allComments: "All",
     proIdLabel: "Section",
+    // Error messages (shown to users via alert or inline UI)
+    errorDelete: "Failed to delete",
+    errorInit: "Failed to initialize",
+    errorAddPlayers: "Failed to add {count} players.",
+    errorAddPlayersSuccess: "Successfully added {count} players!",
+    errorAddPlayersMixed: " ({failed} failed)",
+    errorInvalidRequest: "Invalid request",
+    errorUnknown: "Unknown error",
+    errorNetwork: "Network error — please try again",
 };
 
 export type TranslationBundle = typeof en;
@@ -267,6 +276,14 @@ const ko: TranslationBundle = {
     viewReported: "신고 내역",
     allComments: "전체",
     proIdLabel: "섹션",
+    errorDelete: "삭제에 실패했습니다",
+    errorInit: "초기화에 실패했습니다",
+    errorAddPlayers: "{count}명의 선수 추가에 실패했습니다.",
+    errorAddPlayersSuccess: "{count}명의 선수를 추가했습니다!",
+    errorAddPlayersMixed: " ({failed}명 실패)",
+    errorInvalidRequest: "잘못된 요청",
+    errorUnknown: "알 수 없는 오류",
+    errorNetwork: "네트워크 오류 — 다시 시도해 주세요",
 };
 
 export const translations = { en, ko };

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 import {VitePWA} from 'vite-plugin-pwa';
+import {visualizer} from 'rollup-plugin-visualizer';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
@@ -45,6 +46,20 @@ export default defineConfig(({mode}) => {
           ],
         },
       }),
+      // Bundle analyzer — only emit the report when ANALYZE=1 so normal
+      // builds stay fast. Run `ANALYZE=1 npm run build` and open
+      // dist/stats.html to see per-module sizes.
+      ...(process.env.ANALYZE
+        ? [
+            visualizer({
+              filename: 'dist/stats.html',
+              template: 'treemap',
+              gzipSize: true,
+              brotliSize: true,
+              open: false,
+            }),
+          ]
+        : []),
     ],
     build: {
       // Split heavy third-party deps into their own chunks so the main

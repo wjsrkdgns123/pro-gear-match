@@ -92,6 +92,7 @@ async function startServer() {
           baseUri: ["'self'"],
           formAction: ["'self'"],
           frameAncestors: ["'self'"],
+          reportUri: ["/api/csp-report"],
           upgradeInsecureRequests: [],
         },
       },
@@ -118,6 +119,23 @@ async function startServer() {
   app.use("/api/", apiLimiter);
 
   app.use(express.json());
+  // CSP violation reports. Browsers POST application/csp-report
+  // (sometimes application/reports+json). Accept both shapes and log to
+  // stderr so Sentry/Cloud Logging can pick them up.
+  app.use(
+    "/api/csp-report",
+    express.json({ type: ["application/csp-report", "application/reports+json", "application/json"], limit: "64kb" }),
+    (req, res) => {
+      try {
+        const body = req.body;
+        const report = body?.["csp-report"] ?? body;
+        console.warn("[CSP] violation", JSON.stringify(report));
+      } catch {
+        /* ignore malformed */
+      }
+      res.status(204).end();
+    },
+  );
   app.use(express.static(path.join(process.cwd(), "public")));
   app.use(
     cookieSession({

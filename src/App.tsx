@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useRef, useMemo } from 'react';
 import { Mouse, Keyboard, Monitor, Layers, Target, Search, Loader2, Trophy, ExternalLink, X, Users, RefreshCcw, Shield, Zap, Flame, Sword, Gamepad2, ArrowLeft, LogIn, LogOut, FileSpreadsheet, CheckCircle2, AlertCircle, Sun, Moon, Languages, Trash2, Wand2, Pencil, Play, MessageCircle, Flag, Send, ShoppingCart, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
@@ -10,10 +10,13 @@ import { AMAZON_LINKS_NORMALIZED } from './amazonLinks';
 import { auth, googleProvider, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, increment, setDoc, serverTimestamp, query, orderBy, collectionGroup, where } from 'firebase/firestore';
-import { BulkAuditModal } from './components/BulkAuditModal';
+// Admin-only — lazy-loaded so regular users don't pay for it.
+const BulkAuditModal = lazy(() =>
+  import('./components/BulkAuditModal').then((m) => ({ default: m.BulkAuditModal })),
+);
 import { GearImage } from './components/GearImage';
 import { EdpiDistributionChart } from './components/EdpiDistributionChart';
-import { CommentSection, ReportedCommentsModal } from './components/CommentSection';
+import { CommentSection } from './components/CommentSection';
 import { StaticPageView } from './components/StaticPageView';
 import { getAmazonLink } from './utils/gear';
 import type { PageType } from './utils/pageType';
@@ -314,7 +317,7 @@ export default function App() {
       console.error("Delete failed in database:", err);
       // Rollback if failed
       setProList(originalList);
-      alert(`Failed to delete: ${errMsg(err) || "Unknown error"}`);
+      alert(`${t.errorDelete}: ${errMsg(err) || t.errorUnknown}`);
     }
   };
 
@@ -357,7 +360,7 @@ export default function App() {
       alert("Database initialized successfully! You can now delete or edit these players.");
     } catch (err: unknown) {
       console.error(err);
-      alert(`Failed to initialize: ${errMsg(err) || "Unknown error"}`);
+      alert(`${t.errorInit}: ${errMsg(err) || t.errorUnknown}`);
     } finally {
       setListLoading(false);
     }
@@ -501,9 +504,12 @@ export default function App() {
         colors: ['#10b981', '#34d399', '#059669']
       });
 
-      alert(`Successfully added ${successCount} players!${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+      alert(
+        t.errorAddPlayersSuccess.replace('{count}', String(successCount)) +
+          (failCount > 0 ? t.errorAddPlayersMixed.replace('{failed}', String(failCount)) : ''),
+      );
     } else if (failCount > 0) {
-      alert(`Failed to add ${failCount} players.`);
+      alert(t.errorAddPlayers.replace('{count}', String(failCount)));
     }
 
     // Reset form but keep the game selection
@@ -2717,7 +2723,8 @@ export default function App() {
 
       <AnimatePresence>
         {showBulkAuditModal && (
-          <BulkAuditModal 
+          <Suspense fallback={null}>
+          <BulkAuditModal
             theme={theme}
             t={t}
             proList={proList}
@@ -2766,6 +2773,7 @@ export default function App() {
             }}
             onRefreshList={() => fetchProList(true)}
           />
+          </Suspense>
         )}
       </AnimatePresence>
 

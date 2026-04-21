@@ -97,10 +97,14 @@ export function parseOr400<T>(
 ): T | null {
   const r = schema.safeParse(source);
   if (r.success) return r.data;
+  // Include a stable `code` per issue so the client can translate while
+  // still surfacing the raw message for server-side logs.
   res.status(400).json({
     error: "Invalid request",
+    code: "invalid_request",
     issues: r.error.issues.map((i) => ({
       path: i.path.join("."),
+      code: i.code, // e.g. "invalid_type", "too_small", "custom"
       message: i.message,
     })),
   });
