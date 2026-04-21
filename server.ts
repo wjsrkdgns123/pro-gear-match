@@ -21,10 +21,79 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3010;
 
-  // Security headers — CSP disabled for now (AdSense/Firebase/YouTube compatibility)
+  // Security headers.
+  //
+  // CSP is intentionally allowlist-based rather than nonce/strict-dynamic:
+  // AdSense + Firebase Auth popup + YouTube embed all inject inline scripts
+  // we don't control, so a strict policy would break them. The explicit
+  // host list still blocks arbitrary third-party scripts and data exfil
+  // (connect-src), which is the 90%-of-the-value part of CSP.
+  const GOOGLE_SCRIPTS = [
+    "https://pagead2.googlesyndication.com",
+    "https://googleads.g.doubleclick.net",
+    "https://www.googletagmanager.com",
+    "https://www.google-analytics.com",
+    "https://apis.google.com",
+    "https://accounts.google.com",
+    "https://www.gstatic.com",
+  ];
+  const FIREBASE_CONNECT = [
+    "https://*.googleapis.com",
+    "https://*.firebaseio.com",
+    "https://*.firebaseinstallations.googleapis.com",
+    "https://identitytoolkit.googleapis.com",
+    "https://securetoken.googleapis.com",
+    "https://firestore.googleapis.com",
+  ];
   app.use(
     helmet({
-      contentSecurityPolicy: false,
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: [
+            "'self'",
+            // AdSense + GA4 + Firebase Auth inject inline scripts at runtime
+            "'unsafe-inline'",
+            // AdSense's pagead uses eval inside its anti-abuse checks
+            "'unsafe-eval'",
+            ...GOOGLE_SCRIPTS,
+          ],
+          scriptSrcAttr: ["'unsafe-inline'"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+          fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
+          imgSrc: [
+            "'self'",
+            "data:",
+            "blob:",
+            "https:", // gear images come from many CDNs (amazon, newegg, brand sites)
+          ],
+          connectSrc: [
+            "'self'",
+            ...FIREBASE_CONNECT,
+            "https://www.google-analytics.com",
+            "https://region1.google-analytics.com",
+            "https://pagead2.googlesyndication.com",
+            "https://*.ingest.sentry.io",
+            "https://*.ingest.us.sentry.io",
+            "https://*.ingest.de.sentry.io",
+          ],
+          frameSrc: [
+            "'self'",
+            "https://www.youtube.com",
+            "https://youtube.com",
+            "https://googleads.g.doubleclick.net",
+            "https://accounts.google.com",
+            "https://*.firebaseapp.com",
+          ],
+          workerSrc: ["'self'", "blob:"],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          frameAncestors: ["'self'"],
+          upgradeInsecureRequests: [],
+        },
+      },
       crossOriginEmbedderPolicy: false,
       crossOriginResourcePolicy: { policy: "cross-origin" },
     }),

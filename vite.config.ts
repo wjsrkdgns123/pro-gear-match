@@ -46,6 +46,23 @@ export default defineConfig(({mode}) => {
         },
       }),
     ],
+    build: {
+      // Split heavy third-party deps into their own chunks so the main
+      // bundle shrinks and long-term HTTP caching pays off across deploys
+      // that don't touch firebase/sentry/etc.
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+            motion: ['motion/react'],
+            icons: ['lucide-react'],
+            sentry: ['@sentry/react'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 700,
+    },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || ''),
       'process.env.ANTHROPIC_API_KEY': JSON.stringify(env.ANTHROPIC_API_KEY || ''),
