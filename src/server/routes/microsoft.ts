@@ -1,6 +1,7 @@
 import { Router } from "express";
 import axios from "axios";
 import { errMsg } from "../../utils/errors";
+import { ExcelQuery, MsCallbackQuery, parseOr400 } from "../validators";
 
 // Microsoft OAuth + OneDrive Excel read.
 // Needs client credentials and a redirect URI — endpoint 500s when missing.
@@ -28,8 +29,9 @@ export function createMicrosoftRouter(opts: {
   });
 
   router.get("/auth/microsoft/callback", async (req, res) => {
-    const { code } = req.query;
-    if (!code) return res.status(400).send("No code provided");
+    const parsed = parseOr400(MsCallbackQuery, req.query, res);
+    if (!parsed) return;
+    const { code } = parsed;
 
     try {
       const response = await axios.post(
@@ -37,7 +39,7 @@ export function createMicrosoftRouter(opts: {
         new URLSearchParams({
           client_id: clientId!,
           client_secret: clientSecret!,
-          code: code as string,
+          code,
           redirect_uri: redirectUri,
           grant_type: "authorization_code",
         }).toString(),
@@ -70,10 +72,10 @@ export function createMicrosoftRouter(opts: {
 
   router.get("/excel/data", async (req, res) => {
     const token = req.session!.microsoftToken;
-    const shareUrl = req.query.url as string;
-
     if (!token) return res.status(401).json({ error: "Not authenticated with Microsoft" });
-    if (!shareUrl) return res.status(400).json({ error: "No URL provided" });
+    const parsed = parseOr400(ExcelQuery, req.query, res);
+    if (!parsed) return;
+    const shareUrl = parsed.url;
 
     try {
       const base64Url = Buffer.from(shareUrl)

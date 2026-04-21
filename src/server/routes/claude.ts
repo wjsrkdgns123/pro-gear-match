@@ -2,6 +2,12 @@ import { Router } from "express";
 import axios from "axios";
 import type Anthropic from "@anthropic-ai/sdk";
 import { errMsg } from "../../utils/errors";
+import {
+  ChatBody,
+  HighlightsBody,
+  ScrapeBody,
+  parseOr400,
+} from "../validators";
 
 // Router factory for Claude-backed endpoints: scrape, highlights, chat.
 // anthropic may be null when ANTHROPIC_API_KEY is missing — each handler
@@ -11,8 +17,9 @@ export function createClaudeRouter(anthropic: Anthropic | null): Router {
 
   // Scrape: fetch URL, strip noise, let Claude extract pro gamer info
   router.post("/scrape", async (req, res) => {
-    const { url } = req.body;
-    if (!url) return res.status(400).json({ error: "No URL provided" });
+    const parsed = parseOr400(ScrapeBody, req.body, res);
+    if (!parsed) return;
+    const { url } = parsed;
     if (!anthropic) return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
 
     try {
@@ -96,8 +103,9 @@ ${html}`,
 
   // Highlights: ask Claude for 3 YouTube highlight videos for a pro gamer
   router.post("/highlights", async (req, res) => {
-    const { playerName, game } = req.body;
-    if (!playerName || !game) return res.status(400).json({ error: "Missing playerName or game" });
+    const parsed = parseOr400(HighlightsBody, req.body, res);
+    if (!parsed) return;
+    const { playerName, game } = parsed;
     if (!anthropic) return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
 
     try {
@@ -131,7 +139,9 @@ Use real, well-known highlight videos if you know them. Do not include any expla
 
   // Generic chat passthrough
   router.post("/chat", async (req, res) => {
-    const { messages, system } = req.body;
+    const parsed = parseOr400(ChatBody, req.body, res);
+    if (!parsed) return;
+    const { messages, system } = parsed;
     if (!anthropic) {
       return res.status(500).json({ error: "ANTHROPIC_API_KEY not configured" });
     }
@@ -141,7 +151,7 @@ Use real, well-known highlight videos if you know them. Do not include any expla
         model: "claude-opus-4-6",
         max_tokens: 1024,
         system: system || "You are a helpful assistant.",
-        messages: messages || [],
+        messages,
       });
       res.json(response);
     } catch (error: unknown) {

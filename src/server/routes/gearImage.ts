@@ -3,6 +3,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import { slugify } from "../../utils/slug";
+import { GearImageQuery, parseOr400 } from "../validators";
 
 // Gear product image scraper: Amazon first, then Newegg, then the brand's
 // official product page. Images are downloaded once and saved under
@@ -189,10 +190,10 @@ export function createGearImageRouter(): Router {
   }
 
   router.get("/gear-image", async (req, res) => {
-    const url = req.query.url as string;
-    const name = req.query.name as string | undefined;
-    const cacheKey = name || url;
-    if (!cacheKey) return res.json({ image: null });
+    const parsed = parseOr400(GearImageQuery, req.query, res);
+    if (!parsed) return;
+    const { url, name } = parsed;
+    const cacheKey = name || url!;
 
     // In-memory cache first
     if (gearImageCache.has(cacheKey)) {

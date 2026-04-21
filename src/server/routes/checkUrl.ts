@@ -1,6 +1,7 @@
 import { Router } from "express";
 import axios from "axios";
 import { errMsg } from "../../utils/errors";
+import { UrlQuery, parseOr400 } from "../validators";
 
 // Lightweight URL status probe — HEAD first, fall back to GET.
 // Returns { status: number } even for network errors, so callers can reason
@@ -9,8 +10,9 @@ export function createCheckUrlRouter(): Router {
   const router = Router();
 
   router.get("/check-url", async (req, res) => {
-    const url = req.query.url as string;
-    if (!url) return res.status(400).json({ error: "No URL provided" });
+    const parsed = parseOr400(UrlQuery, req.query, res);
+    if (!parsed) return;
+    const { url } = parsed;
 
     const headers = {
       "User-Agent":
