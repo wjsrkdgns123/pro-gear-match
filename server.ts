@@ -210,15 +210,18 @@ async function startServer() {
   app.use("/api", createCheckUrlRouter());
   app.use("/api", createGearImageRouter());
 
-  // One-off admin migration page. Served via a non-.html path with an
-  // explicit no-store header so the PWA service worker and Vite dev
-  // middleware both leave it alone. Without this, SW-cached SPA shell
-  // intercepts /admin-migrate.html navigations.
-  app.get("/__admin_migrate", (_req, res) => {
-    res.setHeader("Cache-Control", "no-store");
-    res.setHeader("Service-Worker-Allowed", "/");
-    res.sendFile(path.join(process.cwd(), "public", "admin-migrate.html"));
-  });
+  // Admin tools page (bulk import / delete by game / DB stats). Served
+  // only in dev so the page isn't reachable on the public deploy; it
+  // lives under public/ locally for easy serving but the route is
+  // gated here. Non-.html path + no-store keeps the PWA SW and Vite
+  // middleware from intercepting with the SPA shell.
+  if (process.env.NODE_ENV !== "production") {
+    app.get("/__admin_migrate", (_req, res) => {
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("Service-Worker-Allowed", "/");
+      res.sendFile(path.join(process.cwd(), "public", "admin-migrate.html"));
+    });
+  }
 
   // Vite middleware for development; static dist for production
   if (process.env.NODE_ENV !== "production") {

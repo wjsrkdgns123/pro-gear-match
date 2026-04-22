@@ -2,47 +2,56 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<title>ProGear Match — Admin Migration</title>
+<title>ProGear Match — Admin Tools</title>
 <style>
   body { font: 14px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; background:#050507; color:#e5e7eb; padding:32px; max-width:900px; margin:0 auto; }
   h1 { color:#10b981; }
   button { background:#10b981; color:#000; border:0; padding:10px 16px; margin:4px 4px 4px 0; font-weight:600; cursor:pointer; border-radius:4px; }
   button:disabled { opacity:.4; cursor:not-allowed; }
   button.danger { background:#ef4444; color:#fff; }
+  select, input[type=file] { background:#050507; color:#e5e7eb; border:1px solid #374151; padding:8px; border-radius:4px; margin-right:8px; }
   #log { background:#0c0c0e; border:1px solid #1f2937; padding:12px; font:12px/1.4 ui-monospace, monospace; white-space:pre-wrap; max-height:420px; overflow:auto; margin-top:16px; }
   .sec { margin:24px 0; padding:16px; background:#0c0c0e; border:1px solid #1f2937; border-radius:6px; }
   .sec h2 { margin:0 0 8px; font-size:16px; color:#10b981; }
   .sec p { margin:4px 0; color:#9ca3af; }
   #who { color:#10b981; }
+  code { color:#fbbf24; }
 </style>
 </head>
 <body>
-<h1>🔧 Admin Migration</h1>
-<p>관리자(<code>wjsrkdgns123a@gmail.com</code>)로 로그인 후 버튼을 순서대로 눌러.</p>
+<h1>🔧 Admin Tools</h1>
+<p>관리자(<code>wjsrkdgns123a@gmail.com</code>)로 로그인 후 사용. Dev 전용 페이지.</p>
 
 <div class="sec">
-  <h2>1. 로그인</h2>
+  <h2>1. Sign in</h2>
   <button id="signin">Sign in with Google</button>
   <button id="signout" disabled>Sign out</button>
   <p id="who">(not signed in)</p>
 </div>
 
 <div class="sec">
-  <h2>2. 다른 게임 삭제 (CS2/Valorant/Overwatch 2/Apex Legends 외)</h2>
-  <p>약 158명 삭제 예정.</p>
-  <button id="deleteOthers" class="danger" disabled>Delete non-allowed games</button>
+  <h2>2. Bulk import pro gamers (from JSON file)</h2>
+  <p>JSON 배열 형식: <code>[{ name, team, game, gear, settings, profileUrl, source }, ...]</code>.
+  같은 <code>game_name</code> ID가 이미 있으면 merge 로 업데이트됨 (덮어쓰기 아님).</p>
+  <input type="file" id="importFile" accept=".json,application/json" disabled />
+  <button id="importBtn" disabled>Import</button>
+  <span id="importPreview" style="color:#9ca3af"></span>
 </div>
 
 <div class="sec">
-  <h2>3. Counter-Strike 2 → CS2 통합</h2>
-  <p>중복(37명): 단순 삭제 / 고유(15명): CS2로 이동 (doc ID 재생성)</p>
-  <button id="mergeCs2" class="danger" disabled>Merge Counter-Strike 2 into CS2</button>
+  <h2>3. Delete all pros of a specific game</h2>
+  <p>잘못된 데이터 정리용. <b>되돌릴 수 없음</b>. 먼저 Preview count로 몇 명 삭제될지 확인.</p>
+  <select id="deleteGame" disabled>
+    <option value="">(select game)</option>
+  </select>
+  <button id="previewDelete" disabled>Preview count</button>
+  <button id="deleteBtn" class="danger" disabled>Delete</button>
 </div>
 
 <div class="sec">
-  <h2>4. 새 프로 20명 추가</h2>
-  <p><code>data/new_pros.json</code>에서 로드.</p>
-  <button id="addNew" disabled>Add 20 new pros</button>
+  <h2>4. DB stats</h2>
+  <button id="statsBtn" disabled>Refresh stats</button>
+  <pre id="stats" style="color:#9ca3af; font:12px/1.4 ui-monospace, monospace;"></pre>
 </div>
 
 <div id="log"></div>
@@ -57,16 +66,24 @@ const app = initializeApp(cfg);
 const auth = getAuth(app);
 const db = getFirestore(app, cfg.firestoreDatabaseId);
 const ADMIN = "wjsrkdgns123a@gmail.com";
-const ALLOWED = new Set(["Valorant","CS2","Overwatch 2","Apex Legends"]);
 
 const $ = s => document.querySelector(s);
 const log = (...a) => { const el=$("#log"); el.textContent += a.map(x=>typeof x==="string"?x:JSON.stringify(x)).join(" ") + "\n"; el.scrollTop = el.scrollHeight; };
+
+let pendingImport = null;
+let isAdmin = false;
+
+function toggle(ok) {
+  isAdmin = ok;
+  for (const id of ["importFile","importBtn","deleteGame","previewDelete","deleteBtn","statsBtn"]) $("#"+id).disabled = !ok;
+}
 
 onAuthStateChanged(auth, u => {
   const ok = !!u && u.email === ADMIN && u.emailVerified;
   $("#who").textContent = u ? `${u.email} ${ok?"✅ admin":"⚠ not admin"}` : "(not signed in)";
   $("#signout").disabled = !u;
-  for (const id of ["deleteOthers","mergeCs2","addNew"]) $("#"+id).disabled = !ok;
+  toggle(ok);
+  if (ok) refreshStats();
 });
 
 $("#signin").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e=>log("signin err:", e.code||"", e.message));
@@ -83,67 +100,86 @@ async function loadAll() {
   return out;
 }
 
-$("#deleteOthers").onclick = async () => {
-  $("#deleteOthers").disabled = true;
+async function refreshStats() {
+  const all = await loadAll();
+  const byGame = {};
+  for (const p of all) byGame[p.game||"?"] = (byGame[p.game||"?"]||0) + 1;
+  const lines = [`TOTAL: ${all.length}`, ""];
+  for (const g of Object.keys(byGame).sort()) lines.push(`  ${g}: ${byGame[g]}`);
+  $("#stats").textContent = lines.join("\n");
+  // Populate delete dropdown
+  const sel = $("#deleteGame");
+  const current = sel.value;
+  sel.innerHTML = '<option value="">(select game)</option>' +
+    Object.keys(byGame).sort().map(g => `<option value="${g}">${g} (${byGame[g]})</option>`).join("");
+  sel.value = current;
+}
+
+$("#statsBtn").onclick = refreshStats;
+
+// --- Import ---
+$("#importFile").onchange = async e => {
+  const file = e.target.files[0];
+  if (!file) { pendingImport = null; $("#importPreview").textContent = ""; return; }
   try {
-    const all = await loadAll();
-    const targets = all.filter(p => !ALLOWED.has(p.game) && p.game !== "Counter-Strike 2");
-    log(`Deleting ${targets.length} docs from non-allowed games...`);
+    const txt = await file.text();
+    const arr = JSON.parse(txt);
+    if (!Array.isArray(arr)) throw new Error("JSON must be an array");
+    pendingImport = arr;
+    $("#importPreview").textContent = `→ ${arr.length} entries loaded from ${file.name}`;
+  } catch (err) {
+    pendingImport = null;
+    $("#importPreview").textContent = "✗ " + err.message;
+  }
+};
+
+$("#importBtn").onclick = async () => {
+  if (!pendingImport) { log("No file selected."); return; }
+  if (!confirm(`Import ${pendingImport.length} entries? Existing IDs will be merged.`)) return;
+  $("#importBtn").disabled = true;
+  try {
+    let n = 0, skipped = 0;
+    for (const p of pendingImport) {
+      if (!p.name || !p.game) { skipped++; continue; }
+      const id = makeId(p.game, p.name);
+      await setDoc(doc(db, "pro-gamers", id), { ...p, updatedAt: new Date().toISOString() }, { merge: true });
+      log(`  + ${p.name} (${p.game})`);
+      n++;
+    }
+    log(`✅ Imported ${n}, skipped ${skipped}.`);
+    await refreshStats();
+  } catch (e) { log("ERROR:", e.message); }
+  finally { $("#importBtn").disabled = !isAdmin; }
+};
+
+// --- Delete by game ---
+$("#previewDelete").onclick = async () => {
+  const g = $("#deleteGame").value;
+  if (!g) { log("Select a game first."); return; }
+  const all = await loadAll();
+  const n = all.filter(p => p.game === g).length;
+  log(`Would delete ${n} docs from "${g}".`);
+};
+
+$("#deleteBtn").onclick = async () => {
+  const g = $("#deleteGame").value;
+  if (!g) { log("Select a game first."); return; }
+  const all = await loadAll();
+  const targets = all.filter(p => p.game === g);
+  if (!confirm(`Delete ${targets.length} docs from "${g}"? This cannot be undone.`)) return;
+  if (!confirm(`Really delete ${targets.length}? Type-to-confirm equivalent — last chance.`)) return;
+  $("#deleteBtn").disabled = true;
+  try {
     let n = 0;
     for (const p of targets) {
       await deleteDoc(doc(db, "pro-gamers", p.id));
       n++;
       if (n % 20 === 0) log(`  ${n}/${targets.length}`);
     }
-    log(`✅ Deleted ${n} docs.`);
+    log(`✅ Deleted ${n} docs from "${g}".`);
+    await refreshStats();
   } catch (e) { log("ERROR:", e.message); }
-  finally { $("#deleteOthers").disabled = false; }
-};
-
-$("#mergeCs2").onclick = async () => {
-  $("#mergeCs2").disabled = true;
-  try {
-    const all = await loadAll();
-    const cs2Names = new Set(all.filter(p=>p.game==="CS2").map(p=>p.name.toLowerCase()));
-    const cs2Old = all.filter(p => p.game === "Counter-Strike 2");
-    log(`${cs2Old.length} entries in "Counter-Strike 2"`);
-    let renamed=0, deletedDup=0;
-    for (const p of cs2Old) {
-      if (cs2Names.has(p.name.toLowerCase())) {
-        // Duplicate — just delete the old one
-        await deleteDoc(doc(db, "pro-gamers", p.id));
-        deletedDup++;
-      } else {
-        // Move: write new doc with game=CS2, delete old doc
-        const newId = makeId("CS2", p.name);
-        const { id, ...rest } = p;
-        await setDoc(doc(db, "pro-gamers", newId), { ...rest, game: "CS2", updatedAt: new Date().toISOString() });
-        await deleteDoc(doc(db, "pro-gamers", id));
-        cs2Names.add(p.name.toLowerCase());
-        renamed++;
-      }
-      if ((renamed+deletedDup) % 10 === 0) log(`  ${renamed+deletedDup}/${cs2Old.length}`);
-    }
-    log(`✅ Renamed ${renamed}, deleted ${deletedDup} duplicates.`);
-  } catch (e) { log("ERROR:", e.message); }
-  finally { $("#mergeCs2").disabled = false; }
-};
-
-$("#addNew").onclick = async () => {
-  $("#addNew").disabled = true;
-  try {
-    const pros = await fetch("/new_pros.json").then(r=>r.json());
-    log(`Adding ${pros.length} new pros...`);
-    let n = 0;
-    for (const p of pros) {
-      const id = makeId(p.game, p.name);
-      await setDoc(doc(db, "pro-gamers", id), { ...p, updatedAt: new Date().toISOString() }, { merge: true });
-      log(`  + ${p.name} (${p.game})`);
-      n++;
-    }
-    log(`✅ Added ${n}.`);
-  } catch (e) { log("ERROR:", e.message); }
-  finally { $("#addNew").disabled = false; }
+  finally { $("#deleteBtn").disabled = !isAdmin; }
 };
 </script>
 </body>
