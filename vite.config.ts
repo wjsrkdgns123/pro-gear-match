@@ -21,8 +21,21 @@ export default defineConfig(({mode}) => {
         ],
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,ico,webp}'],
-          // Never intercept API, sitemap, or robots.txt with the SPA shell
-          navigateFallbackDenylist: [/^\/api\//, /^\/sitemap\.xml/, /^\/robots\.txt/],
+          // Never intercept API, sitemap, robots.txt, or the standalone
+          // admin migration page with the SPA shell.
+          navigateFallbackDenylist: [
+            /^\/api\//,
+            /^\/sitemap\.xml/,
+            /^\/robots\.txt/,
+            /^\/__admin_migrate/,
+          ],
+          // Take over immediately on update so visitors never see a stale
+          // shell after a deploy. Flow: new SW downloads in background →
+          // skipWaiting activates it → clientsClaim reroutes all open
+          // tabs. No "close all tabs to see the new version" limbo.
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
               // Scraped gear images — long-lived CacheFirst

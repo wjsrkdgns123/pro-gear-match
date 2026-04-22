@@ -83,6 +83,7 @@ async function startServer() {
           connectSrc: [
             "'self'",
             ...FIREBASE_CONNECT,
+            "https://www.gstatic.com",
             "https://www.google-analytics.com",
             "https://region1.google-analytics.com",
             "https://pagead2.googlesyndication.com",
@@ -204,6 +205,16 @@ async function startServer() {
   );
   app.use("/api", createCheckUrlRouter());
   app.use("/api", createGearImageRouter());
+
+  // One-off admin migration page. Served via a non-.html path with an
+  // explicit no-store header so the PWA service worker and Vite dev
+  // middleware both leave it alone. Without this, SW-cached SPA shell
+  // intercepts /admin-migrate.html navigations.
+  app.get("/__admin_migrate", (_req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Service-Worker-Allowed", "/");
+    res.sendFile(path.join(process.cwd(), "public", "admin-migrate.html"));
+  });
 
   // Vite middleware for development; static dist for production
   if (process.env.NODE_ENV !== "production") {

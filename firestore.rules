@@ -4,7 +4,9 @@ service cloud.firestore {
     // ===============================================================
     // Data Model
     // ===============================================================
-    // Collection: progamers   (matches client code + admin sitemap)
+    // Collection: pro-gamers  (with hyphen — matches src/services/aiService.ts,
+    // which is the main read path. ProDetail.tsx reads `progamers` without
+    // a hyphen; that's a separate bug in that view, not a data move.)
     // Fields: name, team, game, imageUrl, teamLogoUrl, profileUrl,
     //         gear, settings, source, updatedAt
 
@@ -17,10 +19,10 @@ service cloud.firestore {
         (request.auth.token.email == "wjsrkdgns123a@gmail.com" && request.auth.token.email_verified == true);
     }
 
-    // IMPORTANT: collection id is `progamers` (no hyphen). An earlier
-    // version of this file used `pro-gamers`, which silently matched
-    // nothing — all reads/writes fell through to the project default.
-    match /progamers/{gamerId} {
+    // Collection id is `pro-gamers` — app code (aiService.ts) queries
+    // this exact string. Do NOT "fix" the hyphen without first migrating
+    // all 500+ existing docs; an earlier attempt broke prod reads.
+    match /pro-gamers/{gamerId} {
       // Anyone can read pro gamer data
       allow read: if true;
       // Only the verified admin email can mutate
