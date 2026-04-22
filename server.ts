@@ -110,6 +110,10 @@ async function startServer() {
       },
       crossOriginEmbedderPolicy: false,
       crossOriginResourcePolicy: { policy: "cross-origin" },
+      // helmet's default COOP is `same-origin`, which breaks
+      // window.opener communication — Firebase Auth popup + Google
+      // OAuth popup both need to post back to the opener window.
+      crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     }),
   );
 
