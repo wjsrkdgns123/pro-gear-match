@@ -9,8 +9,9 @@ coverage/
 service-account.json
 data/*.xlsx
 
-# Cached gear images downloaded at runtime — rebuild on demand.
-public/gear-images/
+# Cached gear images are committed so they ship with the deployment —
+# Amazon blocks Cloud Run IPs with captcha, so runtime scraping fails in
+# prod and the fallback icon shows instead of the real product image.
 
 # Claude Code per-project settings
 .claude/
