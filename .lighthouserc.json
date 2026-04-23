@@ -6,7 +6,8 @@
       "settings": {
         "preset": "desktop",
         "chromeFlags": "--no-sandbox --headless=new"
-      }
+      },
+      "url": ["http://localhost/index.html"]
     },
     "assert": {
       "assertions": {
