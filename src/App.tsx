@@ -5,7 +5,7 @@ import confetti from 'canvas-confetti';
 import { GearSettings, ProGamer } from './types';
 import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, cleanPlayerName, scrapeProGamerInfo, getGearSuggestions, seedDatabase, migrateProsToOverwatch, fixOverwatchLinks, revertOverwatchLinks, getHighlightVideos, stripColorsFromAllGear } from './services/aiService';
 import { translations, getLanguage, Language } from './translations';
-import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS, PLAYER_NATIONALITIES, getFlagEmoji } from './constants';
+import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS, PLAYER_NATIONALITIES } from './constants';
 import { AMAZON_LINKS_NORMALIZED } from './amazonLinks';
 import { auth, googleProvider, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
@@ -1519,8 +1519,17 @@ export default function App() {
                           {prevIdx === 0 ? <Trophy size={11} className="text-emerald-500" /> : <Zap size={11} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />}
                         </div>
                         <div>
-                          <h3 className="font-black uppercase tracking-tighter truncate text-sm">
-                            {m.name}{PLAYER_NATIONALITIES[m.name] ? ` ${getFlagEmoji(PLAYER_NATIONALITIES[m.name])}` : ''}
+                          <h3 className="font-black uppercase tracking-tighter text-sm flex items-center gap-1.5 min-w-0">
+                            <span className="truncate">{m.name}</span>
+                            {PLAYER_NATIONALITIES[m.name] && (
+                              <img
+                                src={`https://flagcdn.com/20x15/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png 2x`}
+                                width="20" height="15"
+                                alt={PLAYER_NATIONALITIES[m.name]}
+                                className="inline-block align-middle rounded-sm flex-shrink-0"
+                              />
+                            )}
                           </h3>
                           <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[9px] uppercase tracking-widest truncate`}>{m.team}</p>
                         </div>
@@ -1579,12 +1588,16 @@ export default function App() {
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                       <div className="text-center md:text-left flex-1">
                         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-2">
-                          <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none">
+                          <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none flex items-center gap-3 flex-wrap">
                             {matches[selectedMatchIdx].name}
                             {PLAYER_NATIONALITIES[matches[selectedMatchIdx].name] && (
-                              <span className="ml-3 text-4xl md:text-5xl align-middle" title={PLAYER_NATIONALITIES[matches[selectedMatchIdx].name]}>
-                                {getFlagEmoji(PLAYER_NATIONALITIES[matches[selectedMatchIdx].name])}
-                              </span>
+                              <img
+                                src={`https://flagcdn.com/32x24/${PLAYER_NATIONALITIES[matches[selectedMatchIdx].name].toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/64x48/${PLAYER_NATIONALITIES[matches[selectedMatchIdx].name].toLowerCase()}.png 2x`}
+                                width="32" height="24"
+                                alt={PLAYER_NATIONALITIES[matches[selectedMatchIdx].name]}
+                                className="inline-block align-middle rounded-sm shadow-sm"
+                              />
                             )}
                           </h2>
                           <a 
@@ -1830,8 +1843,17 @@ export default function App() {
                           {nextIdx === 0 ? <Trophy size={11} className="text-emerald-500" /> : <Zap size={11} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />}
                         </div>
                         <div>
-                          <h3 className="font-black uppercase tracking-tighter truncate text-sm">
-                            {m.name}{PLAYER_NATIONALITIES[m.name] ? ` ${getFlagEmoji(PLAYER_NATIONALITIES[m.name])}` : ''}
+                          <h3 className="font-black uppercase tracking-tighter text-sm flex items-center gap-1.5 min-w-0">
+                            <span className="truncate">{m.name}</span>
+                            {PLAYER_NATIONALITIES[m.name] && (
+                              <img
+                                src={`https://flagcdn.com/20x15/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png 2x`}
+                                width="20" height="15"
+                                alt={PLAYER_NATIONALITIES[m.name]}
+                                className="inline-block align-middle rounded-sm flex-shrink-0"
+                              />
+                            )}
                           </h3>
                           <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[9px] uppercase tracking-widest truncate`}>{m.team}</p>
                         </div>

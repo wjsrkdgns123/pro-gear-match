@@ -523,15 +523,6 @@ export const PRO_MOUSEPADS = [
 
 // ── Country flag helpers ──────────────────────────────────────────────────────
 
-export function getFlagEmoji(countryCode: string): string {
-  if (!countryCode) return '';
-  const upper = countryCode.toUpperCase();
-  return upper
-    .split('')
-    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
-    .join('');
-}
-
 /** Player name → ISO 3166-1 alpha-2 country code */
 export const PLAYER_NATIONALITIES: Record<string, string> = {
   // ── Valorant ──────────────────────────────────────────────────────────────
