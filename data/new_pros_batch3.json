@@ -1,0 +1,71 @@
+[
+  { "name": "Tex", "team": "MIBR", "game": "Valorant",
+    "gear": { "mouse": "ZOWIE U2-DW", "keyboard": "Wooting 60HE v2", "monitor": "ZOWIE XL2566X+", "mousepad": "Artisan Ninja FX Zero Mid" },
+    "settings": { "dpi": 800, "sensitivity": 0.22, "edpi": 176 },
+    "profileUrl": "https://prosettings.net/players/tex/", "source": "prosettings.net" },
+
+  { "name": "trexx", "team": "Free Agent", "game": "Valorant",
+    "gear": { "mouse": "G-Wolves Hati-M", "keyboard": "Wooting 60HE+", "monitor": "ZOWIE XL2546K", "mousepad": "VAXEE PA ZYGEN" },
+    "settings": { "dpi": 800, "sensitivity": 0.226, "edpi": 181 },
+    "profileUrl": "https://prosettings.net/players/trexx/", "source": "prosettings.net" },
+
+  { "name": "mada", "team": "NRG", "game": "Valorant",
+    "gear": { "mouse": "Logitech G Pro X2 Superstrike", "keyboard": "Wooting 60HE v2", "monitor": "ZOWIE XL2566K", "mousepad": "Zowie Mousepad" },
+    "settings": { "dpi": 800, "sensitivity": 0.37, "edpi": 296 },
+    "profileUrl": "https://prosettings.net/players/mada/", "source": "prosettings.net" },
+
+  { "name": "neT", "team": "Cloud9", "game": "Valorant",
+    "gear": { "mouse": "Razer Viper V2 Pro", "keyboard": "Wooting 60HE+", "monitor": "ZOWIE XL2566X+", "mousepad": "Artisan Ninja FX Zero Soft" },
+    "settings": { "dpi": 1600, "sensitivity": 0.11, "edpi": 176 },
+    "profileUrl": "https://prosettings.net/players/net/", "source": "prosettings.net" },
+
+  { "name": "BcJ", "team": "Free Agent", "game": "Valorant",
+    "gear": { "mouse": "Pulsar Xlite V4 Es", "keyboard": "Wooting 60HE+", "monitor": "ZOWIE XL2566X+", "mousepad": "Pulsar eS PD170" },
+    "settings": { "dpi": 800, "sensitivity": 0.37, "edpi": 296 },
+    "profileUrl": "https://prosettings.net/players/bcj/", "source": "prosettings.net" },
+
+  { "name": "k0nfig", "team": "Free Agent", "game": "CS2",
+    "gear": { "mouse": "ZOWIE EC2-CW", "keyboard": "Wooting 60HE+", "monitor": "ZOWIE XL2546K", "mousepad": "SteelSeries QcK Heavy" },
+    "settings": { "dpi": 400, "sensitivity": 2.2, "edpi": 880 },
+    "profileUrl": "https://prosettings.net/players/k0nfig/", "source": "prosettings.net" },
+
+  { "name": "plopski", "team": "Metizport", "game": "CS2",
+    "gear": { "mouse": "Razer Viper V3 Pro", "keyboard": "Wooting 80HE", "monitor": "ZOWIE XL2546", "mousepad": "Xtrfy GP4 Street Blue" },
+    "settings": { "dpi": 800, "sensitivity": 1.0, "edpi": 800 },
+    "profileUrl": "https://prosettings.net/players/plopski/", "source": "prosettings.net" },
+
+  { "name": "HooXi", "team": "Astralis", "game": "CS2",
+    "gear": { "mouse": "Razer Viper V4 Pro", "keyboard": "Wooting 80HE", "monitor": "ZOWIE XL2566K", "mousepad": "Artisan Key-83 XSoft" },
+    "settings": { "dpi": 800, "sensitivity": 0.9, "edpi": 720 },
+    "profileUrl": "https://prosettings.net/players/hooxi/", "source": "prosettings.net" },
+
+  { "name": "nexa", "team": "Free Agent", "game": "CS2",
+    "gear": { "mouse": "Logitech G Pro X Superlight 2", "keyboard": "Logitech G Pro X TKL RAPID", "monitor": "ZOWIE XL2566K", "mousepad": "VAXEE PE" },
+    "settings": { "dpi": 800, "sensitivity": 1.25, "edpi": 1000 },
+    "profileUrl": "https://prosettings.net/players/nexa/", "source": "prosettings.net" },
+
+  { "name": "fl0m", "team": "Mythic", "game": "CS2",
+    "gear": { "mouse": "SteelSeries Prime Wireless", "keyboard": "SteelSeries Apex Pro TKL Gen 3", "monitor": "GIGABYTE M27Q X", "mousepad": "SteelSeries QcK Heavy" },
+    "settings": { "dpi": 800, "sensitivity": 1.5, "edpi": 1200 },
+    "profileUrl": "https://prosettings.net/players/fl0m/", "source": "prosettings.net" },
+
+  { "name": "Fleta", "team": "T1", "game": "Overwatch 2",
+    "gear": { "mouse": "Logitech G Pro X Superlight 2", "keyboard": "Wooting 60HE+", "monitor": "ASUS TUF VG259QM", "mousepad": "Artisan FX Hien Soft" },
+    "settings": { "dpi": 800, "sensitivity": 9.0, "edpi": 7200 },
+    "profileUrl": "https://prosettings.net/players/fleta/", "source": "prosettings.net" },
+
+  { "name": "decay", "team": "Free Agent", "game": "Overwatch 2",
+    "gear": { "mouse": "Logitech G Pro Wireless", "keyboard": "", "monitor": "HP OMEN 24.5", "mousepad": "Corsair MM250" },
+    "settings": { "dpi": 1600, "sensitivity": 2.03, "edpi": 3248 },
+    "profileUrl": "https://prosettings.net/players/decay/", "source": "prosettings.net" },
+
+  { "name": "rocker", "team": "Retired", "game": "Apex Legends",
+    "gear": { "mouse": "FinalMouse Starlight-12", "keyboard": "Razer Huntsman Mini", "monitor": "ASUS VG248QE", "mousepad": "Logitech G640" },
+    "settings": { "dpi": 800, "sensitivity": 1.1, "edpi": 880 },
+    "profileUrl": "https://prosettings.net/players/rocker/", "source": "prosettings.net" },
+
+  { "name": "nafen", "team": "Retired", "game": "Apex Legends",
+    "gear": { "mouse": "FinalMouse Starlight-12", "keyboard": "Wooting 60HE+", "monitor": "ZOWIE XL2546K", "mousepad": "Artisan Ninja FX Zero Soft" },
+    "settings": { "dpi": 800, "sensitivity": 1.8, "edpi": 1440 },
+    "profileUrl": "https://prosettings.net/players/nafen/", "source": "prosettings.net" }
+]
