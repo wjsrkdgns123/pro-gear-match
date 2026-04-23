@@ -520,3 +520,112 @@ export const PRO_MOUSEPADS = [
   "Mionix Sargas",
   "Artisan Ninja FX Zero (Soft)"
 ];
+
+// ── Country flag helpers ──────────────────────────────────────────────────────
+
+export function getFlagEmoji(countryCode: string): string {
+  if (!countryCode) return '';
+  const upper = countryCode.toUpperCase();
+  return upper
+    .split('')
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join('');
+}
+
+/** Player name → ISO 3166-1 alpha-2 country code */
+export const PLAYER_NATIONALITIES: Record<string, string> = {
+  // ── Valorant ──────────────────────────────────────────────────────────────
+  // 100 Thieves
+  Asuna: 'US', timotino: 'US', Ethan: 'US', bang: 'KR',
+  // Sentinels
+  TenZ: 'CA', ShahZaM: 'US', tarik: 'US', JonahP: 'US', reduxx: 'US', cortezia: 'US', Kyu: 'KR',
+  // NRG
+  s0m: 'US', nitr0: 'US', autimatic: 'US', brawk: 'US', skuba: 'CA', Keiko: 'US',
+  // Team Liquid
+  Mendo: 'US', kamo: 'JP', purp0: 'SE', Wayne: 'CN', frttt: 'SE', ShahZam: 'US',
+  // LOUD
+  pANcada: 'BR', Virtyy: 'BR', Lukxo: 'BR',
+  // KRU Esports
+  mwzera: 'BR', silentzz: 'AR', Dantedeu5: 'AR',
+  // DRX
+  Flicker: 'KR', BeYN: 'KR', HYUNMIN: 'KR', Lothar: 'KR', free1ng: 'KR',
+  // T1
+  Carpe: 'KR', iZu: 'KR', xccurate: 'ID',
+  // Gen.G
+  ZynX: 'KR',
+  // ZETA DIVISION
+  SugarZ3ro: 'JP', Laz: 'JP', Xdll: 'JP', SyouTa: 'JP',
+  // Fnatic
+  PROD: 'SE', kaajak: 'DK',
+  // Paper Rex
+  cgrs: 'SG', Invy: 'SG', Jinggg: 'SG', f0rsakeN: 'SG', mindfreak: 'AU', d4v41: 'SG',
+  // Karmine Corp
+  Suygetsu: 'RU', Sheydos: 'RU', Lewn: 'FR', dos9: 'FR',
+  // FUT Esports
+  ScreaM: 'BE', Nivera: 'FR', sociablEE: 'TR', xeus: 'TR', yetujey: 'TR',
+  // FunPlus Phoenix
+  BerLIN: 'DE', AAAAY: 'CN',
+  // Bilibili Gaming
+  rushia: 'CN', Levius: 'CN', nephh: 'CN', Knight: 'CN', whzy: 'CN',
+  // Titan Esports Club
+  Haodong: 'CN', Abo: 'CN',
+  // MIBR
+  tteuw: 'BR', Verno: 'BR',
+  // Edward Gaming
+  CB: 'CN',
+  // Leviatan
+  Neon: 'PH', Blowz: 'CL',
+  // Team Heretics
+  Koshmaras: 'RU',
+  // G2 Gozen
+  mimi: 'DE',
+
+  // ── CS2 ───────────────────────────────────────────────────────────────────
+  // Team Vitality
+  ZywOo: 'FR', apEX: 'FR', mezii: 'GB', Spinx: 'IL', flameZ: 'IL',
+  // Team Spirit
+  donk: 'RU', s1mple: 'UA', sh1ro: 'RU', chopper: 'RU', magixx: 'RU', zont1x: 'RU',
+  // MOUZ
+  xertioN: 'DE', torzsi: 'HU', Brollan: 'SE', siuhy: 'DK', karrigan: 'DK',
+  // The Mongolz
+  buster: 'MN', Techno4K: 'MN', Senzu: 'MN', mzinho: 'MN', Zerb: 'MN',
+  // Aurora
+  Krad: 'RU', El1an: 'RU', Lack1: 'RU', SENSEi: 'RU', Norwi: 'RU',
+  // Natus Vincere
+  iM: 'UA', b1t: 'UA', Aleksib: 'FI', npl: 'UA', jL: 'UA',
+  // G2 Esports
+  NiKo: 'BA', huNter: 'BA', Jame: 'KZ', nexa: 'RS', ropz: 'EE',
+  // GamerLegion
+  tN: 'DK', isak: 'SE', volt: 'FI', sl3nd: 'NO', TMB: 'SK',
+  // Team Liquid CS2
+  NAF: 'CA', twistzz: 'CA', EliGE: 'US', oSee: 'US',
+  // FaZe Clan
+  rain: 'NO', frozen: 'SK', broky: 'LV',
+  // HEROIC
+  stavn: 'DK', TeSeS: 'DK', cadiaN: 'DK', sjuush: 'DK', jabbi: 'DK',
+  // Virtus.pro
+  FL1T: 'RU', fame: 'RU', electroNic: 'UA', Qikert: 'KZ',
+  // Astralis
+  device: 'DK', gla1ve: 'DK', Xyp9x: 'DK', dupreeh: 'DK', Magisk: 'DK', k0nfig: 'DK',
+  // FURIA
+  FalleN: 'BR', KSCERATO: 'BR', yuurih: 'BR', arT: 'BR', drop: 'BR', chelo: 'BR',
+  // 3DMAX
+  bodyy: 'FR', Ex3rcice: 'FR', Maka: 'FR', Lucky: 'FR', acoR: 'DK',
+  // MIBR
+  fer: 'BR', coldzera: 'BR', felps: 'BR', trk: 'BR', insani: 'BR',
+  // B8
+  Nertzy: 'UA', woro2k: 'ES', Calyx: 'TR', NEOFRAG: 'MK',
+  // NIP
+  Plopski: 'SE', REZ: 'SE', hampus: 'SE', es3tag: 'DK',
+  // paiN Gaming
+  biguzera: 'BR', kauez: 'BR', nqz: 'BR', snow: 'BR', skullz: 'BR',
+  // Legacy
+  dumau: 'BR', vsm: 'BR', latto: 'BR', history: 'BR', reix: 'BR',
+
+  // ── Overwatch 2 / Apex (common) ───────────────────────────────────────────
+  Sinatraa: 'US', Surefour: 'CA', Fleta: 'KR', Profit: 'KR', Gesture: 'KR',
+  Carpe_OW: 'KR', smurf: 'US', Fissure: 'KR', Rascal: 'KR', Bdosin: 'KR',
+  // Apex
+  ImperialHal: 'US', Verhulst: 'BE', Albralelie: 'US', Reps: 'FI', Genburten: 'NL',
+  Snip3down: 'US', Keon: 'US', Mande: 'DE', lou: 'US',
+};
