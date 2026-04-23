@@ -90,6 +90,8 @@ async function startServer() {
             "https://*.ingest.sentry.io",
             "https://*.ingest.us.sentry.io",
             "https://*.ingest.de.sentry.io",
+            // Vite HMR WebSocket (dev only)
+            ...(process.env.NODE_ENV !== "production" ? ["ws://localhost:*", "wss://localhost:*"] : []),
           ],
           frameSrc: [
             "'self'",

@@ -535,97 +535,118 @@ export function getFlagEmoji(countryCode: string): string {
 /** Player name → ISO 3166-1 alpha-2 country code */
 export const PLAYER_NATIONALITIES: Record<string, string> = {
   // ── Valorant ──────────────────────────────────────────────────────────────
-  // 100 Thieves
-  Asuna: 'US', timotino: 'US', Ethan: 'US', bang: 'KR',
-  // Sentinels
-  TenZ: 'CA', ShahZaM: 'US', tarik: 'US', JonahP: 'US', reduxx: 'US', cortezia: 'US', Kyu: 'KR',
-  // NRG
-  s0m: 'US', nitr0: 'US', autimatic: 'US', brawk: 'US', skuba: 'CA', Keiko: 'US',
-  // Team Liquid
-  Mendo: 'US', kamo: 'JP', purp0: 'SE', Wayne: 'CN', frttt: 'SE', ShahZam: 'US',
-  // LOUD
-  pANcada: 'BR', Virtyy: 'BR', Lukxo: 'BR',
-  // KRU Esports
-  mwzera: 'BR', silentzz: 'AR', Dantedeu5: 'AR',
-  // DRX
-  Flicker: 'KR', BeYN: 'KR', HYUNMIN: 'KR', Lothar: 'KR', free1ng: 'KR',
-  // T1
-  Carpe: 'KR', iZu: 'KR', xccurate: 'ID',
-  // Gen.G
-  ZynX: 'KR',
-  // ZETA DIVISION
-  SugarZ3ro: 'JP', Laz: 'JP', Xdll: 'JP', SyouTa: 'JP',
-  // Fnatic
-  PROD: 'SE', kaajak: 'DK',
-  // Paper Rex
-  cgrs: 'SG', Invy: 'SG', Jinggg: 'SG', f0rsakeN: 'SG', mindfreak: 'AU', d4v41: 'SG',
-  // Karmine Corp
-  Suygetsu: 'RU', Sheydos: 'RU', Lewn: 'FR', dos9: 'FR',
-  // FUT Esports
-  ScreaM: 'BE', Nivera: 'FR', sociablEE: 'TR', xeus: 'TR', yetujey: 'TR',
-  // FunPlus Phoenix
-  BerLIN: 'DE', AAAAY: 'CN',
-  // Bilibili Gaming
-  rushia: 'CN', Levius: 'CN', nephh: 'CN', Knight: 'CN', whzy: 'CN',
-  // Titan Esports Club
-  Haodong: 'CN', Abo: 'CN',
-  // MIBR
-  tteuw: 'BR', Verno: 'BR',
-  // Edward Gaming
-  CB: 'CN',
-  // Leviatan
-  Neon: 'PH', Blowz: 'CL',
-  // Team Heretics
-  Koshmaras: 'RU',
-  // G2 Gozen
-  mimi: 'DE',
+  Alfajer: 'TR', ANGE1: 'UA', aspas: 'BR', Asuna: 'US', autimatic: 'US',
+  babybay: 'US', bang: 'KR', benjyfishy: 'GB', BeYN: 'KR', Blowz: 'CL',
+  Boaster: 'GB', Boo: 'US', Boostio: 'US', brawk: 'US', BuZz: 'KR',
+  cauanzin: 'BR', CB: 'CN', cgrs: 'SG', CHICHOO: 'TR', Chronicle: 'RU',
+  cortezia: 'US', crashies: 'US', Cryocells: 'US',
+  d4v41: 'SG', Dantedeu5: 'AR', Demon1: 'RU', Derke: 'FI', derrek: 'US', dos9: 'FR',
+  eeiu: 'US', Ethan: 'US',
+  f0rsakeN: 'SG', Flicker: 'KR', Foxy9: 'KR', free1ng: 'KR', frttt: 'SE',
+  Haodong: 'CN', HYUNMIN: 'KR',
+  iZu: 'KR', Invy: 'SG',
+  Jamppi: 'FI', jawgemo: 'US', Jinggg: 'SG', johnqt: 'TN', JonahP: 'US',
+  kaajak: 'DK', kamo: 'JP', Karon: 'BR', Keiko: 'US', keznit: 'CL',
+  kiNgg: 'AU', Knight: 'CN', Koshmaras: 'RU', Kyu: 'KR',
+  Lakia: 'KR', Laz: 'JP', leaf: 'US', Leo: 'SE', Less: 'BR', Levius: 'CN',
+  Lewn: 'FR', Lothar: 'KR', Lukxo: 'BR',
+  Magnum: 'US', MaKo: 'KR', Mazino: 'KR', Mendo: 'US', Meteor: 'KR',
+  mimi: 'DE', mindfreak: 'AU', MiniBoo: 'KR', Moose: 'US', Munchkin: 'KR',
+  mwzera: 'BR',
+  N4RRATE: 'US', nAts: 'RU', NaturE: 'KR', Neon: 'PH', nephh: 'CN',
+  nitr0: 'US', Nivera: 'FR',
+  OXY: 'US',
+  pANcada: 'BR', PROD: 'SE', primmie: 'US', purp0: 'SE',
+  reduxx: 'US', RieNs: 'KR', rushia: 'CN', runi: 'US',
+  s0m: 'US', Saadhak: 'AR', Sacy: 'BR', Sato: 'JP', Sayf: 'SE',
+  ScreaM: 'BE', ShahZaM: 'US', Shanks: 'AU', Shao: 'RU', Sheydos: 'RU',
+  silentzz: 'AR', SirMaza: 'KR', skuba: 'CA', Skairipa: 'BR', Smoggy: 'US',
+  sociablEE: 'TR', something: 'US', spikeziN: 'US', sScary: 'US', stax: 'KR',
+  SugarZ3ro: 'JP', supamen: 'KR', Suygetsu: 'RU', SyouTa: 'JP',
+  t3xture: 'US', tarik: 'US', TenZ: 'CA', timotino: 'US', trent: 'US',
+  tteuw: 'BR', tuyz: 'BR',
+  valyn: 'US', vanity: 'US', Verno: 'BR', Virtyy: 'BR',
+  Wayne: 'CN', whzy: 'CN', Wo0t: 'US',
+  xccurate: 'ID', Xdll: 'JP', Xeppaa: 'US', xeus: 'TR',
+  yay: 'US', yetujey: 'TR',
+  zekken: 'US', Zellsis: 'US', ZmjjKK: 'CN', ZynX: 'KR',
+  AAAAY: 'CN', Abo: 'CN', BerLIN: 'DE',
 
   // ── CS2 ───────────────────────────────────────────────────────────────────
-  // Team Vitality
-  ZywOo: 'FR', apEX: 'FR', mezii: 'GB', Spinx: 'IL', flameZ: 'IL',
-  // Team Spirit
-  donk: 'RU', s1mple: 'UA', sh1ro: 'RU', chopper: 'RU', magixx: 'RU', zont1x: 'RU',
-  // MOUZ
-  xertioN: 'DE', torzsi: 'HU', Brollan: 'SE', siuhy: 'DK', karrigan: 'DK',
-  // The Mongolz
-  buster: 'MN', Techno4K: 'MN', Senzu: 'MN', mzinho: 'MN', Zerb: 'MN',
-  // Aurora
-  Krad: 'RU', El1an: 'RU', Lack1: 'RU', SENSEi: 'RU', Norwi: 'RU',
-  // Natus Vincere
-  iM: 'UA', b1t: 'UA', Aleksib: 'FI', npl: 'UA', jL: 'UA',
-  // G2 Esports
-  NiKo: 'BA', huNter: 'BA', Jame: 'KZ', nexa: 'RS', ropz: 'EE',
-  // GamerLegion
-  tN: 'DK', isak: 'SE', volt: 'FI', sl3nd: 'NO', TMB: 'SK',
-  // Team Liquid CS2
-  NAF: 'CA', twistzz: 'CA', EliGE: 'US', oSee: 'US',
-  // FaZe Clan
-  rain: 'NO', frozen: 'SK', broky: 'LV',
-  // HEROIC
-  stavn: 'DK', TeSeS: 'DK', cadiaN: 'DK', sjuush: 'DK', jabbi: 'DK',
-  // Virtus.pro
-  FL1T: 'RU', fame: 'RU', electroNic: 'UA', Qikert: 'KZ',
-  // Astralis
-  device: 'DK', gla1ve: 'DK', Xyp9x: 'DK', dupreeh: 'DK', Magisk: 'DK', k0nfig: 'DK',
-  // FURIA
-  FalleN: 'BR', KSCERATO: 'BR', yuurih: 'BR', arT: 'BR', drop: 'BR', chelo: 'BR',
-  // 3DMAX
-  bodyy: 'FR', Ex3rcice: 'FR', Maka: 'FR', Lucky: 'FR', acoR: 'DK',
-  // MIBR
-  fer: 'BR', coldzera: 'BR', felps: 'BR', trk: 'BR', insani: 'BR',
-  // B8
-  Nertzy: 'UA', woro2k: 'ES', Calyx: 'TR', NEOFRAG: 'MK',
-  // NIP
-  Plopski: 'SE', REZ: 'SE', hampus: 'SE', es3tag: 'DK',
-  // paiN Gaming
-  biguzera: 'BR', kauez: 'BR', nqz: 'BR', snow: 'BR', skullz: 'BR',
-  // Legacy
-  dumau: 'BR', vsm: 'BR', latto: 'BR', history: 'BR', reix: 'BR',
+  '910': 'CN',
+  Aleksib: 'FI', ALEX: 'GB', apEX: 'FR', Ax1Le: 'RU',
+  b1t: 'UA', blameF: 'DK', bLitz: 'US', bodyy: 'FR', Boombl4: 'RU',
+  brnz4n: 'BR', broky: 'LV', Brollan: 'SE', buda: 'AR',
+  cadiaN: 'DK', Calyx: 'TR', chelo: 'BR', chopper: 'RU',
+  degster: 'RU', dev1ce: 'DK', device: 'DK', donk: 'RU', drop: 'BR',
+  EliGE: 'US', electroNic: 'UA', exit: 'BR',
+  FalleN: 'BR', fame: 'RU', Finn: 'SE', flameZ: 'IL', floppy: 'US', frozen: 'SK',
+  gla1ve: 'DK', Grim: 'US',
+  hades: 'UA', hallzerk: 'NO', hampus: 'SE', huNter: 'BA',
+  iM: 'UA', insani: 'BR', interz: 'RU', isak: 'SE',
+  jabbi: 'DK', Jame: 'KZ', JDC: 'US', Jimpphat: 'FI', jks: 'AU', jL: 'UA', JT: 'US',
+  karrigan: 'DK', knife: 'RU', Krimbo: 'DE', KRIMZ: 'SE', kscerato: 'BR', kyousuke: 'BR', kyxsan: 'SE',
+  m0NESY: 'FR', maden: 'TR', Magisk: 'DK', magixx: 'RU', MAJ3R: 'TR',
+  malbsMd: 'US', MartinezSa: 'ES', matys: 'FR', maxster: 'SE', mezii: 'GB', mzinho: 'MN',
+  NAF: 'CA', nawwk: 'SE', NEOFRAG: 'MK', Nertz: 'UA', NiKo: 'BA',
+  r1nkle: 'US', rain: 'NO', reedz: 'SE', REZ: 'SE', ropz: 'EE',
+  s1mple: 'UA', saffee: 'BR', Senzu: 'MN', sh1ro: 'RU', siuhy: 'DK',
+  sjuush: 'DK', skullz: 'BR', Snappi: 'DK', Snax: 'PL', Spinx: 'IL',
+  Staehr: 'DK', stavn: 'DK', SunPayus: 'TR', syrsoN: 'RU',
+  tabseN: 'DE', Techno4K: 'MN', TeSeS: 'DK', torzsi: 'HU', Twistzz: 'CA',
+  tyler: 'US',
+  ultimate: 'CN',
+  w0nderful: 'CN', Wicadia: 'PL', woxic: 'TR',
+  XANTARES: 'TR', xertioN: 'DE', Xyp9x: 'DK',
+  YEKINDAR: 'LV', yuurih: 'BR',
+  Zerb: 'MN', zont1x: 'RU', ZywOo: 'FR',
+  // extra CS2
+  acoR: 'DK', arT: 'BR', biguzera: 'BR', buster: 'MN', coldzera: 'BR',
+  dumau: 'BR', dupreeh: 'DK', es3tag: 'DK', Ex3rcice: 'FR', fer: 'BR', felps: 'BR',
+  FL1T: 'RU', HUASOPEEK: 'CL',
+  k0nfig: 'DK', Krad: 'RU', KSCERATO: 'BR', kauez: 'BR',
+  latto: 'BR', nexa: 'RS',
+  nqz: 'BR', npl: 'UA', oSee: 'US',
+  Plopski: 'SE', Qikert: 'KZ', reix: 'BR',
+  sl3nd: 'NO', snow: 'BR',
+  TMB: 'SK', tN: 'DK', trk: 'BR', twistzz: 'CA',
+  volt: 'FI', vsm: 'BR', woro2k: 'ES', Nertzy: 'UA',
 
-  // ── Overwatch 2 / Apex (common) ───────────────────────────────────────────
-  Sinatraa: 'US', Surefour: 'CA', Fleta: 'KR', Profit: 'KR', Gesture: 'KR',
-  Carpe_OW: 'KR', smurf: 'US', Fissure: 'KR', Rascal: 'KR', Bdosin: 'KR',
-  // Apex
-  ImperialHal: 'US', Verhulst: 'BE', Albralelie: 'US', Reps: 'FI', Genburten: 'NL',
-  Snip3down: 'US', Keon: 'US', Mande: 'DE', lou: 'US',
+  // ── Overwatch 2 ───────────────────────────────────────────────────────────
+  AimGod: 'KR', AlphaYi: 'KR', birdring: 'KR', Checkmate: 'KR',
+  ChiYo: 'JP', Chorong: 'KR', Crimzo: 'US', Donghun: 'KR', Fearless: 'KR',
+  Fielder: 'KR', Fleta: 'KR', FunnyAstro: 'US', Glister: 'KR', Guxue: 'CN',
+  Hadi: 'SA', HanBin: 'KR', Harbleu: 'US', Heesu: 'KR', HeeSang: 'KR',
+  Hybrid: 'GB', Hydron: 'US', infekted: 'SE', IR1S: 'FR',
+  Izayaki: 'US', JinMu: 'CN', JJoNaK: 'KR', Junbin: 'KR',
+  kevster: 'SE', Ksaa: 'SA', Landon: 'US', Lastro: 'KR', LBBD7: 'KR',
+  LeeJaeGon: 'KR', Lengsa: 'CN', Lethal: 'US', LIP: 'KR', Lyar: 'KR',
+  Mag: 'KR', Masaa: 'DE', Mer1t: 'KR', Mmonk: 'KR', MuZe: 'FR',
+  nero: 'US', Patiphan: 'TH', Pelican: 'KR', Piggy: 'KR', Profit: 'KR',
+  Prophet: 'US', proud: 'KR', Quartz: 'US', rakattack: 'US', Rawkus: 'US',
+  Rupal: 'IN', sauceror: 'US', Sayaplayer: 'KR', seeker: 'KR', Shax: 'FR',
+  Shu: 'US', Shy: 'KR', SirMajed: 'SA', skewed: 'US', Someone: 'KR',
+  SoOn: 'FR', SP9RK1E: 'KR', SparkR: 'KR', Stalk3r: 'KR', sugarfree: 'US',
+  ta1yo: 'US', UV: 'KR', Vega: 'KR', Vigilante: 'US', Viol2t: 'US',
+  Viper: 'KR', Void: 'KR', XepheR: 'FR', Xzi: 'KR', Xzite: 'US',
+  Yaki: 'KR', Youbi: 'KR', Zest: 'KR',
+  // shared name (OW2 Backbone = different from other games)
+
+  // ── Apex Legends ──────────────────────────────────────────────────────────
+  '9impulse': 'US', aceu: 'US', Akku: 'SE', Albralelie: 'US', Apryze: 'US',
+  ChaoticMuch: 'US', chocoTaco: 'US', Crust: 'US', Crylix: 'CA', Daltoosh: 'US',
+  Dezignful: 'US', Diegosaurs: 'MX', Dizzy: 'US', dooplex: 'US', Dropped: 'US',
+  Effect: 'TR', Enemy: 'US', esdesu: 'JP', Faide: 'SE', Ftyan: 'TR',
+  Genburten: 'NL', Gnaske: 'SE', Hakis: 'SE', HAL: 'US', Hardecki: 'PL',
+  Hiarka: 'DE', HisWattson: 'US', iiTzTimmy: 'US', ImMikeyyyz: 'US', ImperialHal: 'US',
+  KaronPe: 'BR', Keon: 'US', Koyful: 'SE', Leamonhead: 'US', LiNkzr: 'SE',
+  Lou: 'US', lyr1c: 'US', Mande: 'DE', MaTaFe: 'BR', Monsoon: 'US',
+  Neazul: 'SE', Nickmercs: 'US', Nocturnal: 'US', Noko: 'KR', ojrein: 'US',
+  oraxe: 'BR', ParkHa: 'KR', Phony: 'US', Prycyy: 'SE', psalm: 'US',
+  Ras: 'US', Reps: 'FI', Rogue: 'US', Roieee: 'US', rpr: 'JP',
+  Satuki: 'JP', Selly: 'US', Senoxe: 'US', Shiv: 'US', Skadoodle: 'US',
+  SkittleCakes: 'US', Snip3down: 'US', stormen: 'SE', Sweet: 'US',
+  Taisheen: 'US', taskmast33r: 'US', Taxi2g: 'US', Unlucky: 'US', Uxako: 'SE',
+  Verhulst: 'BE', Viss: 'US', Vooshii: 'US', xaniya: 'US',
+  Xynew: 'US', Yuki: 'JP', Zachmazer: 'US', zap: 'US', Zer0: 'US',
 };
