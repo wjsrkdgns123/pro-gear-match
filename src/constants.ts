@@ -604,7 +604,7 @@ export const PLAYER_NATIONALITIES: Record<string, string> = {
   volt: 'FI', vsm: 'BR', woro2k: 'ES', Nertzy: 'UA',
 
   // ── Overwatch 2 ───────────────────────────────────────────────────────────
-  AimGod: 'KR', AlphaYi: 'KR', birdring: 'KR', Checkmate: 'KR',
+  AimGod: 'KR', AlphaYi: 'KR', birdring: 'KR', Carpe: 'KR', Checkmate: 'KR',
   ChiYo: 'JP', Chorong: 'KR', Crimzo: 'US', Donghun: 'KR', Fearless: 'KR',
   Fielder: 'KR', Fleta: 'KR', FunnyAstro: 'US', Glister: 'KR', Guxue: 'CN',
   Hadi: 'SA', HanBin: 'KR', Harbleu: 'US', Heesu: 'KR', HeeSang: 'KR',
