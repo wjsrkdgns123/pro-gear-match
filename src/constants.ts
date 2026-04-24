@@ -526,7 +526,7 @@ export const PRO_MOUSEPADS = [
 /** Player name → ISO 3166-1 alpha-2 country code */
 export const PLAYER_NATIONALITIES: Record<string, string> = {
   // ── Valorant ──────────────────────────────────────────────────────────────
-  Alfajer: 'TR', ANGE1: 'UA', aspas: 'BR', Asuna: 'US', autimatic: 'US',
+  Alfajer: 'TR', ANGE1: 'UA', aspas: 'BR', Asuna: 'US', autimatic: 'US', carpe: 'KR',
   babybay: 'US', bang: 'KR', benjyfishy: 'GB', BeYN: 'KR', Blowz: 'CL',
   Boaster: 'GB', Boo: 'US', Boostio: 'US', brawk: 'US', BuZz: 'KR',
   cauanzin: 'BR', CB: 'CN', cgrs: 'SG', CHICHOO: 'TR', Chronicle: 'RU',
