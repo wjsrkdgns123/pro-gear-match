@@ -2665,7 +2665,18 @@ export default function App() {
                         {sortedProList.map((pro) => (
                           <tr key={pro.id || pro.name} className={`group ${theme === 'dark' ? 'hover:bg-[#151619]' : 'hover:bg-[#f3f4f6]'} transition-colors`}>
                             <td className="p-4">
-                              <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} group-hover:text-emerald-500 transition-colors`}>{pro.name}</span>
+                              <div className="flex items-center gap-2">
+                                {PLAYER_NATIONALITIES[pro.name] && (
+                                  <img
+                                    src={`https://flagcdn.com/20x15/${PLAYER_NATIONALITIES[pro.name].toLowerCase()}.png`}
+                                    srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[pro.name].toLowerCase()}.png 2x`}
+                                    width="20" height="15"
+                                    alt={PLAYER_NATIONALITIES[pro.name]}
+                                    className="rounded-sm flex-shrink-0"
+                                  />
+                                )}
+                                <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} group-hover:text-emerald-500 transition-colors`}>{pro.name}</span>
+                              </div>
                             </td>
                             <td className="p-4">
                               <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase`}>{pro.team}</span>
