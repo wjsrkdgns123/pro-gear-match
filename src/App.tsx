@@ -144,6 +144,8 @@ export default function App() {
   const [bulkProgress, setBulkProgress] = useState<{ current: number, total: number } | null>(null);
   const [updatingProId, setUpdatingProId] = useState<string | null>(null);
   const [tempUrls, setTempUrls] = useState<{[key: string]: string}>({});
+  const [editingNationalityId, setEditingNationalityId] = useState<string | null>(null);
+  const [tempNationality, setTempNationality] = useState<string>('');
   const [showClaudeModal, setShowClaudeModal] = useState(false);
   const [showMigrateConfirm, setShowMigrateConfirm] = useState(false);
   const [showFixLinksConfirm, setShowFixLinksConfirm] = useState(false);
@@ -534,6 +536,20 @@ export default function App() {
     
     setFetchingData(false);
     setLoading(false);
+  };
+
+  const handleSaveNationality = async (pro: ProGamer, code: string) => {
+    const trimmed = code.trim().toUpperCase();
+    if (!pro.id) return;
+    try {
+      const { doc: fsDoc, updateDoc } = await import('firebase/firestore');
+      const { db } = await import('./firebase');
+      await updateDoc(fsDoc(db, 'pro-gamers', pro.id), { nationality: trimmed || null });
+      setProList(prev => prev.map(p => p.id === pro.id ? { ...p, nationality: trimmed || undefined } : p));
+    } catch (e) {
+      alert('저장 실패: ' + e);
+    }
+    setEditingNationalityId(null);
   };
 
   const handleUpdatePro = async (pro: ProGamer, customUrl?: string) => {
@@ -2666,15 +2682,15 @@ export default function App() {
                           <tr key={pro.id || pro.name} className={`group ${theme === 'dark' ? 'hover:bg-[#151619]' : 'hover:bg-[#f3f4f6]'} transition-colors`}>
                             <td className="p-4">
                               <div className="flex items-center gap-2">
-                                {PLAYER_NATIONALITIES[pro.name] && (
+                                {(() => { const code = pro.nationality || PLAYER_NATIONALITIES[pro.name]; return code ? (
                                   <img
-                                    src={`https://flagcdn.com/20x15/${PLAYER_NATIONALITIES[pro.name].toLowerCase()}.png`}
-                                    srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[pro.name].toLowerCase()}.png 2x`}
+                                    src={`https://flagcdn.com/20x15/${code.toLowerCase()}.png`}
+                                    srcSet={`https://flagcdn.com/40x30/${code.toLowerCase()}.png 2x`}
                                     width="20" height="15"
-                                    alt={PLAYER_NATIONALITIES[pro.name]}
+                                    alt={code}
                                     className="rounded-sm flex-shrink-0"
                                   />
-                                )}
+                                ) : null; })()}
                                 <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} group-hover:text-emerald-500 transition-colors`}>{pro.name}</span>
                               </div>
                             </td>
@@ -2733,13 +2749,44 @@ export default function App() {
                                     >
                                       <RefreshCcw size={12} className={updatingProId === (pro.id || pro.name) ? 'animate-spin' : ''} />
                                     </button>
-                                    <button 
+                                    <button
                                       onClick={() => handleDeletePro(pro)}
                                       className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-red-400 hover:border-red-500/50 border transition-all`}
                                       title="Delete"
                                     >
                                       <Trash2 size={12} />
                                     </button>
+                                    {/* 국적 편집 */}
+                                    {editingNationalityId === (pro.id || pro.name) ? (
+                                      <div className="flex items-center gap-1">
+                                        <input
+                                          type="text"
+                                          maxLength={2}
+                                          placeholder="KR"
+                                          value={tempNationality}
+                                          onChange={(e) => setTempNationality(e.target.value.toUpperCase())}
+                                          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNationality(pro, tempNationality); if (e.key === 'Escape') setEditingNationalityId(null); }}
+                                          autoFocus
+                                          className={`w-10 text-[10px] font-mono text-center uppercase ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded px-1 py-1 focus:outline-none focus:border-emerald-500`}
+                                        />
+                                        <button
+                                          onClick={() => handleSaveNationality(pro, tempNationality)}
+                                          className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} rounded hover:text-emerald-400 hover:border-emerald-500/50 border text-emerald-500 transition-all text-[10px] font-bold`}
+                                          title="저장"
+                                        >✓</button>
+                                        <button
+                                          onClick={() => setEditingNationalityId(null)}
+                                          className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-red-400 border transition-all text-[10px]`}
+                                          title="취소"
+                                        >✕</button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => { setEditingNationalityId(pro.id || pro.name); setTempNationality(pro.nationality || PLAYER_NATIONALITIES[pro.name] || ''); }}
+                                        className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-yellow-400 hover:border-yellow-500/50 border transition-all`}
+                                        title="국적 편집"
+                                      >🏳️</button>
+                                    )}
                                   </div>
                                 )}
                               </div>
