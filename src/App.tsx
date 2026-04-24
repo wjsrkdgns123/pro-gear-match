@@ -146,6 +146,7 @@ export default function App() {
   const [tempUrls, setTempUrls] = useState<{[key: string]: string}>({});
   const [editingNationalityId, setEditingNationalityId] = useState<string | null>(null);
   const [tempNationality, setTempNationality] = useState<string>('');
+  const [showTodayOnly, setShowTodayOnly] = useState(false);
   const [showClaudeModal, setShowClaudeModal] = useState(false);
   const [showMigrateConfirm, setShowMigrateConfirm] = useState(false);
   const [showFixLinksConfirm, setShowFixLinksConfirm] = useState(false);
@@ -372,13 +373,19 @@ export default function App() {
     }
   };
 
-  const filteredProList = proList.filter(pro => 
-    pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pro.team.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pro.gear.mouse.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (pro.gear.controller && pro.gear.controller.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    pro.gear.keyboard.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  const filteredProList = proList.filter(pro => {
+    if (showTodayOnly && !pro.updatedAt?.startsWith(today)) return false;
+    if (!searchTerm) return true;
+    return (
+      pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pro.team.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pro.gear.mouse.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (pro.gear.controller && pro.gear.controller.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      pro.gear.keyboard.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+  const todayCount = proList.filter(p => p.updatedAt?.startsWith(today)).length;
 
   const sortedProList = [...filteredProList].sort((a, b) => {
     if (!sortConfig) return 0;
@@ -2590,9 +2597,30 @@ export default function App() {
                       <Wand2 size={12} /> Strip Colors
                     </button>
                   )}
+                  {/* 오늘 추가된 선수만 보기 토글 */}
+                  <button
+                    onClick={() => setShowTodayOnly(v => !v)}
+                    className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
+                      showTodayOnly
+                        ? 'bg-emerald-500 border-emerald-500 text-black font-bold'
+                        : theme === 'dark'
+                          ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400 hover:border-emerald-500/50'
+                          : 'bg-white border-[#d1d5db] text-[#6b7280] hover:text-emerald-600 hover:border-emerald-400'
+                    }`}
+                    title="오늘 추가된 선수만 보기"
+                  >
+                    <span>🆕</span>
+                    Today
+                    {todayCount > 0 && (
+                      <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${showTodayOnly ? 'bg-black/20 text-black' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                        {todayCount}
+                      </span>
+                    )}
+                  </button>
+
                   <div className="relative">
                     <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} `} size={14} />
-                    <input 
+                    <input
                       type="text"
                       placeholder="Search players, teams, gear..."
                       value={searchTerm}
