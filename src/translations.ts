@@ -291,6 +291,8 @@ export const translations = { en, ko };
 export type Language = keyof typeof translations;
 
 export const getLanguage = (): Language => {
+  const stored = localStorage.getItem('lang');
+  if (stored && translations[stored as Language]) return stored as Language;
   const lang = navigator.language.split('-')[0];
   return (translations[lang as Language] ? lang : 'en') as Language;
 };

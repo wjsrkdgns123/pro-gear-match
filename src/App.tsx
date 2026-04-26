@@ -31,7 +31,6 @@ import { InputGroup } from './components/InputGroup';
 import { StatBlock } from './components/StatBlock';
 import { ProGearItem } from './components/ProGearItem';
 import { TodayProCard } from './components/TodayProCard';
-import { ConsentBanner } from './components/ConsentBanner';
 
 
 const ADMIN_EMAIL = "wjsrkdgns123a@gmail.com";
@@ -45,11 +44,28 @@ const formatEdpi = (val: number) => {
 
 
 export default function App() {
-  const [lang, setLang] = useState<Language>('en');
+  // Initialise from localStorage immediately to avoid flash of wrong language.
+  // On first visit (no stored value) default to 'en', then detect by IP once.
+  const [lang, setLang] = useState<Language>(() => {
+    const stored = localStorage.getItem('lang');
+    if (stored === 'en' || stored === 'ko') return stored;
+    return 'en';
+  });
   const t = translations[lang];
 
   useEffect(() => {
-    setLang(getLanguage());
+    // Only run IP detection when there's no stored preference yet
+    if (localStorage.getItem('lang')) return;
+    fetch('https://ipapi.co/country_code/')
+      .then(r => r.text())
+      .then(code => {
+        const detected: Language = code.trim() === 'KR' ? 'ko' : 'en';
+        setLang(detected);
+      })
+      .catch(() => {
+        // fallback: use browser locale
+        setLang(getLanguage());
+      });
   }, []);
 
   const [settings, setSettings] = useState<GearSettings>({
@@ -106,6 +122,9 @@ export default function App() {
     const validSens = proList.map(p => p.settings.sensitivity).filter(s => s > 0);
     const avgSens = validSens.length > 0 ? (validSens.reduce((a, b) => a + b, 0) / validSens.length).toFixed(3) : "0";
 
+    const validEdpis = proList.map(p => p.settings.edpi).filter(e => e > 0);
+    const avgEdpi = validEdpis.length > 0 ? Math.round(validEdpis.reduce((a, b) => a + b, 0) / validEdpis.length) : 0;
+
     const getMostUsed = (items: string[]) => {
       const counts: Record<string, number> = {};
       items.filter(i => {
@@ -123,6 +142,7 @@ export default function App() {
     return {
       avgDpi,
       avgSens,
+      avgEdpi,
       mostUsedMouse: getMostUsed(proList.map(p => p.gear.mouse)),
       mostUsedKeyboard: getMostUsed(proList.map(p => p.gear.keyboard)),
       mostUsedMonitor: getMostUsed(proList.map(p => p.gear.monitor)),
@@ -136,6 +156,9 @@ export default function App() {
   const [totalProCount, setTotalProCount] = useState(0);
   const [excelStatus, setExcelStatus] = useState<{ loading: boolean, success?: boolean, proFound?: boolean, photoFound?: boolean, error?: string } | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [infoTab, setInfoTab] = useState<'how' | 'edpi' | 'about'>('how');
+  const [nationalityFilter, setNationalityFilter] = useState<string>('');
+  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPro, setEditingPro] = useState<ProGamer | null>(null);
@@ -147,6 +170,7 @@ export default function App() {
   const [editingNationalityId, setEditingNationalityId] = useState<string | null>(null);
   const [tempNationality, setTempNationality] = useState<string>('');
   const [showTodayOnly, setShowTodayOnly] = useState(false);
+  const [showTodayPanel, setShowTodayPanel] = useState(true);
   const [showClaudeModal, setShowClaudeModal] = useState(false);
   const [showMigrateConfirm, setShowMigrateConfirm] = useState(false);
   const [showFixLinksConfirm, setShowFixLinksConfirm] = useState(false);
@@ -219,7 +243,9 @@ export default function App() {
   };
 
   const toggleLanguage = () => {
-    setLang(lang === 'en' ? 'ko' : 'en');
+    const next: Language = lang === 'en' ? 'ko' : 'en';
+    localStorage.setItem('lang', next);
+    setLang(next);
   };
 
   useEffect(() => {
@@ -374,15 +400,32 @@ export default function App() {
   };
 
   const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+  // Country code → localized name lookup (EN + KO) for nationality search
+  const regionNamesEn = (() => { try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; } })();
+  const regionNamesKo = (() => { try { return new Intl.DisplayNames(['ko'], { type: 'region' }); } catch { return null; } })();
+  const nationalityHaystack = (code?: string): string => {
+    if (!code) return '';
+    const c = code.toUpperCase();
+    const en = regionNamesEn?.of(c) ?? '';
+    const ko = regionNamesKo?.of(c) ?? '';
+    return `${c} ${en} ${ko}`.toLowerCase();
+  };
+  // Unique nationality codes present in current pro list (for the dropdown)
+  const availableNationalities = Array.from(
+    new Set(proList.map(p => p.nationality).filter((c): c is string => !!c && c.trim() !== ''))
+  ).sort();
   const filteredProList = proList.filter(pro => {
     if (showTodayOnly && !pro.updatedAt?.startsWith(today)) return false;
+    if (nationalityFilter && pro.nationality?.toUpperCase() !== nationalityFilter.toUpperCase()) return false;
     if (!searchTerm) return true;
+    const q = searchTerm.toLowerCase();
     return (
-      pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pro.team.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pro.gear.mouse.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (pro.gear.controller && pro.gear.controller.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      pro.gear.keyboard.toLowerCase().includes(searchTerm.toLowerCase())
+      pro.name.toLowerCase().includes(q) ||
+      pro.team.toLowerCase().includes(q) ||
+      pro.gear.mouse.toLowerCase().includes(q) ||
+      (pro.gear.controller && pro.gear.controller.toLowerCase().includes(q)) ||
+      pro.gear.keyboard.toLowerCase().includes(q) ||
+      nationalityHaystack(pro.nationality).includes(q)
     );
   });
   const todayCount = proList.filter(p => p.updatedAt?.startsWith(today)).length;
@@ -773,23 +816,24 @@ export default function App() {
 
   const handleLogin = async () => {
     try {
-      // Try popup first (better UX)
       await signInWithPopup(auth, googleProvider);
     } catch (err: unknown) {
       const code = (err as { code?: string } | null)?.code;
-      console.error('Popup login failed:', code, errMsg(err));
-      // Fallback to redirect if popup is blocked or fails
-      if (
-        code === 'auth/popup-blocked' ||
-        code === 'auth/popup-closed-by-user' ||
-        code === 'auth/cancelled-popup-request' ||
-        code === 'auth/internal-error'
-      ) {
+      // User closed popup or browser blocked it — silent fallback to redirect
+      const silentCodes = [
+        'auth/popup-blocked',
+        'auth/popup-closed-by-user',
+        'auth/cancelled-popup-request',
+        'auth/internal-error',
+      ];
+      if (silentCodes.includes(code ?? '')) {
         try {
           await signInWithRedirect(auth, googleProvider);
-        } catch (redirectErr) {
-          console.error('Redirect login failed:', redirectErr);
+        } catch {
+          // redirect also failed — nothing to do
         }
+      } else {
+        console.error('Login failed:', code, errMsg(err));
       }
     }
   };
@@ -1164,10 +1208,10 @@ export default function App() {
               transition={{ delay: 0.14, type: 'spring', stiffness: 70, damping: 18 }}
               className="font-black tracking-tighter uppercase leading-[0.88] mb-5 select-none"
             >
-              <span className={`block text-[3.2rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem] ${theme === 'dark' ? 'bg-gradient-to-b from-white to-emerald-200/80 bg-clip-text text-transparent' : 'text-[#0f172a]'}`}>
+              <span className={`block text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] ${theme === 'dark' ? 'bg-gradient-to-b from-white to-emerald-200/80 bg-clip-text text-transparent' : 'text-[#0f172a]'}`}>
                 PRO GEAR
               </span>
-              <span className="block text-[3.2rem] sm:text-[4.5rem] md:text-[5.5rem] lg:text-[7rem] bg-gradient-to-r from-emerald-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent">
+              <span className="block text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] bg-gradient-to-b from-emerald-300 to-emerald-500 bg-clip-text text-transparent">
                 MATCH
               </span>
             </motion.h1>
@@ -1176,7 +1220,7 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className={`text-[11px] font-mono uppercase tracking-[0.45em] mb-10 ${theme === 'dark' ? 'text-[#333]' : 'text-[#9ca3af]'}`}
+              className={`text-sm md:text-base tracking-wide mb-10 ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}
             >
               {t.subtitle}
             </motion.p>
@@ -1193,9 +1237,9 @@ export default function App() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-8 overflow-hidden"
             >
-              <div className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border rounded-2xl p-6 shadow-xl`}>
+              <div className={`${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-6`}>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className={`text-sm font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest flex items-center gap-2`}>
+                  <h3 className={`text-sm font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} flex items-center gap-2`}>
                     <FileSpreadsheet size={16} /> {t.excelStatus}
                   </h3>
                   <button onClick={() => setExcelStatus(null)} className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} hover:text-emerald-500`}>
@@ -1256,7 +1300,7 @@ export default function App() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className={`relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1c1c20]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl max-w-3xl mx-auto w-full overflow-hidden`}
+            className={`relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl max-w-3xl mx-auto w-full overflow-hidden`}
           >
             {theme === 'dark' && <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />}
             <form id="match-form" onSubmit={handleMatch} className="space-y-6">
@@ -1320,16 +1364,24 @@ export default function App() {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase font-mono`}>{t.avgDpi}</span>
-                        <p className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{gameStats.avgDpi}</p>
+                    {gameStats.avgEdpi > 0 && (
+                      <div className="space-y-1 flex flex-col items-center">
+                        <div className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} flex items-center gap-1`}>
+                          <span className={theme === 'dark' ? 'text-[#aaa]' : 'text-[#374151]'}>평균 EDPI</span>
+                          <span>=</span>
+                          <span>DPI</span>
+                          <span>×</span>
+                          <span>인게임 감도</span>
+                        </div>
+                        <div className={`text-sm font-mono flex items-center gap-1.5`}>
+                          <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{gameStats.avgEdpi}</span>
+                          <span className={theme === 'dark' ? 'text-[#444]' : 'text-[#d1d5db]'}>=</span>
+                          <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}>{gameStats.avgDpi}</span>
+                          <span className={theme === 'dark' ? 'text-[#444]' : 'text-[#d1d5db]'}>×</span>
+                          <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}>{gameStats.avgSens}</span>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase font-mono`}>{t.avgSens}</span>
-                        <p className={`text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{gameStats.avgSens}</p>
-                      </div>
-                    </div>
+                    )}
 
                     <div className={`pt-3 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#f3f4f6]'} space-y-2`}>
                       <div className="flex items-center justify-between mb-1">
@@ -1532,7 +1584,7 @@ export default function App() {
                         whileHover={{ opacity: 1, scale: 1.03, x: 4 }}
                         transition={{ duration: 0.2 }}
                         onClick={() => { setSlideDir(-1); setSelectedMatchIdx(prevIdx); }}
-                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#2a2a2a]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
+                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
                       >
                         <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                           <ChevronLeft size={12} className="text-emerald-400" />
@@ -1558,7 +1610,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
                           {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
-                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#222]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
                               <span className={`${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} block uppercase text-[7px]`}>{label}</span>
                               <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{val}</span>
                             </div>
@@ -1671,7 +1723,7 @@ export default function App() {
                         const pct = Math.round((diff / Math.max(userCm, proCm)) * 100);
                         const isClose = pct <= 10;
                         return (
-                          <div className={`mt-4 p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                          <div className={`mt-4 p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
                             <div className="flex items-center justify-between mb-2">
                               <p className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
                                 {lang === 'ko' ? '360° 회전 거리 (cm/360)' : 'cm per 360° turn'}
@@ -1691,7 +1743,7 @@ export default function App() {
                                   {formatCmPer360(userCm)}
                                 </span>
                               </div>
-                              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#0f1013] border border-[#2a2a2a]' : 'bg-white border border-[#d1d5db]'}`}>
+                              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#0f1013] border border-[#1e1e22]' : 'bg-white border border-[#d1d5db]'}`}>
                                 <span className={`text-[9px] font-mono uppercase tracking-widest block mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
                                   {matches[selectedMatchIdx].name}
                                 </span>
@@ -1736,7 +1788,7 @@ export default function App() {
                             {gearItems.map(item => {
                               const amazonLink = getAmazonLink(item.name);
                               return (
-                                <div key={item.key} className={`flex flex-col rounded-xl overflow-hidden border ${theme === 'dark' ? 'bg-[#0d0d0f] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
+                                <div key={item.key} className={`flex flex-col rounded-xl overflow-hidden border ${theme === 'dark' ? 'bg-[#0d0d0f] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                                   {/* Image area — 서버에서 아마존 og:image 스크랩 */}
                                   <GearImage
                                     productName={item.name}
@@ -1856,7 +1908,7 @@ export default function App() {
                         whileHover={{ opacity: 1, scale: 1.03, x: -4 }}
                         transition={{ duration: 0.2 }}
                         onClick={() => { setSlideDir(1); setSelectedMatchIdx(nextIdx); }}
-                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#2a2a2a]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
+                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
                       >
                         <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                           <ChevronRight size={12} className="text-emerald-400" />
@@ -1882,7 +1934,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
                           {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
-                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#222]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
                               <span className={`${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} block uppercase text-[7px]`}>{label}</span>
                               <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{val}</span>
                             </div>
@@ -2024,11 +2076,10 @@ export default function App() {
         };
 
         return (
-          <ScrollFade>
           <div className="max-w-5xl mx-auto mt-16 px-4">
             <div className="mb-6 flex items-center gap-3">
-              <Trophy size={18} className="text-emerald-500" />
-              <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#222]'}`}>
+              <Trophy size={20} className="text-emerald-500" />
+              <h2 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
                 {lang === 'ko' ? '프로게이머 TOP 5 장비' : 'Pro Gamer Top 5 Gear'}
               </h2>
               <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} uppercase tracking-widest ml-1`}>
@@ -2044,10 +2095,10 @@ export default function App() {
                 if (!item) return null;
                 const amazonLink = getAmazonLink(item.name);
                 return (
-                  <div key={cat.key} className={`flex flex-col rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#222]' : 'bg-white border-[#e5e7eb]'}`}>
+                  <div key={cat.key} className={`flex flex-col rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
 
                     {/* Category header */}
-                    <div className={`flex items-center justify-between px-3 py-2 border-b ${theme === 'dark' ? 'border-[#1e1e1e] bg-[#111]' : 'border-[#f0f0f0] bg-[#fafafa]'}`}>
+                    <div className={`flex items-center justify-between px-3 py-2 border-b ${theme === 'dark' ? 'border-[#1e1e22] bg-[#111]' : 'border-[#f0f0f0] bg-[#fafafa]'}`}>
                       <span className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         {cat.icon}{cat.label}
                       </span>
@@ -2134,148 +2185,115 @@ export default function App() {
               })}
             </div>
           </div>
-          </ScrollFade>
         );
       })()}
 
       {/* Main page comment section — hidden */}
 
-      {/* ── Content Sections ── */}
-      <div className="max-w-5xl mx-auto mt-20 space-y-16 pb-20 px-4">
+      {/* ── Info Tabs (How / eDPI / About) ── */}
+      <div className="max-w-5xl mx-auto mt-20 pb-20 px-4">
+        <div className={`rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+          {/* Tab buttons */}
+          <div className={`flex border-b ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
+            {([
+              { id: 'how' as const, icon: <Target size={16} />, label: lang === 'ko' ? '작동 방식' : 'How It Works' },
+              { id: 'edpi' as const, icon: <Zap size={16} />, label: lang === 'ko' ? 'eDPI란?' : 'What is eDPI?' },
+              { id: 'about' as const, icon: <Shield size={16} />, label: lang === 'ko' ? '소개' : 'About' },
+            ]).map(tab => {
+              const active = infoTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setInfoTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-4 px-4 text-sm font-semibold transition-colors ${
+                    active
+                      ? (theme === 'dark' ? 'text-emerald-400 bg-emerald-500/5 border-b-2 border-emerald-500' : 'text-emerald-600 bg-emerald-50 border-b-2 border-emerald-500')
+                      : (theme === 'dark' ? 'text-[#666] hover:text-[#aaa] border-b-2 border-transparent' : 'text-[#6b7280] hover:text-[#111] border-b-2 border-transparent')
+                  }`}
+                >
+                  {tab.icon}
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-        {/* How It Works — 3 steps */}
-        <ScrollFade direction="up">
-        <section>
-          <div className="flex items-center gap-3 mb-8">
-            <Target size={18} className="text-emerald-500" />
-            <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#111]'}`}>
-              {lang === 'ko' ? '어떻게 작동하나요?' : 'How It Works'}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { step: '01', icon: <Keyboard size={20} />, title: lang === 'ko' ? '장비 & 감도 입력' : 'Enter Your Setup', body: lang === 'ko' ? 'DPI, 인게임 감도, 마우스·키보드·모니터·마우스패드를 입력하세요. 일부 항목을 몰라도 DPI와 감도만으로 매칭 가능합니다.' : 'Enter your DPI, in-game sensitivity, and gear. Even with just DPI and sensitivity, we can find your match.' },
-              { step: '02', icon: <Target size={20} />, title: lang === 'ko' ? 'eDPI 기반 매칭' : 'eDPI Matching', body: lang === 'ko' ? 'eDPI(DPI × 감도)를 기준으로 전체 프로 DB와 비교합니다. 동일 장비 사용 여부도 매칭 점수에 반영됩니다.' : 'We calculate your eDPI (DPI × Sensitivity) and compare it against our full pro database, factoring in gear overlap.' },
-              { step: '03', icon: <Trophy size={20} />, title: lang === 'ko' ? '프로 트윈 확인' : 'Meet Your Pro Twin', body: lang === 'ko' ? '가장 가까운 프로와 eDPI 분포 상 위치, 사용 장비 및 아마존 구매 링크를 확인하세요.' : "See your closest pro match, your position in the eDPI distribution, gear comparison, and Amazon links." },
-            ].map((s, i) => (
-              <React.Fragment key={i}>
-              <ScrollFade delay={i * 0.08}>
-              <div className={`relative p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
-                <span className={`absolute top-4 right-4 text-4xl font-black ${theme === 'dark' ? 'text-[#151515]' : 'text-[#f0f0f0]'} select-none`}>{s.step}</span>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>{s.icon}</div>
-                <h3 className={`font-black uppercase tracking-tight text-sm mb-2 ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#111]'}`}>{s.title}</h3>
-                <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>{s.body}</p>
+          {/* Tab content */}
+          <div className="p-6 md:p-8">
+            {infoTab === 'how' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { step: '01', icon: <Keyboard size={20} />, title: lang === 'ko' ? '장비 & 감도 입력' : 'Enter Your Setup', body: lang === 'ko' ? 'DPI, 인게임 감도, 마우스·키보드·모니터·마우스패드를 입력하세요. 일부 항목을 몰라도 DPI와 감도만으로 매칭 가능합니다.' : 'Enter your DPI, in-game sensitivity, and gear. Even with just DPI and sensitivity, we can find your match.' },
+                  { step: '02', icon: <Target size={20} />, title: lang === 'ko' ? 'eDPI 기반 매칭' : 'eDPI Matching', body: lang === 'ko' ? 'eDPI(DPI × 감도)를 기준으로 전체 프로 DB와 비교합니다. 동일 장비 사용 여부도 매칭 점수에 반영됩니다.' : 'We calculate your eDPI (DPI × Sensitivity) and compare it against our full pro database, factoring in gear overlap.' },
+                  { step: '03', icon: <Trophy size={20} />, title: lang === 'ko' ? '프로 트윈 확인' : 'Meet Your Pro Twin', body: lang === 'ko' ? '가장 가까운 프로와 eDPI 분포 상 위치, 사용 장비 및 아마존 구매 링크를 확인하세요.' : "See your closest pro match, your position in the eDPI distribution, gear comparison, and Amazon links." },
+                ].map((s, i) => (
+                  <div key={i} className="relative">
+                    <span className={`absolute -top-1 right-0 text-4xl font-black ${theme === 'dark' ? 'text-[#15171a]' : 'text-[#f0f0f0]'} select-none`}>{s.step}</span>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>{s.icon}</div>
+                    <h3 className={`font-bold tracking-tight text-base mb-2 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{s.title}</h3>
+                    <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>{s.body}</p>
+                  </div>
+                ))}
               </div>
-              </ScrollFade>
-              </React.Fragment>
-            ))}
-          </div>
-        </section>
-        </ScrollFade>
+            )}
 
-        {/* eDPI Guide */}
-        <ScrollFade direction="up">
-        <section className={`rounded-2xl border p-8 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
-          <div className="flex items-center gap-3 mb-6">
-            <Zap size={18} className="text-emerald-500" />
-            <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#111]'}`}>
-              {lang === 'ko' ? 'eDPI란 무엇인가요?' : 'What is eDPI?'}
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
-                {lang === 'ko'
-                  ? 'eDPI(Effective DPI, 유효 DPI)는 마우스 DPI와 인게임 감도를 곱한 값으로, 서로 다른 설정을 동일한 기준으로 비교할 수 있게 해주는 지표입니다.'
-                  : 'eDPI (Effective DPI) is calculated by multiplying your mouse DPI by your in-game sensitivity. It allows fair comparison of setups across different hardware configurations.'}
-              </p>
-              <div className={`p-4 rounded-xl font-mono text-center ${theme === 'dark' ? 'bg-[#111] border border-[#222]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
-                <span className={`text-lg font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>eDPI = DPI × Sensitivity</span>
-              </div>
-              <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
-                {lang === 'ko'
-                  ? '예) DPI 800 × 감도 0.35 = eDPI 280 (Valorant 상위권 프로 평균대)'
-                  : 'Example: DPI 800 × Sensitivity 0.35 = eDPI 280 (around the top-end pro average in Valorant)'}
-              </p>
-            </div>
-            <div className="space-y-3">
-              {[
-                { game: 'Valorant', range: '200 – 400', color: 'text-rose-400' },
-                { game: 'CS2',      range: '600 – 1000', color: 'text-orange-400' },
-                { game: 'Overwatch 2', range: '1200 – 2400', color: 'text-sky-400' },
-                { game: 'Apex Legends', range: '800 – 1600', color: 'text-red-400' },
-              ].map(g => (
-                <div key={g.game} className={`flex items-center justify-between p-3 rounded-xl ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
-                  <span className={`text-xs font-bold ${theme === 'dark' ? 'text-[#bbb]' : 'text-[#374151]'}`}>{g.game}</span>
-                  <span className={`text-xs font-mono font-bold ${g.color}`}>{lang === 'ko' ? `프로 평균 eDPI ${g.range}` : `Pro avg eDPI ${g.range}`}</span>
+            {infoTab === 'edpi' && (
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>
+                    {lang === 'ko'
+                      ? 'eDPI(Effective DPI, 유효 DPI)는 마우스 DPI와 인게임 감도를 곱한 값으로, 서로 다른 설정을 동일한 기준으로 비교할 수 있게 해주는 지표입니다.'
+                      : 'eDPI (Effective DPI) is calculated by multiplying your mouse DPI by your in-game sensitivity. It allows fair comparison of setups across different hardware configurations.'}
+                  </p>
+                  <div className={`p-4 rounded-xl font-mono text-center ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e22]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                    <span className={`text-lg font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>eDPI = DPI × Sensitivity</span>
+                  </div>
+                  <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
+                    {lang === 'ko'
+                      ? '예) DPI 800 × 감도 0.35 = eDPI 280 (Valorant 상위권 프로 평균대)'
+                      : 'Example: DPI 800 × Sensitivity 0.35 = eDPI 280 (around the top-end pro average in Valorant)'}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
-        </ScrollFade>
-
-        {/* About */}
-        <ScrollFade direction="up">
-        <section className={`rounded-2xl border p-8 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
-          <div className="flex items-center gap-3 mb-6">
-            <Shield size={18} className="text-emerald-500" />
-            <h2 className={`text-lg font-black uppercase tracking-widest ${theme === 'dark' ? 'text-[#ccc]' : 'text-[#111]'}`}>
-              {lang === 'ko' ? 'Pro Gear Match 소개' : 'About Pro Gear Match'}
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            {[
-              { val: '300+', label: lang === 'ko' ? '프로 선수 DB' : 'Pro Players' },
-              { val: '4',    label: lang === 'ko' ? '지원 게임'    : 'Games Covered' },
-              { val: '100%', label: lang === 'ko' ? '무료 서비스'  : 'Free to Use' },
-            ].map(s => (
-              <div key={s.val} className={`p-4 rounded-xl text-center ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
-                <p className={`text-2xl font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{s.val}</p>
-                <p className={`text-[10px] font-mono uppercase tracking-widest mt-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{s.label}</p>
+                <div className="space-y-2">
+                  {[
+                    { game: 'Valorant', range: '200 – 400' },
+                    { game: 'CS2',      range: '600 – 1000' },
+                    { game: 'Overwatch 2', range: '1200 – 2400' },
+                    { game: 'Apex Legends', range: '800 – 1600' },
+                  ].map(g => (
+                    <div key={g.game} className={`flex items-center justify-between py-3 px-4 rounded-lg ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f9fafb]'}`}>
+                      <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#111]'}`}>{g.game}</span>
+                      <span className={`text-xs font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{lang === 'ko' ? `평균 eDPI ${g.range}` : `Avg eDPI ${g.range}`}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+            )}
+
+            {infoTab === 'about' && (
+              <div>
+                <div className="grid md:grid-cols-3 gap-3 mb-6">
+                  {[
+                    { val: totalProCount > 0 ? String(totalProCount) : '—', label: lang === 'ko' ? '프로 선수 DB' : 'Pro Players' },
+                    { val: '4',    label: lang === 'ko' ? '지원 게임'    : 'Games Covered' },
+                    { val: '100%', label: lang === 'ko' ? '무료 서비스'  : 'Free to Use' },
+                  ].map(s => (
+                    <div key={s.val} className={`p-4 rounded-xl text-center ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f9fafb]'}`}>
+                      <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{s.val}</p>
+                      <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>
+                  {lang === 'ko'
+                    ? `Pro Gear Match는 e스포츠 팬과 FPS 게이머를 위한 무료 매칭 도구입니다. Valorant, CS2, Overwatch 2, Apex Legends 4개 게임의 프로 선수 ${totalProCount > 0 ? `${totalProCount}명` : '수백 명'}의 감도·장비 데이터를 분석해, 당신과 가장 설정이 비슷한 프로를 찾아드립니다. 데이터는 ProSettings.net, Liquipedia 등 공개 검증된 출처에서 수집되며 정기적으로 업데이트됩니다.`
+                    : `Pro Gear Match is a free matching tool for esports fans and FPS gamers. We analyze sensitivity and gear data from ${totalProCount > 0 ? totalProCount : 'hundreds of'} professional players across Valorant, CS2, Overwatch 2, and Apex Legends to find the pro whose setup most closely matches yours. Data is sourced from publicly verified sources including ProSettings.net and Liquipedia, and is regularly updated.`}
+                </p>
+              </div>
+            )}
           </div>
-          <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'}`}>
-            {lang === 'ko'
-              ? 'Pro Gear Match는 e스포츠 팬과 FPS 게이머를 위한 무료 매칭 도구입니다. Valorant, CS2, Overwatch 2, Apex Legends 4개 게임의 프로 선수 300명 이상의 감도·장비 데이터를 분석해, 당신과 가장 설정이 비슷한 프로를 찾아드립니다. 데이터는 ProSettings.net, Liquipedia 등 공개 검증된 출처에서 수집되며 정기적으로 업데이트됩니다.'
-              : 'Pro Gear Match is a free matching tool for esports fans and FPS gamers. We analyze sensitivity and gear data from 300+ professional players across Valorant, CS2, Overwatch 2, and Apex Legends to find the pro whose setup most closely matches yours. Data is sourced from publicly verified sources including ProSettings.net and Liquipedia, and is regularly updated.'}
-          </p>
-        </section>
-        </ScrollFade>
-
-      </div>
-
-      {/* ── CTA Banner ── */}
-      <ScrollFade direction="up">
-      <div className="max-w-5xl mx-auto px-4 mb-16">
-        <div className={`relative overflow-hidden rounded-2xl border p-8 md:p-12 text-center ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
-          {/* 배경 글로우 */}
-          <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(16,185,129,0.07) 0%, transparent 70%)' }} />
-          <p className={`text-[11px] font-mono uppercase tracking-widest mb-3 ${theme === 'dark' ? 'text-emerald-500/70' : 'text-emerald-600/70'}`}>
-            {lang === 'ko' ? '지금 바로 시작하기' : 'Get started now'}
-          </p>
-          <h2 className={`text-2xl md:text-3xl font-black uppercase tracking-tighter mb-3 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
-            {lang === 'ko' ? '나의 프로 트윈을 찾아보세요' : 'Find Your Pro Twin'}
-          </h2>
-          <p className={`text-sm mb-8 max-w-md mx-auto ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
-            {lang === 'ko'
-              ? 'DPI와 감도만 입력하면 30초 안에 나와 가장 비슷한 프로게이머를 찾아드립니다.'
-              : 'Enter your DPI and sensitivity — find the pro with the closest setup in under 30 seconds.'}
-          </p>
-          <button
-            onClick={() => {
-              const form = document.getElementById('match-form');
-              if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black font-black uppercase tracking-widest text-sm rounded-xl transition-colors"
-          >
-            <Target size={16} />
-            {lang === 'ko' ? '매칭 시작하기' : 'Start Matching'}
-          </button>
         </div>
       </div>
-      </ScrollFade>
 
       {/* Ad Section */}
       <div className="max-w-4xl mx-auto px-4">
@@ -2284,9 +2302,8 @@ export default function App() {
 
       {/* Footer */}
       <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4`}>
-        <ScrollFade>
         {/* Amazon Associates Disclosure */}
-        <div className={`max-w-4xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#222]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
+        <div className={`max-w-4xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#1e1e22]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
           <span className={`${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'} font-semibold`}>Amazon Associates</span>
           {' '}— {t.affiliateDisclosure}
         </div>
@@ -2313,11 +2330,7 @@ export default function App() {
             )}
           </div>
         </div>
-        </ScrollFade>
       </footer>
-
-      {/* GDPR cookie/consent banner — self-hides after user answers */}
-      <ConsentBanner lang={lang} />
 
       {/* Policy Modals */}
       <AnimatePresence>
@@ -2597,6 +2610,23 @@ export default function App() {
                       <Wand2 size={12} /> Strip Colors
                     </button>
                   )}
+                  {/* 오늘 추가된 선수 패널 토글 - admin only */}
+                  {user?.email === ADMIN_EMAIL && (
+                    <button
+                      onClick={() => setShowTodayPanel(v => !v)}
+                      className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
+                        showTodayPanel
+                          ? 'bg-blue-500 border-blue-500 text-black font-bold'
+                          : theme === 'dark'
+                            ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-blue-400 hover:border-blue-500/50'
+                            : 'bg-white border-[#d1d5db] text-[#6b7280] hover:text-blue-600 hover:border-blue-400'
+                      }`}
+                      title="오늘 추가된 선수 패널 토글"
+                    >
+                      <span>📋</span>
+                      Panel
+                    </button>
+                  )}
                   {/* 오늘 추가된 선수만 보기 토글 */}
                   <button
                     onClick={() => setShowTodayOnly(v => !v)}
@@ -2622,11 +2652,106 @@ export default function App() {
                     <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} `} size={14} />
                     <input
                       type="text"
-                      placeholder="Search players, teams, gear..."
+                      placeholder={lang === 'ko' ? '선수, 팀, 장비 검색...' : 'Search players, teams, gear...'}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className={`w-full md:w-64 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-10 pr-4 py-2 text-xs font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500' : 'focus:border-emerald-600'} transition-all`}
+                      className={`w-full md:w-56 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-10 pr-4 py-2 text-xs font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500' : 'focus:border-emerald-600'} transition-all`}
                     />
+                  </div>
+
+                  {/* Nationality filter dropdown */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowNationalityDropdown(v => !v)}
+                      className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
+                        nationalityFilter
+                          ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400'
+                          : theme === 'dark'
+                            ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400 hover:border-emerald-500/50'
+                            : 'bg-white border-[#d1d5db] text-[#6b7280] hover:text-emerald-600 hover:border-emerald-400'
+                      }`}
+                      title={lang === 'ko' ? '국적 필터' : 'Filter by nationality'}
+                    >
+                      {nationalityFilter ? (
+                        <>
+                          <img
+                            src={`https://flagcdn.com/20x15/${nationalityFilter.toLowerCase()}.png`}
+                            srcSet={`https://flagcdn.com/40x30/${nationalityFilter.toLowerCase()}.png 2x`}
+                            alt={nationalityFilter}
+                            className="w-5 h-[15px] object-cover rounded-sm"
+                          />
+                          <span>{nationalityFilter}</span>
+                          <span
+                            role="button"
+                            onClick={(e) => { e.stopPropagation(); setNationalityFilter(''); }}
+                            className="ml-1 hover:text-red-400 cursor-pointer"
+                          >
+                            <X size={12} />
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Flag size={12} />
+                          <span>{lang === 'ko' ? '모든 국가' : 'All Countries'}</span>
+                          <ChevronDown size={12} />
+                        </>
+                      )}
+                    </button>
+                    {showNationalityDropdown && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setShowNationalityDropdown(false)}
+                        />
+                        <div
+                          className={`absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto rounded-lg border shadow-xl z-50 ${
+                            theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => { setNationalityFilter(''); setShowNationalityDropdown(false); }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-mono uppercase tracking-wider transition-colors ${
+                              !nationalityFilter
+                                ? (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
+                                : (theme === 'dark' ? 'text-[#888] hover:bg-white/5 hover:text-white' : 'text-[#6b7280] hover:bg-black/5 hover:text-black')
+                            }`}
+                          >
+                            <Flag size={12} />
+                            <span>{lang === 'ko' ? '모든 국가' : 'All Countries'}</span>
+                            <span className="ml-auto opacity-60">{proList.length}</span>
+                          </button>
+                          {availableNationalities.map(code => {
+                            const count = proList.filter(p => p.nationality?.toUpperCase() === code.toUpperCase()).length;
+                            const enName = regionNamesEn?.of(code.toUpperCase()) ?? code;
+                            const koName = regionNamesKo?.of(code.toUpperCase()) ?? code;
+                            const displayName = lang === 'ko' ? koName : enName;
+                            return (
+                              <button
+                                key={code}
+                                type="button"
+                                onClick={() => { setNationalityFilter(code); setShowNationalityDropdown(false); }}
+                                className={`w-full flex items-center gap-2 px-3 py-2 text-xs transition-colors ${
+                                  nationalityFilter === code
+                                    ? (theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
+                                    : (theme === 'dark' ? 'text-[#aaa] hover:bg-white/5 hover:text-white' : 'text-[#374151] hover:bg-black/5 hover:text-black')
+                                }`}
+                              >
+                                <img
+                                  src={`https://flagcdn.com/20x15/${code.toLowerCase()}.png`}
+                                  srcSet={`https://flagcdn.com/40x30/${code.toLowerCase()}.png 2x`}
+                                  alt={code}
+                                  className="w-5 h-[15px] object-cover rounded-sm flex-shrink-0"
+                                />
+                                <span className="truncate">{displayName}</span>
+                                <span className="ml-auto opacity-60 font-mono">{count}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                   <button 
                     onClick={() => fetchProList(true)} 
@@ -2646,7 +2771,7 @@ export default function App() {
               </div>
               
               {/* Today's Added Players - Admin Only */}
-              {user?.email === ADMIN_EMAIL && (() => {
+              {user?.email === ADMIN_EMAIL && showTodayPanel && (() => {
                 const today = new Date().toISOString().split('T')[0];
                 const todayPros = proList.filter(p => p.updatedAt?.startsWith(today));
                 if (todayPros.length === 0) return null;

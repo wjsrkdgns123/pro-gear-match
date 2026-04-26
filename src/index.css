@@ -1,1 +1,55 @@
 @import "tailwindcss";
+
+/* ── Design System: Font overrides ─────────────────────────────────────────── */
+@theme {
+  --font-sans: 'Inter', 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'Menlo', 'Monaco', Consolas, monospace;
+}
+
+/* ── Global base ────────────────────────────────────────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Korean copy: prevent mid-word breaks */
+:lang(ko), .pgm-kr {
+  word-break: keep-all;
+}
+
+/* ── Design system CSS custom properties ────────────────────────────────────── */
+:root {
+  --pgm-accent-400: #34d399;
+  --pgm-accent-500: #10b981;
+  --pgm-accent-600: #059669;
+  --pgm-accent-glow: rgba(16,185,129,0.25);
+
+  --pgm-game-valorant: #f43f5e;
+  --pgm-game-cs2:      #f97316;
+  --pgm-game-ow2:      #0ea5e9;
+  --pgm-game-apex:     #dc2626;
+
+  --pgm-ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ── Tabular nums for all mono data readouts ───────────────────────────────── */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Primary CTA shimmer sweep on hover ────────────────────────────────────── */
+.pgm-btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.pgm-btn-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.45s var(--pgm-ease);
+}
+.pgm-btn-shimmer:hover::after {
+  transform: translateX(100%);
+}
