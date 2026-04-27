@@ -159,6 +159,7 @@ export default function App() {
   const [infoTab, setInfoTab] = useState<'how' | 'edpi' | 'about'>('how');
   const [nationalityFilter, setNationalityFilter] = useState<string>('');
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
+  const [miniBarSearch, setMiniBarSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPro, setEditingPro] = useState<ProGamer | null>(null);
@@ -403,12 +404,15 @@ export default function App() {
   // Country code → localized name lookup (EN + KO) for nationality search
   const regionNamesEn = (() => { try { return new Intl.DisplayNames(['en'], { type: 'region' }); } catch { return null; } })();
   const regionNamesKo = (() => { try { return new Intl.DisplayNames(['ko'], { type: 'region' }); } catch { return null; } })();
+  // Safe wrapper: Intl.DisplayNames.of() throws RangeError on invalid codes
+  const safeRegionName = (dn: Intl.DisplayNames | null, code: string): string => {
+    if (!dn || !code) return '';
+    try { return dn.of(code) ?? ''; } catch { return ''; }
+  };
   const nationalityHaystack = (code?: string): string => {
     if (!code) return '';
     const c = code.toUpperCase();
-    const en = regionNamesEn?.of(c) ?? '';
-    const ko = regionNamesKo?.of(c) ?? '';
-    return `${c} ${en} ${ko}`.toLowerCase();
+    return `${c} ${safeRegionName(regionNamesEn, c)} ${safeRegionName(regionNamesKo, c)}`.toLowerCase();
   };
   // Unique nationality codes present in current pro list (for the dropdown)
   const availableNationalities = Array.from(
@@ -1084,17 +1088,113 @@ export default function App() {
       )}
       {theme === 'dark' && (
         <>
-          <div className="fixed top-[-10%] left-[10%] w-[900px] h-[900px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 60%)'}} />
-          <div className="fixed bottom-[5%] right-[0%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(6,182,212,0.03) 0%, transparent 65%)'}} />
+          {/* Background blobs — shifted right per redesign */}
+          <div className="fixed top-[-10%] left-[35%] w-[900px] h-[900px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 60%)'}} />
+          <div className="fixed bottom-[5%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(6,182,212,0.03) 0%, transparent 65%)'}} />
         </>
       )}
-      <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-4 md:py-8">
-        {/* Hero Section */}
-        <section className="relative mb-8 overflow-hidden">
-          {/* Background esports scene images — dark mode only */}
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
+        {/* ─── NAV ─── */}
+        <motion.nav
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="relative flex items-center justify-between py-4 mb-6"
+          style={{ zIndex: 2 }}
+        >
+          {/* Logo (unchanged) */}
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              {theme === 'dark' && <div className="absolute inset-0 bg-emerald-500/25 rounded-lg blur-md" />}
+              <img src="/favicon.svg" alt="PGM" referrerPolicy="no-referrer" className="relative w-8 h-8" />
+            </div>
+            <div className="hidden sm:block">
+              <div className="text-[11px] font-mono font-bold text-emerald-500 uppercase tracking-[0.2em]">Pro Gear Match</div>
+              <div className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>Find Your Pro Gamer Twin</div>
+            </div>
+          </div>
+
+          {/* Center menu */}
+          <div className="hidden md:flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest">
+            {([
+              { key: 'home', label: 'Home', onClick: () => navigate('home') },
+              { key: 'how', label: lang === 'ko' ? '작동 방식' : 'How It Works', onClick: () => navigate('how-it-works') },
+              { key: 'about', label: lang === 'ko' ? '소개' : 'About', onClick: () => navigate('about') },
+              { key: 'privacy', label: 'Privacy', onClick: () => navigate('privacy') },
+              { key: 'terms', label: 'Terms', onClick: () => navigate('terms') },
+              { key: 'affiliate', label: lang === 'ko' ? '제휴' : 'Affiliate', onClick: () => navigate('affiliate') },
+            ]).map(item => {
+              const active = item.key === 'home';
+              return (
+                <button
+                  key={item.key}
+                  onClick={item.onClick}
+                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                    active
+                      ? (theme === 'dark' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
+                      : (theme === 'dark' ? 'text-[#666] hover:text-emerald-400' : 'text-[#6b7280] hover:text-emerald-600')
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right icons */}
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => fetchProList()}
+              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
+              title={t.proList}
+            >
+              <Users size={14} />
+            </button>
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600'}`}
+              title={lang === 'ko' ? '테마 전환' : 'Toggle theme'}
+            >
+              {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+            </button>
+            <button
+              onClick={toggleLanguage}
+              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600'}`}
+              title={t.toggleLanguage}
+            >
+              <Languages size={14} />
+            </button>
+            {user?.email === ADMIN_EMAIL ? (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#aaa] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
+              >
+                <LogIn size={12} /> Admin
+              </button>
+            ) : user ? (
+              <button
+                onClick={handleLogout}
+                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-100 text-red-500 hover:bg-red-100'}`}
+                title={user.email || ''}
+              >
+                <LogOut size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={handleLogin}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#aaa] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
+              >
+                <LogIn size={12} /> Admin
+              </button>
+            )}
+          </div>
+        </motion.nav>
+
+        {/* ─── HERO ─── */}
+        <section className="relative pt-6 pb-10" style={{ zIndex: 1 }}>
+          {/* Background esports scene images — right side only, dark mode only */}
           {theme === 'dark' && (
-            <div className="absolute inset-0 pointer-events-none select-none" style={{ zIndex: 0 }} aria-hidden="true">
-              {/* 좌측 — esports arena */}
+            <div className="absolute inset-0 pointer-events-none select-none overflow-hidden" style={{ zIndex: 0 }} aria-hidden="true">
               <img
                 src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&q=60&auto=format"
                 alt=""
@@ -1102,129 +1202,118 @@ export default function App() {
                 decoding="async"
                 className="absolute object-cover"
                 style={{
-                  width: '100%', height: '100%',
-                  top: 0, left: 0,
-                  opacity: 0.22,
-                  filter: 'grayscale(15%)',
-                  maskImage: 'radial-gradient(ellipse 55% 80% at 8% 50%, black 0%, black 25%, transparent 75%)',
-                  WebkitMaskImage: 'radial-gradient(ellipse 55% 80% at 8% 50%, black 0%, black 25%, transparent 75%)',
-                }}
-              />
-              {/* 우측 — gaming LED setup */}
-              <img
-                src="https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=1200&q=60&auto=format"
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="absolute object-cover"
-                style={{
-                  width: '100%', height: '100%',
-                  top: 0, left: 0,
+                  width: '55%', height: '60%',
+                  top: 0, right: '5%',
                   opacity: 0.18,
-                  filter: 'grayscale(15%)',
-                  maskImage: 'radial-gradient(ellipse 55% 80% at 92% 50%, black 0%, black 25%, transparent 75%)',
-                  WebkitMaskImage: 'radial-gradient(ellipse 55% 80% at 92% 50%, black 0%, black 25%, transparent 75%)',
+                  filter: 'grayscale(20%)',
+                  maskImage: 'radial-gradient(ellipse 70% 90% at 50% 30%, black 0%, black 20%, transparent 70%)',
+                  WebkitMaskImage: 'radial-gradient(ellipse 70% 90% at 50% 30%, black 0%, black 20%, transparent 70%)',
                 }}
               />
             </div>
           )}
-
-          {/* Nav strip */}
-          <motion.nav
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="relative flex items-center justify-between py-5 mb-4"
-            style={{ zIndex: 1 }}
+          {/* Status chip */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.08, duration: 0.4 }}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-mono uppercase tracking-[0.25em] mb-10 ${theme === 'dark' ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}
           >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                {theme === 'dark' && <div className="absolute inset-0 bg-emerald-500/25 rounded-lg blur-md" />}
-                <img src="/favicon.svg" alt="PGM" referrerPolicy="no-referrer" className="relative w-8 h-8" />
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-[11px] font-mono font-bold text-emerald-500 uppercase tracking-[0.2em]">Pro Gear Match</div>
-                <div className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>Find Your Pro Twin</div>
-              </div>
-            </div>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
+            <span>System Online</span>
+            <span className={theme === 'dark' ? 'text-emerald-600' : 'text-emerald-400'}>·</span>
+            <span>v.2026.04</span>
+            <span className={theme === 'dark' ? 'text-emerald-600' : 'text-emerald-400'}>·</span>
+            <span>4 Games Tracked</span>
+          </motion.div>
 
-            <div className="flex items-center gap-2 flex-wrap justify-end">
-              <div className={`flex items-center gap-0.5 p-1 rounded-xl ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.06]' : 'bg-black/[0.04] border border-black/[0.06]'}`}>
-                <button
-                  onClick={toggleLanguage}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-wider transition-all ${theme === 'dark' ? 'hover:bg-white/10 text-[#555] hover:text-white' : 'hover:bg-black/10 text-[#4b5563] hover:text-black'}`}
-                  title={t.toggleLanguage}
-                >
-                  <Languages size={12} /> {lang.toUpperCase()}
-                </button>
-              </div>
-
-              <button
-                onClick={() => fetchProList()}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:border-emerald-500/40 hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:border-emerald-500 hover:text-emerald-600'}`}
+          {/* Two-column hero */}
+          <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-end" style={{ zIndex: 1 }}>
+            {/* Headline + description */}
+            <div>
+              <motion.h1
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.14, type: 'spring', stiffness: 70, damping: 18 }}
+                className="font-black tracking-tighter uppercase leading-[0.88] select-none"
               >
-                <Users size={13} /> {t.proList}
-              </button>
-
-              {user?.email === ADMIN_EMAIL && (
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-black rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20"
+                <span className={`block text-[3rem] sm:text-[4rem] md:text-[5.5rem] lg:text-[6.5rem] ${theme === 'dark' ? 'text-white' : 'text-[#0f172a]'}`}>
+                  Find Your
+                </span>
+                <span className="block text-[3rem] sm:text-[4rem] md:text-[5.5rem] lg:text-[6.5rem] bg-gradient-to-r from-emerald-400 via-emerald-300 to-cyan-400 bg-clip-text text-transparent">
+                  Pro Twin.
+                </span>
+                {/* Outlined ghost lines */}
+                <span
+                  className="block text-[3rem] sm:text-[4rem] md:text-[5.5rem] lg:text-[6.5rem]"
+                  style={{
+                    color: 'transparent',
+                    WebkitTextStroke: theme === 'dark' ? '1px rgba(255,255,255,0.10)' : '1px rgba(15,23,42,0.15)',
+                  }}
                 >
-                  <Zap size={13} /> {t.addPro}
-                </button>
-              )}
-
-              {user && (
-                <button
-                  onClick={handleLogout}
-                  className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-100 text-red-500 hover:bg-red-100'}`}
-                  title={user.email || ''}
+                  Upgrade
+                </span>
+                <span
+                  className="block text-[3rem] sm:text-[4rem] md:text-[5.5rem] lg:text-[6.5rem]"
+                  style={{
+                    color: 'transparent',
+                    WebkitTextStroke: theme === 'dark' ? '1px rgba(255,255,255,0.10)' : '1px rgba(15,23,42,0.15)',
+                  }}
                 >
-                  <LogOut size={13} />
-                </button>
-              )}
+                  Play.
+                </span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className={`mt-8 max-w-md text-sm md:text-base leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}
+              >
+                {lang === 'ko' ? (
+                  <>eDPI 알고리즘으로 당신의 설정과 가장 닮은 프로게이머를 1초 안에 찾아드립니다. 입력은 <strong className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>DPI · 인게임 감도</strong> 두 가지면 충분합니다.</>
+                ) : (
+                  <>Find the pro gamer whose setup matches yours in under a second using our eDPI algorithm. All you need is your <strong className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>DPI and in-game sensitivity</strong>.</>
+                )}
+              </motion.p>
             </div>
-          </motion.nav>
 
-          {/* Hero content */}
-          <div className="relative text-center py-6 md:py-14" style={{ zIndex: 1 }}>
+            {/* Stats card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.08, duration: 0.4 }}
-              className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-[10px] font-mono uppercase tracking-[0.25em] mb-8 ${theme === 'dark' ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-              Live Pro Database
-              {totalProCount > 0 && (
-                <span className={`ml-1 ${theme === 'dark' ? 'text-emerald-600' : 'text-emerald-400'}`}>· {totalProCount >= 100 ? Math.floor(totalProCount / 100) * 100 + '+' : totalProCount} players</span>
-              )}
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.14, type: 'spring', stiffness: 70, damping: 18 }}
-              className="font-black tracking-tighter uppercase leading-[0.88] mb-5 select-none"
+              transition={{ delay: 0.35, duration: 0.4 }}
+              className={`grid grid-cols-2 lg:flex lg:flex-col gap-0 rounded-2xl border shadow-2xl ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} overflow-hidden`}
             >
-              <span className={`block text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] ${theme === 'dark' ? 'bg-gradient-to-b from-white to-emerald-200/80 bg-clip-text text-transparent' : 'text-[#0f172a]'}`}>
-                PRO GEAR
-              </span>
-              <span className="block text-[3rem] sm:text-[4rem] md:text-[5rem] lg:text-[5.5rem] bg-gradient-to-b from-emerald-300 to-emerald-500 bg-clip-text text-transparent">
-                MATCH
-              </span>
-            </motion.h1>
+              <div className={`grid grid-cols-2 ${theme === 'dark' ? 'divide-[#1e1e22]' : 'divide-[#e5e7eb]'} divide-x`}>
+                {/* Pros indexed */}
+                <div className="p-4 lg:p-5">
+                  <div className={`text-[9px] font-mono uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '프로 인덱스' : 'Pros Indexed'}</div>
+                  <div className={`text-3xl font-black tabular-nums ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{totalProCount || '—'}</div>
+                  <div className={`text-[9px] font-mono mt-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '4개 게임 통합' : 'across 4 games'}</div>
+                </div>
+                {/* Games covered */}
+                <div className="p-4 lg:p-5">
+                  <div className={`text-[9px] font-mono uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '지원 게임' : 'Games Covered'}</div>
+                  <div className={`text-3xl font-black tabular-nums ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>04</div>
+                  <div className={`text-[9px] font-mono mt-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>VAL · CS2 · OW2 · APEX</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className={`text-sm md:text-base tracking-wide mb-10 ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}
-            >
-              {t.subtitle}
-            </motion.p>
-
+          {/* Bottom strip */}
+          <div className={`mt-10 pt-5 border-t flex flex-col sm:flex-row justify-between gap-2 text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'border-[#1e1e22] text-[#555]' : 'border-[#e5e7eb] text-[#9ca3af]'}`}>
+            <span>
+              <span className={theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}>Section</span> 01<span className="opacity-50">/04</span>
+              <span className="mx-2 opacity-30">·</span>
+              <span className={theme === 'dark' ? 'text-emerald-500/80' : 'text-emerald-600'}>Match Engine</span>
+            </span>
+            <span>
+              <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}>Data Sources</span>{' '}
+              <span className={theme === 'dark' ? 'text-emerald-500/80' : 'text-emerald-600'}>ProSettings · Liquipedia</span>
+            </span>
+            <span className={theme === 'dark' ? 'text-emerald-500/80' : 'text-emerald-600'}>© 2026 Pro Gear Match</span>
           </div>
         </section>
 
@@ -1294,13 +1383,114 @@ export default function App() {
           )}
         </AnimatePresence>
 
-        <div className="grid grid-cols-1 gap-8">
-          {/* Input Section */}
+        {/* Sidebar panels — pre-computed once, used by both left & right columns */}
+        {(() => { return null; })()}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_240px] gap-4 lg:gap-5 max-w-7xl mx-auto items-start">
+          {/* ─── LEFT SIDEBAR ─── */}
+          <aside className="space-y-4 order-2 lg:order-1 lg:sticky lg:top-4">
+            {/* Game Statistics (compact) */}
+            {gameStats && gameStats.avgEdpi > 0 && (
+              <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : null; })()}
+                    <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{t.gameStats}</span>
+                  </div>
+                  <span className={`text-[9px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'} flex items-center gap-1`}>
+                    <Users size={9} /> {proList.length}
+                  </span>
+                </div>
+                <div className={`text-center p-3 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-[#f9fafb]'}`}>
+                  <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '평균 eDPI' : 'AVG eDPI'}</div>
+                  <div className={`text-2xl font-black tabular-nums ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{gameStats.avgEdpi}</div>
+                  <div className={`text-[10px] font-mono mt-1 ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
+                    <span className={theme === 'dark' ? 'text-[#888]' : 'text-[#374151]'}>{gameStats.avgDpi}</span>
+                    <span className={`mx-1 ${theme === 'dark' ? 'text-[#444]' : 'text-[#d1d5db]'}`}>×</span>
+                    <span className={theme === 'dark' ? 'text-[#888]' : 'text-[#374151]'}>{gameStats.avgSens}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Sensitivity Ranking (eDPI desc — highest first) */}
+            {proList.length > 0 && (() => {
+              const lq = miniBarSearch.trim().toLowerCase();
+              const candidates = proList
+                .filter(p => p.settings?.edpi > 0)
+                .map(p => {
+                  const code = p.nationality?.toUpperCase() ?? '';
+                  const en = safeRegionName(regionNamesEn, code);
+                  const ko = safeRegionName(regionNamesKo, code);
+                  return { p, hay: `${p.name} ${p.team} ${code} ${en} ${ko}`.toLowerCase() };
+                })
+                .filter(x => !lq || x.hay.includes(lq))
+                .sort((a, b) => b.p.settings.edpi - a.p.settings.edpi)
+                .map((x, i) => ({ ...x, rank: i + 1 }));
+              return (
+                <div className={`rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                  <div className={`flex items-center gap-2 px-3 py-2.5 border-b ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
+                    {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Trophy size={11} className="text-emerald-500" />; })()}
+                    <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{lang === 'ko' ? '감도 순위' : 'Sens Rank'}</span>
+                    <span className={`text-[9px] font-mono ml-auto ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{candidates.length}</span>
+                  </div>
+                  <div className={`px-3 py-1.5 border-b ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
+                    <div className="relative">
+                      <Search className={`absolute left-2 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`} size={10} />
+                      <input
+                        type="text"
+                        value={miniBarSearch}
+                        onChange={e => setMiniBarSearch(e.target.value)}
+                        placeholder={lang === 'ko' ? '검색' : 'Search'}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#050507] border-[#1e1e22] text-[#ddd] placeholder:text-[#555]' : 'bg-[#f9fafb] border-[#e5e7eb] text-[#111] placeholder:text-[#9ca3af]'} border rounded pl-6 pr-2 py-1 text-[10px] font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500/60' : 'focus:border-emerald-500'}`}
+                      />
+                    </div>
+                  </div>
+                  {candidates.length === 0 ? (
+                    <div className={`px-3 py-4 text-center text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                      {lang === 'ko' ? '결과 없음' : 'No results'}
+                    </div>
+                  ) : (
+                    <div className="max-h-[260px] overflow-y-auto">
+                      {candidates.map(({ p, rank }) => {
+                        const code = p.nationality?.toLowerCase();
+                        const isMedal = rank <= 3;
+                        const medalColor = rank === 1 ? '#fbbf24' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#b45309' : '';
+                        return (
+                          <button
+                            key={`${p.name}-${rank}`}
+                            onClick={() => { setSearchTerm(p.name); fetchProList(); }}
+                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors border-b last:border-b-0 ${theme === 'dark' ? 'border-[#15151a] hover:bg-emerald-500/5' : 'border-[#f3f4f6] hover:bg-emerald-50'}`}
+                          >
+                            <span
+                              className={`text-[9px] font-mono font-bold tabular-nums w-5 flex-shrink-0 ${isMedal ? '' : (theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]')}`}
+                              style={isMedal ? { color: medalColor } : {}}
+                            >
+                              {String(rank).padStart(2, '0')}
+                            </span>
+                            {code ? (
+                              <img src={`https://flagcdn.com/20x15/${code}.png`} srcSet={`https://flagcdn.com/40x30/${code}.png 2x`} alt={p.nationality} className="w-3.5 h-2.5 object-cover rounded-sm flex-shrink-0" />
+                            ) : (
+                              <span className={`w-3.5 h-2.5 rounded-sm flex-shrink-0 ${theme === 'dark' ? 'bg-[#1e1e22]' : 'bg-[#e5e7eb]'}`} />
+                            )}
+                            <span className={`text-[11px] font-bold truncate flex-1 min-w-0 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{p.name}</span>
+                            <span className={`text-[10px] font-mono font-bold tabular-nums flex-shrink-0 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(p.settings.edpi)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </aside>
+
+          {/* ─── CENTER: Input Section ─── */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className={`relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl max-w-3xl mx-auto w-full overflow-hidden`}
+            className={`order-1 lg:order-2 relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl w-full overflow-hidden`}
           >
             {theme === 'dark' && <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />}
             <form id="match-form" onSubmit={handleMatch} className="space-y-6">
@@ -1353,79 +1543,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Game Statistics Section */}
-                {gameStats && (
-                  <ScrollFade delay={0.1}>
-                  <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} space-y-4`}>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-widest font-bold`}>{t.gameStats}</span>
-                      <div className="flex items-center gap-1 text-[10px] font-mono text-[#888] uppercase">
-                        <Users size={10} /> {proList.length} Pros
-                      </div>
-                    </div>
-                    
-                    {gameStats.avgEdpi > 0 && (
-                      <div className="space-y-1 flex flex-col items-center">
-                        <div className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} flex items-center gap-1`}>
-                          <span className={theme === 'dark' ? 'text-[#aaa]' : 'text-[#374151]'}>평균 EDPI</span>
-                          <span>=</span>
-                          <span>DPI</span>
-                          <span>×</span>
-                          <span>인게임 감도</span>
-                        </div>
-                        <div className={`text-sm font-mono flex items-center gap-1.5`}>
-                          <span className={`font-black ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{gameStats.avgEdpi}</span>
-                          <span className={theme === 'dark' ? 'text-[#444]' : 'text-[#d1d5db]'}>=</span>
-                          <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}>{gameStats.avgDpi}</span>
-                          <span className={theme === 'dark' ? 'text-[#444]' : 'text-[#d1d5db]'}>×</span>
-                          <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}>{gameStats.avgSens}</span>
-                        </div>
-                      </div>
-                    )}
 
-                    <div className={`pt-3 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#f3f4f6]'} space-y-2`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-[10px] ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'} uppercase font-mono block`}>{t.mostUsed}</span>
-                        <span className="text-[8px] font-mono text-emerald-500/50 uppercase tracking-tighter">Click to apply</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                        <div 
-                          onClick={() => setSettings({ ...settings, mouse: gameStats.mostUsedMouse })}
-                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
-                          title="Click to apply to your settings"
-                        >
-                          <Mouse size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
-                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedMouse}</span>
-                        </div>
-                        <div 
-                          onClick={() => setSettings({ ...settings, keyboard: gameStats.mostUsedKeyboard })}
-                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
-                          title="Click to apply to your settings"
-                        >
-                          <Keyboard size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
-                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedKeyboard}</span>
-                        </div>
-                        <div 
-                          onClick={() => setSettings({ ...settings, monitor: gameStats.mostUsedMonitor })}
-                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
-                          title="Click to apply to your settings"
-                        >
-                          <Monitor size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
-                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedMonitor}</span>
-                        </div>
-                        <div 
-                          onClick={() => setSettings({ ...settings, mousepad: gameStats.mostUsedMousepad })}
-                          className="flex items-center gap-2 text-[10px] font-mono cursor-pointer hover:text-emerald-400 transition-colors group"
-                          title="Click to apply to your settings"
-                        >
-                          <Layers size={12} className="text-emerald-500 group-hover:scale-110 transition-transform" />
-                          <span className={`truncate ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>{gameStats.mostUsedMousepad}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  </ScrollFade>
-                )}
 
                 <ScrollFade delay={0.1}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1536,6 +1654,124 @@ export default function App() {
               </motion.button>
             </form>
           </motion.div>
+
+          {/* ─── RIGHT SIDEBAR ─── */}
+          <aside className="space-y-4 order-3 lg:sticky lg:top-4">
+            {/* Most Popular Gear (per game) */}
+            {gameStats && (
+              <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Flame size={11} className="text-emerald-500" />; })()}
+                  <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                    {lang === 'ko' ? '인기 장비' : 'Popular Gear'}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    { icon: <Mouse size={11} />, label: lang === 'ko' ? '마우스' : 'Mouse', value: gameStats.mostUsedMouse, field: 'mouse' as const },
+                    { icon: <Keyboard size={11} />, label: lang === 'ko' ? '키보드' : 'Keyboard', value: gameStats.mostUsedKeyboard, field: 'keyboard' as const },
+                    { icon: <Monitor size={11} />, label: lang === 'ko' ? '모니터' : 'Monitor', value: gameStats.mostUsedMonitor, field: 'monitor' as const },
+                    { icon: <Layers size={11} />, label: lang === 'ko' ? '마우스패드' : 'Mousepad', value: gameStats.mostUsedMousepad, field: 'mousepad' as const },
+                  ].filter(g => g.value).map(g => (
+                    <button
+                      key={g.field}
+                      onClick={() => setSettings({ ...settings, [g.field]: g.value })}
+                      className={`w-full flex items-start gap-2 p-2 rounded-lg text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-emerald-500/10 hover:ring-1 hover:ring-emerald-500/30' : 'bg-[#f9fafb] hover:bg-emerald-50 hover:ring-1 hover:ring-emerald-200'}`}
+                      title={lang === 'ko' ? '클릭하여 적용' : 'Click to apply'}
+                    >
+                      <span className="text-emerald-500 mt-0.5">{g.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{g.label}</div>
+                        <div className={`text-[10px] font-mono leading-tight truncate ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#374151]'}`}>{g.value}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top 5 Most Expensive Gear */}
+            {(() => {
+              // Approximate USD prices for premium gear (sourced from Amazon MSRP)
+              const PRICES: Record<string, number> = {
+                // Mice
+                'Razer Viper V3 Pro': 159, 'Razer DeathAdder V3 Pro': 149, 'Razer Viper V2 Pro': 149,
+                'Logitech G Pro X Superlight 2': 159, 'Logitech G Pro X Superlight': 149, 'Logitech G Pro Wireless': 129,
+                'Pulsar X2 Wireless': 129, 'Pulsar X2H Wireless': 139, 'Pulsar Xlite V3 Wireless': 134,
+                'Zowie EC2-CW': 169, 'Zowie U2': 159, 'Zowie EC1-CW': 169,
+                'Glorious Model O Wireless': 99, 'Glorious Model D Wireless': 99,
+                'Endgame Gear OP1 8k': 89, 'Endgame Gear XM2we': 109,
+                'Lamzu Atlantis OG V2': 119, 'Lamzu Maya': 89,
+                'VAXEE XE Wireless': 159, 'VAXEE Outset AX Wireless': 169,
+                // Keyboards
+                'Wooting 60HE': 175, 'Wooting Two HE': 200, 'Wooting 80HE': 240,
+                'Razer Huntsman V3 Pro': 200, 'Razer Huntsman Mini': 130,
+                'Logitech G Pro X TKL': 200, 'Logitech G Pro X 60': 180,
+                'SteelSeries Apex Pro TKL Gen 3': 250, 'SteelSeries Apex Pro Mini': 180,
+                'Keychron Q1': 175, 'Ducky One 3 Mini': 119,
+                // Monitors
+                'Asus ROG Swift PG27AQDP': 900, 'Asus ROG Swift OLED PG27AQDP': 900,
+                'LG UltraGear 27GR95QE': 1000, 'Asus ROG Swift PG27AQDM': 1000,
+                'Alienware AW2725DF': 900, 'Samsung Odyssey OLED G6': 900,
+                'BenQ Zowie XL2566K': 600, 'BenQ Zowie XL2746K': 700, 'BenQ Zowie XL2586X': 700,
+                'BenQ Zowie XL2546K': 500, 'BenQ Zowie XL2540': 380,
+                'Asus ROG Swift PG259QN': 700, 'Alienware AW2725Q': 1000,
+                // Mousepads
+                'Artisan FX Hayate Otsu': 60, 'Artisan FX Zero': 60, 'Artisan Type-99': 60, 'Artisan Hien': 60,
+                'Lethal Gaming Gear Saturn Pro': 50, 'Lethal Gaming Gear Saturn': 45,
+                'Wallhack SP-004': 65, 'X-raypad Equate Plus': 30,
+                'Logitech G640': 40, 'Razer Gigantus V2': 50, 'SteelSeries QcK Heavy XXL': 40,
+              };
+              const seen = new Set<string>();
+              const items: { name: string; price: number; field: 'mouse'|'keyboard'|'monitor'|'mousepad'; icon: React.ReactNode }[] = [];
+              const fields: Array<['mouse'|'keyboard'|'monitor'|'mousepad', React.ReactNode]> = [
+                ['mouse', <Mouse size={11} key="m" />],
+                ['keyboard', <Keyboard size={11} key="k" />],
+                ['monitor', <Monitor size={11} key="mo" />],
+                ['mousepad', <Layers size={11} key="mp" />],
+              ];
+              proList.forEach(p => {
+                fields.forEach(([f, icon]) => {
+                  const name = (p.gear[f] || '').trim();
+                  if (!name || seen.has(name)) return;
+                  const price = PRICES[name];
+                  if (price) { items.push({ name, price, field: f, icon }); seen.add(name); }
+                });
+              });
+              const top5 = items.sort((a, b) => b.price - a.price).slice(0, 5);
+              if (top5.length === 0) return null;
+              return (
+                <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                  <div className="flex items-center gap-2 mb-3">
+                    {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Trophy size={11} className="text-amber-500" />; })()}
+                    <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
+                      {lang === 'ko' ? '최고가 TOP 5' : 'Most Expensive'}
+                    </span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {top5.map((it, i) => (
+                      <button
+                        key={it.name}
+                        onClick={() => setSettings({ ...settings, [it.field]: it.name })}
+                        className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/5' : 'bg-[#f9fafb] hover:bg-amber-50'}`}
+                        title={lang === 'ko' ? '클릭하여 적용' : 'Click to apply'}
+                      >
+                        <span className={`text-[10px] font-mono font-bold tabular-nums w-4 flex-shrink-0 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{i + 1}</span>
+                        <span className="text-amber-500 flex-shrink-0">{it.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-[10px] font-mono leading-tight truncate ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#374151]'}`}>{it.name}</div>
+                        </div>
+                        <span className={`text-[10px] font-mono font-bold tabular-nums flex-shrink-0 ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>${it.price}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className={`mt-2 text-[8px] font-mono uppercase tracking-widest text-center ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>
+                    {lang === 'ko' ? '* 가격은 추정치' : '* prices approximate'}
+                  </div>
+                </div>
+              );
+            })()}
+          </aside>
         </div>
       </div>
 
@@ -2724,8 +2960,8 @@ export default function App() {
                           </button>
                           {availableNationalities.map(code => {
                             const count = proList.filter(p => p.nationality?.toUpperCase() === code.toUpperCase()).length;
-                            const enName = regionNamesEn?.of(code.toUpperCase()) ?? code;
-                            const koName = regionNamesKo?.of(code.toUpperCase()) ?? code;
+                            const enName = safeRegionName(regionNamesEn, code.toUpperCase()) || code;
+                            const koName = safeRegionName(regionNamesKo, code.toUpperCase()) || code;
                             const displayName = lang === 'ko' ? koName : enName;
                             return (
                               <button
