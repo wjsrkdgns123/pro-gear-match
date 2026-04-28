@@ -160,6 +160,7 @@ export default function App() {
   const [nationalityFilter, setNationalityFilter] = useState<string>('');
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
   const [miniBarSearch, setMiniBarSearch] = useState('');
+  const [mostExpCat, setMostExpCat] = useState<'mouse' | 'keyboard' | 'monitor' | 'mousepad'>('mouse');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPro, setEditingPro] = useState<ProGamer | null>(null);
@@ -931,8 +932,13 @@ export default function App() {
     setLoading(true);
     setError(null);
     setHighlights([]);
+    // Enforce a minimum loading time so the spinner doesn't flash by
+    const minLoadingPromise = new Promise(resolve => setTimeout(resolve, 3000));
     try {
-      const results = await matchProGamer(settings, lang);
+      const [results] = await Promise.all([
+        matchProGamer(settings, lang),
+        minLoadingPromise,
+      ]);
       setMatches(results);
       setSelectedMatchIdx(0);
 
@@ -1386,9 +1392,26 @@ export default function App() {
         {/* Sidebar panels — pre-computed once, used by both left & right columns */}
         {(() => { return null; })()}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_240px] gap-4 lg:gap-5 max-w-7xl mx-auto items-start">
-          {/* ─── LEFT SIDEBAR ─── */}
-          <aside className="space-y-4 order-2 lg:order-1 lg:sticky lg:top-4">
+        <motion.div
+          layout
+          transition={{ type: 'spring', stiffness: 220, damping: 26 }}
+          className={`grid gap-4 lg:gap-5 max-w-7xl mx-auto items-start ${
+            matches && matches.length > 0
+              ? 'grid-cols-1 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]'
+              : 'grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)_240px]'
+          }`}
+        >
+          {/* ─── LEFT SIDEBAR (hidden in match-result mode) ─── */}
+          <AnimatePresence mode="popLayout">
+          {(!matches || matches.length === 0) && (
+          <motion.aside
+            key="left-aside"
+            layout
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -40 }}
+            transition={{ duration: 0.25 }}
+            className="space-y-4 order-2 lg:order-1 lg:sticky lg:top-4">
             {/* Game Statistics (compact) */}
             {gameStats && gameStats.avgEdpi > 0 && (
               <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
@@ -1451,7 +1474,7 @@ export default function App() {
                       {lang === 'ko' ? '결과 없음' : 'No results'}
                     </div>
                   ) : (
-                    <div className="max-h-[260px] overflow-y-auto">
+                    <div className={`max-h-[294px] overflow-y-auto pgm-scroll ${theme === 'light' ? 'pgm-scroll-light' : ''}`}>
                       {candidates.map(({ p, rank }) => {
                         const code = p.nationality?.toLowerCase();
                         const isMedal = rank <= 3;
@@ -1483,13 +1506,16 @@ export default function App() {
                 </div>
               );
             })()}
-          </aside>
+          </motion.aside>
+          )}
+          </AnimatePresence>
 
           {/* ─── CENTER: Input Section ─── */}
           <motion.div
+            layout
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ duration: 0.4 }}
             className={`order-1 lg:order-2 relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl w-full overflow-hidden`}
           >
             {theme === 'dark' && <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />}
@@ -1602,23 +1628,37 @@ export default function App() {
                 <div className={`grid grid-cols-2 gap-4 pt-4 border-t ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'}`}>
                   <label className="block">
                     <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-2 block`}>{t.dpi}</span>
-                    <input 
-                      type="number"
-                      step="100"
-                      value={settings.dpi}
-                      onChange={(e) => setSettings({ ...settings, dpi: Number(e.target.value) })}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="100"
+                        value={settings.dpi}
+                        onChange={(e) => setSettings({ ...settings, dpi: Number(e.target.value) })}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-4 pr-20 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
+                      />
+                      {gameStats && gameStats.avgDpi > 0 && (
+                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                          {lang === 'ko' ? `평균 ${gameStats.avgDpi}` : `avg ${gameStats.avgDpi}`}
+                        </span>
+                      )}
+                    </div>
                   </label>
                   <label className="block">
                     <span className={`text-xs font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-wider mb-2 block`}>{t.sensitivity}</span>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={settings.sensitivity}
-                      onChange={(e) => setSettings({ ...settings, sensitivity: Number(e.target.value) })}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
-                    />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={settings.sensitivity}
+                        onChange={(e) => setSettings({ ...settings, sensitivity: Number(e.target.value) })}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-4 pr-20 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
+                      />
+                      {gameStats && Number(gameStats.avgSens) > 0 && (
+                        <span className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                          {lang === 'ko' ? `평균 ${gameStats.avgSens}` : `avg ${gameStats.avgSens}`}
+                        </span>
+                      )}
+                    </div>
                   </label>
                 </div>
                 <div className="mt-2 flex justify-end items-center gap-2 px-1">
@@ -1653,10 +1693,62 @@ export default function App() {
                 )}
               </motion.button>
             </form>
+
+            {/* Inline loading overlay — only covers the form card */}
+            <AnimatePresence>
+              {loading && !bulkProgress && (
+                <motion.div
+                  key="form-loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={`absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl ${theme === 'dark' ? 'bg-[#0c0c0e]/95' : 'bg-white/95'} backdrop-blur-sm`}
+                >
+                  <div className="relative flex items-center justify-center mb-6" style={{ width: 110, height: 110 }}>
+                    <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
+                    <div className="absolute rounded-full border border-emerald-500/30" style={{ width: 100, height: 100, animation: 'pgm-ring-pulse 2s ease-in-out infinite' }} />
+                    <div className="absolute rounded-full border border-dashed border-emerald-500/15" style={{ width: 82, height: 82 }} />
+                    <img src="/favicon.svg" alt="PGM" style={{ width: 56, height: 56, animation: 'pgm-spin 1.8s linear infinite' }} />
+                  </div>
+                  <p className="text-emerald-500 font-mono text-xs animate-pulse uppercase tracking-[0.3em]">{t.scanning}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Back / Reset button — appears below form when match result is shown */}
+            <AnimatePresence>
+              {matches && matches.length > 0 && (
+                <motion.button
+                  key="reset-under-form"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25, delay: 0.15 }}
+                  onClick={() => { setMatches(null); setHighlights([]); setSelectedMatchIdx(0); }}
+                  className={`mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border font-mono text-xs uppercase tracking-widest transition-colors ${
+                    theme === 'dark'
+                      ? 'bg-[#0a0a0a] border-[#1e1e22] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40'
+                      : 'bg-[#f9fafb] border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'
+                  }`}
+                >
+                  <ArrowLeft size={14} /> {lang === 'ko' ? '입력 화면으로 돌아가기' : 'Back to input'}
+                </motion.button>
+              )}
+            </AnimatePresence>
           </motion.div>
 
-          {/* ─── RIGHT SIDEBAR ─── */}
-          <aside className="space-y-4 order-3 lg:sticky lg:top-4">
+          {/* ─── RIGHT: sidebar OR match-result panel ─── */}
+          <AnimatePresence mode="wait">
+          {(!matches || matches.length === 0) ? (
+          <motion.aside
+            key="right-aside"
+            layout
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 40 }}
+            transition={{ duration: 0.25 }}
+            className="space-y-4 order-3 lg:sticky lg:top-4"
+          >
             {/* Most Popular Gear (per game) */}
             {gameStats && (
               <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
@@ -1690,9 +1782,8 @@ export default function App() {
               </div>
             )}
 
-            {/* Top 5 Most Expensive Gear */}
+            {/* Top Expensive Gear by Category */}
             {(() => {
-              // Approximate USD prices for premium gear (sourced from Amazon MSRP)
               const PRICES: Record<string, number> = {
                 // Mice
                 'Razer Viper V3 Pro': 159, 'Razer DeathAdder V3 Pro': 149, 'Razer Viper V2 Pro': 149,
@@ -1709,55 +1800,123 @@ export default function App() {
                 'Logitech G Pro X TKL': 200, 'Logitech G Pro X 60': 180,
                 'SteelSeries Apex Pro TKL Gen 3': 250, 'SteelSeries Apex Pro Mini': 180,
                 'Keychron Q1': 175, 'Ducky One 3 Mini': 119,
-                // Monitors
+                // Monitors — include common DB name variants (with/without brand prefix, casing)
                 'Asus ROG Swift PG27AQDP': 900, 'Asus ROG Swift OLED PG27AQDP': 900,
                 'LG UltraGear 27GR95QE': 1000, 'Asus ROG Swift PG27AQDM': 1000,
                 'Alienware AW2725DF': 900, 'Samsung Odyssey OLED G6': 900,
                 'BenQ Zowie XL2566K': 600, 'BenQ Zowie XL2746K': 700, 'BenQ Zowie XL2586X': 700,
                 'BenQ Zowie XL2546K': 500, 'BenQ Zowie XL2540': 380,
                 'Asus ROG Swift PG259QN': 700, 'Alienware AW2725Q': 1000,
+                // Variants without "BenQ" prefix and uppercase ZOWIE
+                'Zowie XL2566K': 600, 'ZOWIE XL2566K': 600,
+                'Zowie XL2586X': 700, 'ZOWIE XL2586X': 700,
+                'Zowie XL2546K': 500, 'ZOWIE XL2546K': 500,
+                'Zowie XL2546': 450, 'ZOWIE XL2546': 450,
+                'Zowie XL2540': 380, 'ZOWIE XL2540': 380,
+                'Zowie XL2566': 600, 'ZOWIE XL2566': 600,
+                'Zowie XL2746K': 700, 'ZOWIE XL2746K': 700,
+                // ASUS variants (without "ROG Swift" prefix)
+                'ASUS PG27AQN': 900, 'Asus PG27AQN': 900, 'ROG Swift PG27AQN': 900,
+                'ASUS PG259QN': 700, 'Asus PG259QN': 700,
+                'ASUS PG259QNR': 700, 'Asus PG259QNR': 700,
+                'ASUS PG279QM': 700, 'Asus PG279QM': 700,
+                'ASUS PG27AQDM': 1000, 'Asus PG27AQDM': 1000,
+                // Other common monitors
+                'Alienware AW2524H': 650, 'Alienware AW2524HF': 650,
+                'Alienware AW2723DF': 700,
+                'LG 27GR95QE': 1000, 'LG 27GR75Q': 400, 'LG 27GP850': 380,
+                'Samsung G7': 600, 'Samsung Odyssey G7': 600,
                 // Mousepads
                 'Artisan FX Hayate Otsu': 60, 'Artisan FX Zero': 60, 'Artisan Type-99': 60, 'Artisan Hien': 60,
                 'Lethal Gaming Gear Saturn Pro': 50, 'Lethal Gaming Gear Saturn': 45,
                 'Wallhack SP-004': 65, 'X-raypad Equate Plus': 30,
                 'Logitech G640': 40, 'Razer Gigantus V2': 50, 'SteelSeries QcK Heavy XXL': 40,
               };
-              const seen = new Set<string>();
-              const items: { name: string; price: number; field: 'mouse'|'keyboard'|'monitor'|'mousepad'; icon: React.ReactNode }[] = [];
-              const fields: Array<['mouse'|'keyboard'|'monitor'|'mousepad', React.ReactNode]> = [
-                ['mouse', <Mouse size={11} key="m" />],
-                ['keyboard', <Keyboard size={11} key="k" />],
-                ['monitor', <Monitor size={11} key="mo" />],
-                ['mousepad', <Layers size={11} key="mp" />],
+              type GearField = 'mouse' | 'keyboard' | 'monitor' | 'mousepad';
+              const categories: Array<{ field: GearField; labelKo: string; labelEn: string; icon: React.ReactNode }> = [
+                { field: 'mouse',     labelKo: '마우스',    labelEn: 'Mouse',     icon: <Mouse size={10} /> },
+                { field: 'keyboard',  labelKo: '키보드',    labelEn: 'Keyboard',  icon: <Keyboard size={10} /> },
+                { field: 'monitor',   labelKo: '모니터',    labelEn: 'Monitor',   icon: <Monitor size={10} /> },
+                { field: 'mousepad',  labelKo: '마우스패드', labelEn: 'Mousepad',  icon: <Layers size={10} /> },
               ];
-              proList.forEach(p => {
-                fields.forEach(([f, icon]) => {
-                  const name = (p.gear[f] || '').trim();
+
+              // Build top-5 per category
+              const catData = categories.map(cat => {
+                const seen = new Set<string>();
+                const items: { name: string; price: number }[] = [];
+                proList.forEach(p => {
+                  const name = (p.gear[cat.field] || '').trim();
                   if (!name || seen.has(name)) return;
+                  seen.add(name);
                   const price = PRICES[name];
-                  if (price) { items.push({ name, price, field: f, icon }); seen.add(name); }
+                  if (price) items.push({ name, price });
                 });
-              });
-              const top5 = items.sort((a, b) => b.price - a.price).slice(0, 5);
-              if (top5.length === 0) return null;
+                return { ...cat, top5: items.sort((a, b) => b.price - a.price).slice(0, 5) };
+              }).filter(c => c.top5.length > 0);
+
+              if (catData.length === 0) return null;
+
+              const activeIdx = Math.max(0, catData.findIndex(c => c.field === mostExpCat));
+              const active = catData[activeIdx] || catData[0];
+              const prev = () => setMostExpCat(catData[(activeIdx - 1 + catData.length) % catData.length].field);
+              const next = () => setMostExpCat(catData[(activeIdx + 1) % catData.length].field);
+
               return (
                 <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                   <div className="flex items-center gap-2 mb-3">
                     {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Trophy size={11} className="text-amber-500" />; })()}
                     <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
-                      {lang === 'ko' ? '최고가 TOP 5' : 'Most Expensive'}
+                      {lang === 'ko' ? '카테고리별 최고가' : 'Most Expensive'}
                     </span>
                   </div>
-                  <div className="space-y-1.5">
-                    {top5.map((it, i) => (
+
+                  {/* Category tab strip with prev/next arrows */}
+                  <div className="flex items-center gap-1 mb-2">
+                    <button
+                      onClick={prev}
+                      aria-label="prev"
+                      className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/10 text-[#888] hover:text-amber-400' : 'bg-[#f9fafb] hover:bg-amber-50 text-[#6b7280] hover:text-amber-600'}`}
+                    >
+                      <ChevronLeft size={12} />
+                    </button>
+                    <button
+                      onClick={next}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1 rounded-md transition-colors ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'}`}
+                      title={lang === 'ko' ? '다음 카테고리' : 'Next category'}
+                    >
+                      <span className="text-amber-500">{active.icon}</span>
+                      <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
+                        {lang === 'ko' ? active.labelKo : active.labelEn}
+                      </span>
+                      <span className={`text-[8px] font-mono ${theme === 'dark' ? 'text-amber-500/50' : 'text-amber-600/60'}`}>
+                        {activeIdx + 1}/{catData.length}
+                      </span>
+                    </button>
+                    <button
+                      onClick={next}
+                      aria-label="next"
+                      className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/10 text-[#888] hover:text-amber-400' : 'bg-[#f9fafb] hover:bg-amber-50 text-[#6b7280] hover:text-amber-600'}`}
+                    >
+                      <ChevronRight size={12} />
+                    </button>
+                  </div>
+
+                  {/* Top 5 rows for active category */}
+                  <div className="space-y-1">
+                    {active.top5.map((it, i) => (
                       <button
                         key={it.name}
-                        onClick={() => setSettings({ ...settings, [it.field]: it.name })}
-                        className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/5' : 'bg-[#f9fafb] hover:bg-amber-50'}`}
+                        onClick={() => setSettings({ ...settings, [active.field]: it.name })}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/5' : 'bg-[#f9fafb] hover:bg-amber-50'}`}
                         title={lang === 'ko' ? '클릭하여 적용' : 'Click to apply'}
                       >
-                        <span className={`text-[10px] font-mono font-bold tabular-nums w-4 flex-shrink-0 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{i + 1}</span>
-                        <span className="text-amber-500 flex-shrink-0">{it.icon}</span>
+                        <span className={`text-[9px] font-mono font-bold tabular-nums w-3 flex-shrink-0 ${
+                          i === 0
+                            ? 'text-amber-400'
+                            : i === 1
+                            ? theme === 'dark' ? 'text-[#aaa]' : 'text-[#6b7280]'
+                            : theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'
+                        }`}>{i + 1}</span>
                         <div className="flex-1 min-w-0">
                           <div className={`text-[10px] font-mono leading-tight truncate ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#374151]'}`}>{it.name}</div>
                         </div>
@@ -1765,17 +1924,277 @@ export default function App() {
                       </button>
                     ))}
                   </div>
+
                   <div className={`mt-2 text-[8px] font-mono uppercase tracking-widest text-center ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>
                     {lang === 'ko' ? '* 가격은 추정치' : '* prices approximate'}
                   </div>
                 </div>
               );
             })()}
-          </aside>
-        </div>
+          </motion.aside>
+          ) : (
+            /* ─── INLINE MATCH RESULT PANEL ─── */
+            <motion.div
+              key="match-result"
+              layout
+              initial={{ x: '40%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '40%', opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+              className={`order-3 w-full ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl overflow-hidden shadow-2xl relative`}
+            >
+              {(() => {
+                const m = matches![selectedMatchIdx];
+                const proCode = (PLAYER_NATIONALITIES[m.name] || '').toLowerCase();
+                const userEdpi = settings.dpi * settings.sensitivity;
+                const proEdpi = m.settings.edpi;
+                const edpiDelta = Math.abs(userEdpi - proEdpi);
+                // Heuristic match score: 100% at 0 delta, drops with relative diff
+                const relDiff = Math.min(edpiDelta / Math.max(userEdpi, proEdpi, 1), 1);
+                const scorePct = Math.max(50, Math.round((1 - relDiff) * 100));
+                const userCm = cmPer360(settings.game, settings.dpi, settings.sensitivity);
+                const proCm = cmPer360(settings.game, m.settings.dpi, m.settings.sensitivity);
+                const isPerfect = selectedMatchIdx === 0 && scorePct >= 90;
+
+                // Gear comparison rows
+                const gearRows: Array<{ key: string; label: string; pro: string; user: string; icon: React.ReactNode }> = [
+                  { key: 'mouse',    label: lang === 'ko' ? '마우스'    : 'MOUSE',    pro: m.gear.mouse || m.gear.controller || '', user: settings.mouse,    icon: <Mouse size={11} /> },
+                  { key: 'keyboard', label: lang === 'ko' ? '키보드'    : 'KEYBOARD', pro: m.gear.keyboard || '',                   user: settings.keyboard, icon: <Keyboard size={11} /> },
+                  { key: 'monitor',  label: lang === 'ko' ? '모니터'    : 'MONITOR',  pro: m.gear.monitor || '',                    user: settings.monitor,  icon: <Monitor size={11} /> },
+                  { key: 'mousepad', label: lang === 'ko' ? '마우스패드' : 'MOUSEPAD', pro: m.gear.mousepad || '',                   user: settings.mousepad, icon: <Layers size={11} /> },
+                ].filter(r => r.pro);
+
+                return (
+                  <>
+                    {/* Top accent strip — game color */}
+                    <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${
+                      m.game === 'Valorant' ? 'from-rose-500 via-rose-400 to-rose-600' :
+                      m.game === 'CS2' ? 'from-orange-500 via-orange-400 to-orange-600' :
+                      m.game === 'Overwatch 2' ? 'from-sky-500 via-sky-400 to-sky-600' :
+                      'from-red-600 via-red-500 to-red-700'
+                    }`} />
+
+                    <div className="p-5 lg:p-6 space-y-5">
+                      {/* ─── HEADER: Score chip + Rank meta ─── */}
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest ${
+                          isPerfect
+                            ? 'bg-emerald-500 text-black'
+                            : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40'
+                        }`}>
+                          {isPerfect ? <Trophy size={11} /> : <Zap size={11} />}
+                          {isPerfect ? (lang === 'ko' ? '퍼펙트 매치' : 'PERFECT MATCH') : (lang === 'ko' ? '비슷한 매치' : 'CLOSE MATCH')} · {scorePct}%
+                        </span>
+                        <span className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                          // MATCH.RESULT &nbsp;·&nbsp; RANK #{String(selectedMatchIdx + 1).padStart(2, '0')} OF {matches!.length}
+                        </span>
+                      </div>
+
+                      {/* ─── PLAYER IDENTITY ─── */}
+                      <div className="flex items-start gap-3 flex-wrap">
+                        {proCode && (
+                          <img
+                            src={`https://flagcdn.com/40x30/${proCode}.png`}
+                            srcSet={`https://flagcdn.com/80x60/${proCode}.png 2x`}
+                            width="40" height="30"
+                            alt={m.name}
+                            className="rounded-sm shadow-sm flex-shrink-0 mt-1"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-end gap-3 flex-wrap">
+                            <h2 className={`text-3xl md:text-4xl font-black tracking-tighter leading-none ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+                              {m.name}
+                            </h2>
+                            <a
+                              href={m.profileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-widest border transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'}`}
+                            >
+                              {t.viewProfile} <ExternalLink size={10} />
+                            </a>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1.5 flex-wrap text-[10px] font-mono uppercase tracking-widest">
+                            <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}>TEAM</span>
+                            <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-bold`}>{m.team}</span>
+                            <span className={theme === 'dark' ? 'text-[#333]' : 'text-[#d1d5db]'}>·</span>
+                            <span className={theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}>GAME</span>
+                            <span className={`font-bold ${
+                              m.game === 'Valorant' ? 'text-rose-400' :
+                              m.game === 'CS2' ? 'text-orange-400' :
+                              m.game === 'Overwatch 2' ? 'text-sky-400' :
+                              'text-red-400'
+                            }`}>{m.game}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* ─── STATS ROW ─── */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'}`}>
+                          <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-emerald-300/60' : 'text-emerald-700/60'}`}>{lang === 'ko' ? '매칭 스코어' : 'MATCH SCORE'}</div>
+                          <div className={`text-2xl font-black font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{scorePct}%</div>
+                        </div>
+                        <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                          <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>PRO eDPI</div>
+                          <div className={`text-2xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{formatEdpi(proEdpi)}</div>
+                        </div>
+                        <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                          <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>Δ VS YOU</div>
+                          <div className={`text-2xl font-black font-mono ${edpiDelta < 30 ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600') : 'text-amber-400'}`}>{formatEdpi(edpiDelta)}</div>
+                          <div className={`text-[8px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>eDPI</div>
+                        </div>
+                      </div>
+
+                      {/* ─── HIGHLIGHTS BUTTON ─── */}
+                      <a
+                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(m.name + ' ' + m.game + ' highlights')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100'}`}
+                      >
+                        <Play size={13} fill="currentColor" /> {lang === 'ko' ? '하이라이트' : 'HIGHLIGHTS'}
+                      </a>
+
+                      {/* ─── GEAR COMPARISON TABLE ─── */}
+                      {gearRows.length > 0 && (
+                        <div className={`rounded-xl border overflow-hidden ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
+                          <div className={`grid grid-cols-[80px_1fr_1fr_28px] text-[9px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#555]' : 'bg-[#f9fafb] text-[#6b7280]'}`}>
+                            <div className="px-3 py-2">{lang === 'ko' ? '카테고리' : 'CATEGORY'}</div>
+                            <div className="px-3 py-2">{lang === 'ko' ? '나' : 'YOU'}</div>
+                            <div className="px-3 py-2">PRO</div>
+                            <div className="px-2 py-2 text-center">Δ</div>
+                          </div>
+                          {gearRows.map((row, ri) => {
+                            const userVal = (row.user || '').trim();
+                            const proVal = row.pro.trim();
+                            const same = !!userVal && userVal.toLowerCase() === proVal.toLowerCase();
+                            const empty = !userVal;
+                            const amazonLink = !same ? getAmazonLink(proVal) : null;
+                            const baseClass = `grid grid-cols-[80px_1fr_1fr_28px] items-center text-[10px] font-mono ${
+                              ri > 0 ? (theme === 'dark' ? 'border-t border-[#1e1e22]' : 'border-t border-[#e5e7eb]') : ''
+                            }`;
+                            return (
+                              <div key={row.key} className={baseClass}>
+                                <div className={`flex items-center gap-1.5 px-3 py-2 uppercase tracking-widest text-[9px] font-bold ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>
+                                  <span className="text-emerald-500">{row.icon}</span>
+                                  {row.label}
+                                </div>
+                                {/* YOU (left) */}
+                                <div className={`px-3 py-2 truncate ${
+                                  empty ? (theme === 'dark' ? 'text-[#555] italic' : 'text-[#9ca3af] italic')
+                                        : same ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
+                                        : (theme === 'dark' ? 'text-[#ddd]' : 'text-[#1f2937]')
+                                }`} title={userVal || '—'}>
+                                  {userVal || (lang === 'ko' ? '미입력' : 'not set')}
+                                </div>
+                                {/* PRO (right) — with inline Amazon button when user's gear differs */}
+                                <div className={`px-3 py-2 truncate flex items-center gap-1.5 ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#1f2937]'}`} title={proVal}>
+                                  <span className="truncate flex-1">{proVal}</span>
+                                  {!same && amazonLink && (
+                                    <a
+                                      href={amazonLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      title={lang === 'ko' ? '아마존에서 구매' : 'Buy on Amazon'}
+                                      className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
+                                    >
+                                      <ShoppingCart size={9} /> AMAZON
+                                    </a>
+                                  )}
+                                </div>
+                                <div className={`px-2 py-2 text-center font-bold ${
+                                  same ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
+                                       : empty ? (theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]')
+                                       : (theme === 'dark' ? 'text-amber-400' : 'text-amber-600')
+                                }`}>
+                                  {same ? '✓' : empty ? '—' : '✕'}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* cm/360 readout */}
+                      {userCm && proCm && (
+                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                          <span className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>cm/360°</span>
+                          <div className="flex items-center gap-3 text-[11px] font-mono">
+                            <span className={`${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>YOU <b className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>{formatCmPer360(userCm)}</b></span>
+                            <span className={theme === 'dark' ? 'text-[#333]' : 'text-[#d1d5db]'}>·</span>
+                            <span className={`${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>PRO <b className={theme === 'dark' ? 'text-white' : 'text-[#111]'}>{formatCmPer360(proCm)}</b></span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* eDPI distribution chart */}
+                      <EdpiDistributionChart
+                        proList={proList}
+                        userEdpi={userEdpi}
+                        proEdpi={proEdpi}
+                        proName={m.name}
+                        game={settings.game}
+                        theme={theme}
+                        lang={lang}
+                      />
+
+                      {/* Similar matches scroll list */}
+                      {matches!.length > 1 && (
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className={`text-[9px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}`}>// SIMILAR.MATCHES</span>
+                            <span className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>SCROLL · {selectedMatchIdx + 1} OF {matches!.length}</span>
+                          </div>
+                          <div className={`flex gap-2 overflow-x-auto pgm-scroll ${theme === 'light' ? 'pgm-scroll-light' : ''} pb-2`}>
+                            {matches!.map((sim, i) => {
+                              const simCode = (PLAYER_NATIONALITIES[sim.name] || '').toLowerCase();
+                              const simEdpi = sim.settings.edpi;
+                              const simDelta = Math.abs(userEdpi - simEdpi);
+                              const simRel = Math.min(simDelta / Math.max(userEdpi, simEdpi, 1), 1);
+                              const simScore = Math.max(50, Math.round((1 - simRel) * 100));
+                              const isActive = i === selectedMatchIdx;
+                              return (
+                                <button
+                                  key={sim.id || sim.name}
+                                  onClick={() => { setSlideDir(i > selectedMatchIdx ? 1 : -1); setSelectedMatchIdx(i); }}
+                                  className={`flex-shrink-0 w-32 text-left rounded-xl border p-2.5 transition-all ${
+                                    isActive
+                                      ? (theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/60' : 'bg-emerald-50 border-emerald-400')
+                                      : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22] hover:border-emerald-500/30' : 'bg-white border-[#e5e7eb] hover:border-emerald-300')
+                                  }`}
+                                >
+                                  <div className={`text-[8px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>#{String(i + 1).padStart(2, '0')} {i === 0 ? (lang === 'ko' ? '최적' : 'CLOSEST') : ''}</div>
+                                  <div className="flex items-center gap-1.5 mb-1">
+                                    {simCode && <img src={`https://flagcdn.com/16x12/${simCode}.png`} width="16" height="12" alt="" className="rounded-sm" />}
+                                    <span className={`text-[12px] font-black tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{sim.name}</span>
+                                  </div>
+                                  <div className={`text-[8px] font-mono uppercase tracking-widest truncate ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>{sim.team} · {sim.game.slice(0, 3).toUpperCase()}</div>
+                                  <div className="mt-1.5 flex items-center gap-1.5">
+                                    <span className={`text-[11px] font-black font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{simScore}%</span>
+                                    <div className={`flex-1 h-0.5 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-[#1e1e22]' : 'bg-[#e5e7eb]'}`}>
+                                      <div className="h-full bg-emerald-500" style={{ width: `${simScore}%` }} />
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                );
+              })()}
+            </motion.div>
+          )}
+          </AnimatePresence>
+        </motion.div>
       </div>
 
-      {/* Result Page Overlay */}
+      {/* Result Page Overlay (DEPRECATED — replaced by inline panel above) */}
+      {false && (
       <AnimatePresence>
         {matches && matches.length > 0 && (
           <motion.div 
@@ -2199,10 +2618,11 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      )}
 
-      {/* Loading Overlay */}
+      {/* Full-screen Loading Overlay — only for bulk operations (admin) */}
       <AnimatePresence>
-        {loading && (
+        {loading && bulkProgress && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -2312,7 +2732,7 @@ export default function App() {
         };
 
         return (
-          <div className="max-w-5xl mx-auto mt-16 px-4">
+          <div className="max-w-7xl mx-auto mt-16 px-4 md:px-8">
             <div className="mb-6 flex items-center gap-3">
               <Trophy size={20} className="text-emerald-500" />
               <h2 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
@@ -2427,7 +2847,7 @@ export default function App() {
       {/* Main page comment section — hidden */}
 
       {/* ── Info Tabs (How / eDPI / About) ── */}
-      <div className="max-w-5xl mx-auto mt-20 pb-20 px-4">
+      <div className="max-w-7xl mx-auto mt-20 pb-20 px-4 md:px-8">
         <div className={`rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
           {/* Tab buttons */}
           <div className={`flex border-b ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
@@ -2532,18 +2952,18 @@ export default function App() {
       </div>
 
       {/* Ad Section */}
-      <div className="max-w-4xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
         <GoogleAd />
       </div>
 
       {/* Footer */}
-      <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4`}>
+      <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4 md:px-8`}>
         {/* Amazon Associates Disclosure */}
-        <div className={`max-w-4xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#1e1e22]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
+        <div className={`max-w-7xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#1e1e22]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
           <span className={`${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'} font-semibold`}>Amazon Associates</span>
           {' '}— {t.affiliateDisclosure}
         </div>
-        <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-center md:text-left">
             <h3 className={`text-xl font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} tracking-tighter uppercase mb-2`}>Pro Gear Match</h3>
             <p className={`${theme === 'dark' ? 'text-[#555]' : 'text-[#6b7280]'} text-xs font-mono uppercase tracking-widest`}>{t.footerRights}</p>
@@ -2941,8 +3361,8 @@ export default function App() {
                           onClick={() => setShowNationalityDropdown(false)}
                         />
                         <div
-                          className={`absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto rounded-lg border shadow-xl z-50 ${
-                            theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'
+                          className={`absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto pgm-scroll rounded-lg border shadow-xl z-50 ${
+                            theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb] pgm-scroll-light'
                           }`}
                         >
                           <button
@@ -3046,7 +3466,7 @@ export default function App() {
               })()}
 
               {/* Modal Body - Table */}
-              <div className={`flex-1 overflow-auto ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-[#f8f9fa]'}`}>
+              <div className={`flex-1 overflow-auto pgm-scroll ${theme === 'light' ? 'pgm-scroll-light bg-[#f8f9fa]' : 'bg-[#0a0a0a]'}`}>
                 {listLoading ? (
                   <div className="h-64 flex flex-col items-center justify-center gap-4">
                     <Loader2 size={48} className="text-emerald-500 animate-spin" />

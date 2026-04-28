@@ -37,6 +37,51 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Loading spinner keyframes (used by both inline + bulk overlays) ───────── */
+@keyframes pgm-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pgm-ring-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 0.7; transform: scale(1.06); }
+}
+
+/* ── Themed thin scrollbar (matches site palette) ──────────────────────────── */
+.pgm-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16,185,129,0.35) transparent;
+}
+.pgm-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.pgm-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.pgm-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(16,185,129,0.30);
+  border-radius: 999px;
+  transition: background-color 0.2s var(--pgm-ease);
+}
+.pgm-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(16,185,129,0.55);
+}
+.pgm-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Light-theme variant — softer slate tone */
+.pgm-scroll-light {
+  scrollbar-color: rgba(100,116,139,0.40) transparent;
+}
+.pgm-scroll-light::-webkit-scrollbar-thumb {
+  background-color: rgba(100,116,139,0.35);
+}
+.pgm-scroll-light::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100,116,139,0.60);
+}
+
 /* ── Primary CTA shimmer sweep on hover ────────────────────────────────────── */
 .pgm-btn-shimmer {
   position: relative;
