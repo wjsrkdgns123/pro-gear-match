@@ -37,6 +37,22 @@ html {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Soft-edge corners ──────────────────────────────────────────────────────
+   We deliberately use rounded-none site-wide for the angular cyber look, but
+   pure 0px corners read as harsh / pixel-aliased. Add a tiny radius and a
+   subtle inset highlight so the corners feel laser-cut rather than jagged.
+*/
+.rounded-none {
+  border-radius: 0;
+  /* Hair-thin outline — 0.5px line at very low opacity so adjacent panels
+     are barely distinguishable without reading as a hard border. */
+  border-width: 0.5px !important;
+  border-color: rgb(from currentColor r g b / 0.05) !important;
+}
+@supports not (color: rgb(from white r g b / 1)) {
+  .rounded-none { border-color: rgba(128, 128, 128, 0.08) !important; }
+}
+
 /* ── Loading spinner keyframes (used by both inline + bulk overlays) ───────── */
 @keyframes pgm-spin {
   from { transform: rotate(0deg); }

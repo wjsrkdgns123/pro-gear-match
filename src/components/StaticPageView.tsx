@@ -50,7 +50,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
                 { game: 'Overwatch 2', range: '1200 – 2800', note: isKo ? '히어로별 차이 큼' : 'Varies widely by hero', color: 'text-sky-400' },
                 { game: 'Apex Legends', range: '800 – 1800', note: isKo ? '중~높은 감도 경향' : 'Mid-to-high sensitivity tendency', color: 'text-red-400' },
               ].map(g => (
-                <div key={g.game} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-xl ${isDark ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                <div key={g.game} className={`flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 rounded-none ${isDark ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
                   <span className={`font-bold text-sm ${isDark ? 'text-[#bbb]' : 'text-[#374151]'}`}>{g.game}</span>
                   <div className="flex items-center gap-3">
                     <span className={`font-mono font-bold text-sm ${g.color}`}>{g.range}</span>
@@ -97,7 +97,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
                 { game: 'Overwatch 2', emoji: '🛡️', note: isKo ? '히어로 FPS' : 'Hero FPS' },
                 { game: 'Apex Legends', emoji: '🏃', note: isKo ? '배틀로얄 FPS' : 'Battle Royale FPS' },
               ].map(g => (
-                <div key={g.game} className={`flex items-center gap-3 p-3 rounded-xl ${isDark ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                <div key={g.game} className={`flex items-center gap-3 p-3 rounded-none ${isDark ? 'bg-[#111] border border-[#1e1e1e]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
                   <span className="text-xl">{g.emoji}</span>
                   <div>
                     <p className={`text-sm font-bold ${isDark ? 'text-[#ddd]' : 'text-[#111]'}`}>{g.game}</p>
@@ -305,7 +305,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
               <button
                 key={p.key}
                 onClick={() => onNavigate(p.key)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                className={`px-3 py-1.5 rounded-none text-[10px] font-mono uppercase tracking-widest transition-colors ${
                   page === p.key
                     ? isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600'
                     : isDark ? 'text-[#555] hover:text-[#888]' : 'text-[#9ca3af] hover:text-[#6b7280]'
@@ -330,7 +330,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
 
       <div className="max-w-5xl mx-auto px-6 py-14 space-y-6">
         {content.sections.map((section, i) => (
-          <div key={i} className={`p-6 md:p-8 rounded-2xl border ${isDark ? 'bg-[#0c0c0e] border-[#1a1a1e]' : 'bg-white border-[#e5e7eb]'}`}>
+          <div key={i} className={`p-6 md:p-8 rounded-none border ${isDark ? 'bg-[#0c0c0e] border-[#1a1a1e]' : 'bg-white border-[#e5e7eb]'}`}>
             <h2 className={`text-sm font-black uppercase tracking-widest mb-4 pb-3 border-b ${isDark ? 'text-emerald-400 border-[#1e1e22]' : 'text-emerald-600 border-[#f3f4f6]'}`}>
               {section.heading}
             </h2>
@@ -349,7 +349,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
         <div className="pt-4 flex flex-wrap gap-3">
           <button
             onClick={() => onNavigate('home')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-black font-black uppercase tracking-widest text-xs rounded-none transition-colors"
           >
             <ArrowLeft size={12} /> {isKo ? '홈으로 돌아가기' : 'Back to Home'}
           </button>
@@ -357,7 +357,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
             <button
               key={p.key}
               onClick={() => onNavigate(p.key)}
-              className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-bold uppercase tracking-widest transition-colors border ${isDark ? 'border-[#222] text-[#555] hover:text-emerald-400 hover:border-emerald-500/40' : 'border-[#e5e7eb] text-[#9ca3af] hover:text-emerald-600 hover:border-emerald-300'}`}
+              className={`inline-flex items-center gap-2 px-5 py-3 rounded-none text-xs font-bold uppercase tracking-widest transition-colors border ${isDark ? 'border-[#222] text-[#555] hover:text-emerald-400 hover:border-emerald-500/40' : 'border-[#e5e7eb] text-[#9ca3af] hover:text-emerald-600 hover:border-emerald-300'}`}
             >{p.label}</button>
           ))}
         </div>
@@ -365,7 +365,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
 
       <footer className={`border-t ${isDark ? 'border-[#111] bg-[#080808]' : 'border-[#e5e7eb] bg-[#f8f9fa]'} py-10 px-6`}>
         <div className="max-w-5xl mx-auto">
-          <div className={`mb-6 p-3 rounded-xl text-center text-[11px] ${isDark ? 'bg-[#0d0d0d] border border-[#1a1a1a] text-[#555]' : 'bg-[#f0fdf4] border border-[#d1fae5] text-[#6b7280]'}`}>
+          <div className={`mb-6 p-3 rounded-none text-center text-[11px] ${isDark ? 'bg-[#0d0d0d] border border-[#1a1a1a] text-[#555]' : 'bg-[#f0fdf4] border border-[#d1fae5] text-[#6b7280]'}`}>
             <span className={isDark ? 'text-emerald-500 font-semibold' : 'text-emerald-600 font-semibold'}>Amazon Associates</span>
             {' '}{isKo ? '— 이 사이트는 Amazon 제휴 링크를 포함하며, 구매 시 수수료가 발생할 수 있습니다.' : '— This site contains Amazon affiliate links. We may earn a commission on qualifying purchases.'}
           </div>
@@ -383,7 +383,7 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
                 <button
                   key={p.key}
                   onClick={() => onNavigate(p.key)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                  className={`px-3 py-1.5 rounded-none text-[10px] font-mono uppercase tracking-widest transition-colors ${
                     page === p.key
                       ? isDark ? 'text-emerald-400' : 'text-emerald-600'
                       : isDark ? 'text-[#444] hover:text-[#888]' : 'text-[#9ca3af] hover:text-[#6b7280]'

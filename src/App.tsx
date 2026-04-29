@@ -27,6 +27,7 @@ import { cmPer360, formatCmPer360 } from './utils/sensitivity';
 import { GAMES, GAME_COLORS } from './constants/games';
 import { ScrollFade } from './components/ScrollFade';
 import { GoogleAd } from './components/GoogleAd';
+import { HeaderSearch } from './components/HeaderSearch';
 import { InputGroup } from './components/InputGroup';
 import { StatBlock } from './components/StatBlock';
 import { ProGearItem } from './components/ProGearItem';
@@ -933,7 +934,7 @@ export default function App() {
     setError(null);
     setHighlights([]);
     // Enforce a minimum loading time so the spinner doesn't flash by
-    const minLoadingPromise = new Promise(resolve => setTimeout(resolve, 3000));
+    const minLoadingPromise = new Promise(resolve => setTimeout(resolve, 2000));
     try {
       const [results] = await Promise.all([
         matchProGamer(settings, lang),
@@ -1111,7 +1112,7 @@ export default function App() {
           {/* Logo (unchanged) */}
           <div className="flex items-center gap-3">
             <div className="relative">
-              {theme === 'dark' && <div className="absolute inset-0 bg-emerald-500/25 rounded-lg blur-md" />}
+              {theme === 'dark' && <div className="absolute inset-0 bg-emerald-500/25 rounded-none blur-md" />}
               <img src="/favicon.svg" alt="PGM" referrerPolicy="no-referrer" className="relative w-8 h-8" />
             </div>
             <div className="hidden sm:block">
@@ -1120,52 +1121,29 @@ export default function App() {
             </div>
           </div>
 
-          {/* Center menu */}
-          <div className="hidden md:flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest">
-            {([
-              { key: 'home', label: 'Home', onClick: () => navigate('home') },
-              { key: 'how', label: lang === 'ko' ? '작동 방식' : 'How It Works', onClick: () => navigate('how-it-works') },
-              { key: 'about', label: lang === 'ko' ? '소개' : 'About', onClick: () => navigate('about') },
-              { key: 'privacy', label: 'Privacy', onClick: () => navigate('privacy') },
-              { key: 'terms', label: 'Terms', onClick: () => navigate('terms') },
-              { key: 'affiliate', label: lang === 'ko' ? '제휴' : 'Affiliate', onClick: () => navigate('affiliate') },
-            ]).map(item => {
-              const active = item.key === 'home';
-              return (
-                <button
-                  key={item.key}
-                  onClick={item.onClick}
-                  className={`px-3 py-1.5 rounded-md transition-colors ${
-                    active
-                      ? (theme === 'dark' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-emerald-50 text-emerald-600')
-                      : (theme === 'dark' ? 'text-[#666] hover:text-emerald-400' : 'text-[#6b7280] hover:text-emerald-600')
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
+          {/* Center: Pro Gamer global search */}
+          <HeaderSearch allProList={allProList} lang={lang} theme={theme} />
+
 
           {/* Right icons */}
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => fetchProList()}
-              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
+              className={`p-2 rounded-none transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
               title={t.proList}
             >
               <Users size={14} />
             </button>
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600'}`}
+              className={`p-2 rounded-none transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600'}`}
               title={lang === 'ko' ? '테마 전환' : 'Toggle theme'}
             >
               {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
             </button>
             <button
               onClick={toggleLanguage}
-              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600'}`}
+              className={`p-2 rounded-none transition-colors ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#777] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600'}`}
               title={t.toggleLanguage}
             >
               <Languages size={14} />
@@ -1173,14 +1151,14 @@ export default function App() {
             {user?.email === ADMIN_EMAIL ? (
               <button
                 onClick={() => setShowAddModal(true)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#aaa] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-none text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#aaa] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
               >
                 <LogIn size={12} /> Admin
               </button>
             ) : user ? (
               <button
                 onClick={handleLogout}
-                className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-100 text-red-500 hover:bg-red-100'}`}
+                className={`p-2 rounded-none transition-colors ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border border-red-100 text-red-500 hover:bg-red-100'}`}
                 title={user.email || ''}
               >
                 <LogOut size={14} />
@@ -1188,7 +1166,7 @@ export default function App() {
             ) : (
               <button
                 onClick={handleLogin}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#aaa] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-none text-[10px] font-bold uppercase tracking-widest transition-all ${theme === 'dark' ? 'bg-white/[0.04] border border-white/[0.08] text-[#aaa] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border border-[#e5e7eb] text-[#374151] hover:text-emerald-600 hover:border-emerald-400'}`}
               >
                 <LogIn size={12} /> Admin
               </button>
@@ -1218,21 +1196,6 @@ export default function App() {
               />
             </div>
           )}
-          {/* Status chip */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.08, duration: 0.4 }}
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-mono uppercase tracking-[0.25em] mb-10 ${theme === 'dark' ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-            <span>System Online</span>
-            <span className={theme === 'dark' ? 'text-emerald-600' : 'text-emerald-400'}>·</span>
-            <span>v.2026.04</span>
-            <span className={theme === 'dark' ? 'text-emerald-600' : 'text-emerald-400'}>·</span>
-            <span>4 Games Tracked</span>
-          </motion.div>
-
           {/* Two-column hero */}
           <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-8 lg:gap-12 items-end" style={{ zIndex: 1 }}>
             {/* Headline + description */}
@@ -1277,33 +1240,48 @@ export default function App() {
                 className={`mt-8 max-w-md text-sm md:text-base leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}
               >
                 {lang === 'ko' ? (
-                  <>eDPI 알고리즘으로 당신의 설정과 가장 닮은 프로게이머를 1초 안에 찾아드립니다. 입력은 <strong className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>DPI · 인게임 감도</strong> 두 가지면 충분합니다.</>
+                  <>
+                    <span className={`block text-[10px] font-mono uppercase tracking-[0.3em] mb-2 ${theme === 'dark' ? 'text-emerald-500/60' : 'text-emerald-600/70'}`}>
+                      / MATCH.ENGINE
+                    </span>
+                    당신의 설정과 가장{' '}
+                    <strong className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>
+                      닮은 프로게이머
+                    </strong>
+                    를 찾아드립니다.
+                  </>
                 ) : (
-                  <>Find the pro gamer whose setup matches yours in under a second using our eDPI algorithm. All you need is your <strong className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>DPI and in-game sensitivity</strong>.</>
+                  <>
+                    <span className={`block text-[10px] font-mono uppercase tracking-[0.3em] mb-2 ${theme === 'dark' ? 'text-emerald-500/60' : 'text-emerald-600/70'}`}>
+                      / MATCH.ENGINE
+                    </span>
+                    Find the pro gamer whose setup{' '}
+                    <strong className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>
+                      mirrors yours
+                    </strong>
+                    .
+                  </>
                 )}
               </motion.p>
             </div>
 
-            {/* Stats card */}
+            {/* Stats — minimal inline meta, no card frame */}
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35, duration: 0.4 }}
-              className={`grid grid-cols-2 lg:flex lg:flex-col gap-0 rounded-2xl border shadow-2xl ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} overflow-hidden`}
+              className="flex items-center gap-6 lg:gap-8 self-end"
             >
-              <div className={`grid grid-cols-2 ${theme === 'dark' ? 'divide-[#1e1e22]' : 'divide-[#e5e7eb]'} divide-x`}>
-                {/* Pros indexed */}
-                <div className="p-4 lg:p-5">
-                  <div className={`text-[9px] font-mono uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '프로 인덱스' : 'Pros Indexed'}</div>
-                  <div className={`text-3xl font-black tabular-nums ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{totalProCount || '—'}</div>
-                  <div className={`text-[9px] font-mono mt-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '4개 게임 통합' : 'across 4 games'}</div>
-                </div>
-                {/* Games covered */}
-                <div className="p-4 lg:p-5">
-                  <div className={`text-[9px] font-mono uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '지원 게임' : 'Games Covered'}</div>
-                  <div className={`text-3xl font-black tabular-nums ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>04</div>
-                  <div className={`text-[9px] font-mono mt-2 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>VAL · CS2 · OW2 · APEX</div>
-                </div>
+              {/* Pros indexed */}
+              <div className="flex flex-col">
+                <span className={`text-[8px] font-mono uppercase tracking-[0.25em] ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '프로' : 'Pros'}</span>
+                <span className={`text-base font-bold tabular-nums leading-tight ${theme === 'dark' ? 'text-emerald-400/80' : 'text-emerald-600'}`}>{totalProCount || '—'}</span>
+              </div>
+              <span className={theme === 'dark' ? 'text-[#222]' : 'text-[#e5e7eb]'}>·</span>
+              {/* Games covered */}
+              <div className="flex flex-col">
+                <span className={`text-[8px] font-mono uppercase tracking-[0.25em] ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '게임' : 'Games'}</span>
+                <span className={`text-base font-bold tabular-nums leading-tight ${theme === 'dark' ? 'text-[#888]' : 'text-[#1f2937]'}`}>4</span>
               </div>
             </motion.div>
           </div>
@@ -1332,7 +1310,7 @@ export default function App() {
               exit={{ opacity: 0, height: 0 }}
               className="mb-8 overflow-hidden"
             >
-              <div className={`${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-6`}>
+              <div className={`${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-none p-6`}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className={`text-sm font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} flex items-center gap-2`}>
                     <FileSpreadsheet size={16} /> {t.excelStatus}
@@ -1356,14 +1334,14 @@ export default function App() {
                       <CheckCircle2 size={14} /> {t.excelSuccess}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                      <div className={`p-3 rounded-xl border ${excelStatus.proFound ? (theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/5 border-emerald-600/30 text-emerald-600') : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]')}`}>
+                      <div className={`p-3 rounded-none border ${excelStatus.proFound ? (theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/5 border-emerald-600/30 text-emerald-600') : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]')}`}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] uppercase tracking-widest">Players</span>
                           <Users size={12} />
                         </div>
                         <p className="text-xs font-bold">{excelStatus.proFound ? t.excelProFound : t.excelNoProFound}</p>
                       </div>
-                      <div className={`p-3 rounded-xl border ${excelStatus.photoFound ? (theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/5 border-emerald-600/30 text-emerald-600') : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]')}`}>
+                      <div className={`p-3 rounded-none border ${excelStatus.photoFound ? (theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/5 border-emerald-600/30 text-emerald-600') : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]')}`}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-[10px] uppercase tracking-widest">Photos</span>
                           <Monitor size={12} />
@@ -1376,7 +1354,7 @@ export default function App() {
                         <a 
                           href="/valorant_pros.csv" 
                           download="valorant_pros.csv"
-                          className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors"
+                          className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-500 text-black rounded-none font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-colors"
                         >
                           <FileSpreadsheet size={16} /> {t.downloadExtracted}
                         </a>
@@ -1414,7 +1392,7 @@ export default function App() {
             className="space-y-4 order-2 lg:order-1 lg:sticky lg:top-4">
             {/* Game Statistics (compact) */}
             {gameStats && gameStats.avgEdpi > 0 && (
-              <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+              <div className={`p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : null; })()}
@@ -1424,7 +1402,7 @@ export default function App() {
                     <Users size={9} /> {proList.length}
                   </span>
                 </div>
-                <div className={`text-center p-3 rounded-lg ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-[#f9fafb]'}`}>
+                <div className={`text-center p-3 rounded-none ${theme === 'dark' ? 'bg-[#0a0a0a]' : 'bg-[#f9fafb]'}`}>
                   <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{lang === 'ko' ? '평균 eDPI' : 'AVG eDPI'}</div>
                   <div className={`text-2xl font-black tabular-nums ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{gameStats.avgEdpi}</div>
                   <div className={`text-[10px] font-mono mt-1 ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
@@ -1451,7 +1429,7 @@ export default function App() {
                 .sort((a, b) => b.p.settings.edpi - a.p.settings.edpi)
                 .map((x, i) => ({ ...x, rank: i + 1 }));
               return (
-                <div className={`rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                <div className={`rounded-none border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                   <div className={`flex items-center gap-2 px-3 py-2.5 border-b ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
                     {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Trophy size={11} className="text-emerald-500" />; })()}
                     <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{lang === 'ko' ? '감도 순위' : 'Sens Rank'}</span>
@@ -1465,7 +1443,7 @@ export default function App() {
                         value={miniBarSearch}
                         onChange={e => setMiniBarSearch(e.target.value)}
                         placeholder={lang === 'ko' ? '검색' : 'Search'}
-                        className={`w-full ${theme === 'dark' ? 'bg-[#050507] border-[#1e1e22] text-[#ddd] placeholder:text-[#555]' : 'bg-[#f9fafb] border-[#e5e7eb] text-[#111] placeholder:text-[#9ca3af]'} border rounded pl-6 pr-2 py-1 text-[10px] font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500/60' : 'focus:border-emerald-500'}`}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#050507] border-[#1e1e22] text-[#ddd] placeholder:text-[#555]' : 'bg-[#f9fafb] border-[#e5e7eb] text-[#111] placeholder:text-[#9ca3af]'} border rounded-none pl-6 pr-2 py-1 text-[10px] font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500/60' : 'focus:border-emerald-500'}`}
                       />
                     </div>
                   </div>
@@ -1492,9 +1470,9 @@ export default function App() {
                               {String(rank).padStart(2, '0')}
                             </span>
                             {code ? (
-                              <img src={`https://flagcdn.com/20x15/${code}.png`} srcSet={`https://flagcdn.com/40x30/${code}.png 2x`} alt={p.nationality} className="w-3.5 h-2.5 object-cover rounded-sm flex-shrink-0" />
+                              <img src={`https://flagcdn.com/20x15/${code}.png`} srcSet={`https://flagcdn.com/40x30/${code}.png 2x`} alt={p.nationality} className="w-3.5 h-2.5 object-cover rounded-none flex-shrink-0" />
                             ) : (
-                              <span className={`w-3.5 h-2.5 rounded-sm flex-shrink-0 ${theme === 'dark' ? 'bg-[#1e1e22]' : 'bg-[#e5e7eb]'}`} />
+                              <span className={`w-3.5 h-2.5 rounded-none flex-shrink-0 ${theme === 'dark' ? 'bg-[#1e1e22]' : 'bg-[#e5e7eb]'}`} />
                             )}
                             <span className={`text-[11px] font-bold truncate flex-1 min-w-0 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{p.name}</span>
                             <span className={`text-[10px] font-mono font-bold tabular-nums flex-shrink-0 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{formatEdpi(p.settings.edpi)}</span>
@@ -1516,7 +1494,7 @@ export default function App() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className={`order-1 lg:order-2 relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl p-6 md:p-8 shadow-2xl w-full overflow-hidden`}
+            className={`order-1 lg:order-2 relative ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-none p-6 md:p-8 shadow-2xl w-full overflow-hidden`}
           >
             {theme === 'dark' && <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent pointer-events-none" />}
             <form id="match-form" onSubmit={handleMatch} className="space-y-6">
@@ -1540,7 +1518,7 @@ export default function App() {
                           type="button"
                           onClick={() => setSettings({ ...settings, game: game.name })}
                           style={{ width: '100%', height: '90px', ...(isActive ? { boxShadow: `0 0 0 1.5px ${glow}` } : {}) }}
-                          className={`relative group rounded-2xl border transition-all duration-300 ${
+                          className={`relative group rounded-none border transition-all duration-300 ${
                             isActive
                               ? `${colors.bg} border-transparent ${colors.text}`
                               : (theme === 'dark'
@@ -1634,7 +1612,7 @@ export default function App() {
                         step="100"
                         value={settings.dpi}
                         onChange={(e) => setSettings({ ...settings, dpi: Number(e.target.value) })}
-                        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-4 pr-20 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none pl-4 pr-20 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
                       />
                       {gameStats && gameStats.avgDpi > 0 && (
                         <span className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
@@ -1651,7 +1629,7 @@ export default function App() {
                         step="0.1"
                         value={settings.sensitivity}
                         onChange={(e) => setSettings({ ...settings, sensitivity: Number(e.target.value) })}
-                        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-4 pr-20 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none pl-4 pr-20 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'}`}
                       />
                       {gameStats && Number(gameStats.avgSens) > 0 && (
                         <span className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
@@ -1671,7 +1649,7 @@ export default function App() {
               <motion.button
                 type="submit"
                 disabled={loading}
-                className={`w-full relative overflow-hidden font-black py-4 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 uppercase tracking-widest text-sm ${
+                className={`w-full relative overflow-hidden font-black py-4 rounded-none transition-all duration-200 flex items-center justify-center gap-2 uppercase tracking-widest text-sm ${
                   loading
                     ? (theme === 'dark' ? 'bg-[#141416] text-[#333] cursor-not-allowed' : 'bg-[#f3f4f6] text-[#9ca3af] cursor-not-allowed')
                     : 'bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40'
@@ -1702,7 +1680,7 @@ export default function App() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className={`absolute inset-0 z-10 flex flex-col items-center justify-center rounded-3xl ${theme === 'dark' ? 'bg-[#0c0c0e]/95' : 'bg-white/95'} backdrop-blur-sm`}
+                  className={`absolute inset-0 z-10 flex flex-col items-center justify-center rounded-none ${theme === 'dark' ? 'bg-[#0c0c0e]/95' : 'bg-white/95'} backdrop-blur-sm`}
                 >
                   <div className="relative flex items-center justify-center mb-6" style={{ width: 110, height: 110 }}>
                     <div className="absolute inset-0 rounded-full" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, transparent 70%)' }} />
@@ -1725,7 +1703,7 @@ export default function App() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.25, delay: 0.15 }}
                   onClick={() => { setMatches(null); setHighlights([]); setSelectedMatchIdx(0); }}
-                  className={`mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-2xl border font-mono text-xs uppercase tracking-widest transition-colors ${
+                  className={`mt-6 flex items-center justify-center gap-2 w-full py-3 rounded-none border font-mono text-xs uppercase tracking-widest transition-colors ${
                     theme === 'dark'
                       ? 'bg-[#0a0a0a] border-[#1e1e22] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40'
                       : 'bg-[#f9fafb] border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'
@@ -1751,7 +1729,7 @@ export default function App() {
           >
             {/* Most Popular Gear (per game) */}
             {gameStats && (
-              <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+              <div className={`p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                 <div className="flex items-center gap-2 mb-3">
                   {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Flame size={11} className="text-emerald-500" />; })()}
                   <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
@@ -1768,7 +1746,7 @@ export default function App() {
                     <button
                       key={g.field}
                       onClick={() => setSettings({ ...settings, [g.field]: g.value })}
-                      className={`w-full flex items-start gap-2 p-2 rounded-lg text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-emerald-500/10 hover:ring-1 hover:ring-emerald-500/30' : 'bg-[#f9fafb] hover:bg-emerald-50 hover:ring-1 hover:ring-emerald-200'}`}
+                      className={`w-full flex items-start gap-2 p-2 rounded-none text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-emerald-500/10 hover:ring-1 hover:ring-emerald-500/30' : 'bg-[#f9fafb] hover:bg-emerald-50 hover:ring-1 hover:ring-emerald-200'}`}
                       title={lang === 'ko' ? '클릭하여 적용' : 'Click to apply'}
                     >
                       <span className="text-emerald-500 mt-0.5">{g.icon}</span>
@@ -1862,7 +1840,7 @@ export default function App() {
               const next = () => setMostExpCat(catData[(activeIdx + 1) % catData.length].field);
 
               return (
-                <div className={`p-4 rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                <div className={`p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                   <div className="flex items-center gap-2 mb-3">
                     {(() => { const g = GAMES.find(g => g.name === settings.game); return g ? <img src={g.logo} alt={g.name} className={`object-contain ${g.name === 'CS2' ? 'w-6 h-6' : 'w-4 h-4'}`} /> : <Trophy size={11} className="text-amber-500" />; })()}
                     <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'}`}>
@@ -1875,13 +1853,13 @@ export default function App() {
                     <button
                       onClick={prev}
                       aria-label="prev"
-                      className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/10 text-[#888] hover:text-amber-400' : 'bg-[#f9fafb] hover:bg-amber-50 text-[#6b7280] hover:text-amber-600'}`}
+                      className={`flex items-center justify-center w-6 h-6 rounded-none transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/10 text-[#888] hover:text-amber-400' : 'bg-[#f9fafb] hover:bg-amber-50 text-[#6b7280] hover:text-amber-600'}`}
                     >
                       <ChevronLeft size={12} />
                     </button>
                     <button
                       onClick={next}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1 rounded-md transition-colors ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'}`}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1 rounded-none transition-colors ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'}`}
                       title={lang === 'ko' ? '다음 카테고리' : 'Next category'}
                     >
                       <span className="text-amber-500">{active.icon}</span>
@@ -1895,7 +1873,7 @@ export default function App() {
                     <button
                       onClick={next}
                       aria-label="next"
-                      className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/10 text-[#888] hover:text-amber-400' : 'bg-[#f9fafb] hover:bg-amber-50 text-[#6b7280] hover:text-amber-600'}`}
+                      className={`flex items-center justify-center w-6 h-6 rounded-none transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/10 text-[#888] hover:text-amber-400' : 'bg-[#f9fafb] hover:bg-amber-50 text-[#6b7280] hover:text-amber-600'}`}
                     >
                       <ChevronRight size={12} />
                     </button>
@@ -1907,7 +1885,7 @@ export default function App() {
                       <button
                         key={it.name}
                         onClick={() => setSettings({ ...settings, [active.field]: it.name })}
-                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/5' : 'bg-[#f9fafb] hover:bg-amber-50'}`}
+                        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-none text-left transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] hover:bg-amber-500/5' : 'bg-[#f9fafb] hover:bg-amber-50'}`}
                         title={lang === 'ko' ? '클릭하여 적용' : 'Click to apply'}
                       >
                         <span className={`text-[9px] font-mono font-bold tabular-nums w-3 flex-shrink-0 ${
@@ -1941,7 +1919,7 @@ export default function App() {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: '40%', opacity: 0 }}
               transition={{ type: 'spring', stiffness: 220, damping: 28 }}
-              className={`order-3 w-full ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-3xl overflow-hidden shadow-2xl relative`}
+              className={`order-3 w-full ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-none overflow-hidden shadow-2xl relative`}
             >
               {(() => {
                 const m = matches![selectedMatchIdx];
@@ -1977,7 +1955,7 @@ export default function App() {
                     <div className="p-5 lg:p-6 space-y-5">
                       {/* ─── HEADER: Score chip + Rank meta ─── */}
                       <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-widest ${
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest ${
                           isPerfect
                             ? 'bg-emerald-500 text-black'
                             : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/40'
@@ -1998,7 +1976,7 @@ export default function App() {
                             srcSet={`https://flagcdn.com/80x60/${proCode}.png 2x`}
                             width="40" height="30"
                             alt={m.name}
-                            className="rounded-sm shadow-sm flex-shrink-0 mt-1"
+                            className="rounded-none shadow-sm flex-shrink-0 mt-1"
                           />
                         )}
                         <div className="flex-1 min-w-0">
@@ -2010,7 +1988,7 @@ export default function App() {
                               href={m.profileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-widest border transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'}`}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[10px] font-mono uppercase tracking-widest border transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'}`}
                             >
                               {t.viewProfile} <ExternalLink size={10} />
                             </a>
@@ -2032,15 +2010,15 @@ export default function App() {
 
                       {/* ─── STATS ROW ─── */}
                       <div className="grid grid-cols-3 gap-2">
-                        <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'}`}>
+                        <div className={`p-3 rounded-none border ${theme === 'dark' ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-emerald-50 border-emerald-200'}`}>
                           <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-emerald-300/60' : 'text-emerald-700/60'}`}>{lang === 'ko' ? '매칭 스코어' : 'MATCH SCORE'}</div>
                           <div className={`text-2xl font-black font-mono ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{scorePct}%</div>
                         </div>
-                        <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                        <div className={`p-3 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
                           <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>PRO eDPI</div>
                           <div className={`text-2xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{formatEdpi(proEdpi)}</div>
                         </div>
-                        <div className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                        <div className={`p-3 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
                           <div className={`text-[9px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>Δ VS YOU</div>
                           <div className={`text-2xl font-black font-mono ${edpiDelta < 30 ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600') : 'text-amber-400'}`}>{formatEdpi(edpiDelta)}</div>
                           <div className={`text-[8px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#444]' : 'text-[#9ca3af]'}`}>eDPI</div>
@@ -2052,14 +2030,14 @@ export default function App() {
                         href={`https://www.youtube.com/results?search_query=${encodeURIComponent(m.name + ' ' + m.game + ' highlights')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100'}`}
+                        className={`w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-none text-[11px] font-bold uppercase tracking-widest transition-colors ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100'}`}
                       >
                         <Play size={13} fill="currentColor" /> {lang === 'ko' ? '하이라이트' : 'HIGHLIGHTS'}
                       </a>
 
                       {/* ─── GEAR COMPARISON TABLE ─── */}
                       {gearRows.length > 0 && (
-                        <div className={`rounded-xl border overflow-hidden ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
+                        <div className={`rounded-none border overflow-hidden ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
                           <div className={`grid grid-cols-[80px_1fr_1fr_28px] text-[9px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#555]' : 'bg-[#f9fafb] text-[#6b7280]'}`}>
                             <div className="px-3 py-2">{lang === 'ko' ? '카테고리' : 'CATEGORY'}</div>
                             <div className="px-3 py-2">{lang === 'ko' ? '나' : 'YOU'}</div>
@@ -2098,7 +2076,7 @@ export default function App() {
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       title={lang === 'ko' ? '아마존에서 구매' : 'Buy on Amazon'}
-                                      className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
+                                      className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[8px] font-bold uppercase tracking-widest border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
                                     >
                                       <ShoppingCart size={9} /> AMAZON
                                     </a>
@@ -2119,7 +2097,7 @@ export default function App() {
 
                       {/* cm/360 readout */}
                       {userCm && proCm && (
-                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                        <div className={`flex items-center justify-between px-3 py-2 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
                           <span className={`text-[9px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>cm/360°</span>
                           <div className="flex items-center gap-3 text-[11px] font-mono">
                             <span className={`${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>YOU <b className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}>{formatCmPer360(userCm)}</b></span>
@@ -2159,7 +2137,7 @@ export default function App() {
                                 <button
                                   key={sim.id || sim.name}
                                   onClick={() => { setSlideDir(i > selectedMatchIdx ? 1 : -1); setSelectedMatchIdx(i); }}
-                                  className={`flex-shrink-0 w-32 text-left rounded-xl border p-2.5 transition-all ${
+                                  className={`flex-shrink-0 w-32 text-left rounded-none border p-2.5 transition-all ${
                                     isActive
                                       ? (theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/60' : 'bg-emerald-50 border-emerald-400')
                                       : (theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22] hover:border-emerald-500/30' : 'bg-white border-[#e5e7eb] hover:border-emerald-300')
@@ -2167,7 +2145,7 @@ export default function App() {
                                 >
                                   <div className={`text-[8px] font-mono uppercase tracking-widest mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>#{String(i + 1).padStart(2, '0')} {i === 0 ? (lang === 'ko' ? '최적' : 'CLOSEST') : ''}</div>
                                   <div className="flex items-center gap-1.5 mb-1">
-                                    {simCode && <img src={`https://flagcdn.com/16x12/${simCode}.png`} width="16" height="12" alt="" className="rounded-sm" />}
+                                    {simCode && <img src={`https://flagcdn.com/16x12/${simCode}.png`} width="16" height="12" alt="" className="rounded-none" />}
                                     <span className={`text-[12px] font-black tracking-tight truncate ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{sim.name}</span>
                                   </div>
                                   <div className={`text-[8px] font-mono uppercase tracking-widest truncate ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>{sim.team} · {sim.game.slice(0, 3).toUpperCase()}</div>
@@ -2206,7 +2184,7 @@ export default function App() {
             <div className="max-w-6xl mx-auto">
               <button 
                 onClick={() => { setMatches(null); setHighlights([]); setSelectedMatchIdx(0); }}
-                className={`mb-8 flex items-center gap-2 ${theme === 'dark' ? 'text-[#888] bg-[#151619] border-[#333]' : 'text-[#4b5563] bg-white border-[#d1d5db]'} hover:text-emerald-400 transition-colors font-mono text-sm uppercase tracking-widest px-4 py-2 rounded-lg border`}
+                className={`mb-8 flex items-center gap-2 ${theme === 'dark' ? 'text-[#888] bg-[#151619] border-[#333]' : 'text-[#4b5563] bg-white border-[#d1d5db]'} hover:text-emerald-400 transition-colors font-mono text-sm uppercase tracking-widest px-4 py-2 rounded-none border`}
               >
                 <ArrowLeft size={18} /> {t.back}
               </button>
@@ -2239,7 +2217,7 @@ export default function App() {
                         whileHover={{ opacity: 1, scale: 1.03, x: 4 }}
                         transition={{ duration: 0.2 }}
                         onClick={() => { setSlideDir(-1); setSelectedMatchIdx(prevIdx); }}
-                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
+                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-none p-4 space-y-3 cursor-pointer relative`}
                       >
                         <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                           <ChevronLeft size={12} className="text-emerald-400" />
@@ -2257,7 +2235,7 @@ export default function App() {
                                 srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png 2x`}
                                 width="20" height="15"
                                 alt={PLAYER_NATIONALITIES[m.name]}
-                                className="inline-block align-middle rounded-sm flex-shrink-0"
+                                className="inline-block align-middle rounded-none flex-shrink-0"
                               />
                             )}
                           </h3>
@@ -2265,7 +2243,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
                           {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
-                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-none border`}>
                               <span className={`${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} block uppercase text-[7px]`}>{label}</span>
                               <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{val}</span>
                             </div>
@@ -2304,7 +2282,7 @@ export default function App() {
                   animate="center"
                   exit="exit"
                   transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-emerald-500/30' : 'bg-[#f8f9fa] border-emerald-500/50'} border rounded-3xl overflow-hidden`}
+                  className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-emerald-500/30' : 'bg-[#f8f9fa] border-emerald-500/50'} border rounded-none overflow-hidden`}
                 >
                   <div className={`p-6 flex items-center justify-between ${selectedMatchIdx === 0 ? 'bg-emerald-500' : theme === 'dark' ? 'bg-[#1e2a22]' : 'bg-emerald-100'}`}>
                     <div className={`flex items-center gap-3 ${selectedMatchIdx === 0 ? 'text-black' : theme === 'dark' ? 'text-emerald-400' : 'text-emerald-700'}`}>
@@ -2326,7 +2304,7 @@ export default function App() {
                                 srcSet={`https://flagcdn.com/64x48/${PLAYER_NATIONALITIES[matches[selectedMatchIdx].name].toLowerCase()}.png 2x`}
                                 width="32" height="24"
                                 alt={PLAYER_NATIONALITIES[matches[selectedMatchIdx].name]}
-                                className="inline-block align-middle rounded-sm shadow-sm"
+                                className="inline-block align-middle rounded-none shadow-sm"
                               />
                             )}
                           </h2>
@@ -2334,7 +2312,7 @@ export default function App() {
                             href={matches[selectedMatchIdx].profileUrl} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888]' : 'bg-white border-[#d1d5db] text-[#4b5563]'} border rounded-lg text-[10px] font-mono hover:text-emerald-400 hover:border-emerald-500/50 transition-all uppercase tracking-widest mb-1 md:mb-2`}
+                            className={`inline-flex items-center gap-2 px-3 py-1.5 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888]' : 'bg-white border-[#d1d5db] text-[#4b5563]'} border rounded-none text-[10px] font-mono hover:text-emerald-400 hover:border-emerald-500/50 transition-all uppercase tracking-widest mb-1 md:mb-2`}
                           >
                             {t.viewProfile} <ExternalLink size={10} />
                           </a>
@@ -2342,7 +2320,7 @@ export default function App() {
                         <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-xl uppercase tracking-widest mb-4`}>{matches[selectedMatchIdx].team}</p>
                         
                         {matches[selectedMatchIdx].matchReasons && matches[selectedMatchIdx].matchReasons.length > 0 && (
-                          <div className={`mt-4 p-4 rounded-xl ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} border`}>
+                          <div className={`mt-4 p-4 rounded-none ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#e5e7eb]'} border`}>
                             <p className="text-[10px] font-mono text-[#555] uppercase tracking-widest mb-2 flex items-center gap-2">
                               <Zap size={10} className="text-emerald-500" /> {t.matchPoints}
                             </p>
@@ -2378,7 +2356,7 @@ export default function App() {
                         const pct = Math.round((diff / Math.max(userCm, proCm)) * 100);
                         const isClose = pct <= 10;
                         return (
-                          <div className={`mt-4 p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                          <div className={`mt-4 p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
                             <div className="flex items-center justify-between mb-2">
                               <p className={`text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
                                 {lang === 'ko' ? '360° 회전 거리 (cm/360)' : 'cm per 360° turn'}
@@ -2390,7 +2368,7 @@ export default function App() {
                               </span>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'}`}>
+                              <div className={`p-3 rounded-none ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-50 border border-emerald-200'}`}>
                                 <span className={`text-[9px] font-mono uppercase tracking-widest block mb-1 ${theme === 'dark' ? 'text-emerald-300/70' : 'text-emerald-700/70'}`}>
                                   {lang === 'ko' ? '나' : 'You'}
                                 </span>
@@ -2398,7 +2376,7 @@ export default function App() {
                                   {formatCmPer360(userCm)}
                                 </span>
                               </div>
-                              <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-[#0f1013] border border-[#1e1e22]' : 'bg-white border border-[#d1d5db]'}`}>
+                              <div className={`p-3 rounded-none ${theme === 'dark' ? 'bg-[#0f1013] border border-[#1e1e22]' : 'bg-white border border-[#d1d5db]'}`}>
                                 <span className={`text-[9px] font-mono uppercase tracking-widest block mb-1 ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
                                   {matches[selectedMatchIdx].name}
                                 </span>
@@ -2443,7 +2421,7 @@ export default function App() {
                             {gearItems.map(item => {
                               const amazonLink = getAmazonLink(item.name);
                               return (
-                                <div key={item.key} className={`flex flex-col rounded-xl overflow-hidden border ${theme === 'dark' ? 'bg-[#0d0d0f] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                                <div key={item.key} className={`flex flex-col rounded-none overflow-hidden border ${theme === 'dark' ? 'bg-[#0d0d0f] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
                                   {/* Image area — 서버에서 아마존 og:image 스크랩 */}
                                   <GearImage
                                     productName={item.name}
@@ -2459,7 +2437,7 @@ export default function App() {
                                         href={amazonLink}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'}`}
+                                        className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-none text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'}`}
                                       >
                                         <ShoppingCart size={10} /> {lang === 'ko' ? '아마존 구매' : 'Buy on Amazon'}
                                       </a>
@@ -2468,7 +2446,7 @@ export default function App() {
                                         href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border border-[#333] text-[#555] hover:text-[#777]' : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#aaa] hover:text-[#888]'}`}
+                                        className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-none text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border border-[#333] text-[#555] hover:text-[#777]' : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#aaa] hover:text-[#888]'}`}
                                       >
                                         <ExternalLink size={10} /> {lang === 'ko' ? '검색' : 'Search'}
                                       </a>
@@ -2503,7 +2481,7 @@ export default function App() {
                               rel="noopener noreferrer"
                               className="group block space-y-2"
                             >
-                              <div className="relative aspect-video rounded-xl overflow-hidden border border-transparent group-hover:border-emerald-500/50 transition-all">
+                              <div className="relative aspect-video rounded-none overflow-hidden border border-transparent group-hover:border-emerald-500/50 transition-all">
                                 <img
                                   src={`https://img.youtube.com/vi/${vid.youtubeId}/mqdefault.jpg`}
                                   alt={vid.title}
@@ -2532,7 +2510,7 @@ export default function App() {
                         href={`https://www.youtube.com/results?search_query=${matches[selectedMatchIdx].name}+${matches[selectedMatchIdx].game}+highlights`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-500 hover:text-emerald-400 flex items-center gap-2 transition-colors px-6 py-3 border border-emerald-500/20 rounded-xl bg-emerald-500/5"
+                        className="text-emerald-500 hover:text-emerald-400 flex items-center gap-2 transition-colors px-6 py-3 border border-emerald-500/20 rounded-none bg-emerald-500/5"
                       >
                         <Play size={14} fill="currentColor" /> 하이라이트 영상 보기
                       </a>
@@ -2563,7 +2541,7 @@ export default function App() {
                         whileHover={{ opacity: 1, scale: 1.03, x: -4 }}
                         transition={{ duration: 0.2 }}
                         onClick={() => { setSlideDir(1); setSelectedMatchIdx(nextIdx); }}
-                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-2xl p-4 space-y-3 cursor-pointer relative`}
+                        className={`w-full text-left ${theme === 'dark' ? 'bg-[#151619] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'} border rounded-none p-4 space-y-3 cursor-pointer relative`}
                       >
                         <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center">
                           <ChevronRight size={12} className="text-emerald-400" />
@@ -2581,7 +2559,7 @@ export default function App() {
                                 srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png 2x`}
                                 width="20" height="15"
                                 alt={PLAYER_NATIONALITIES[m.name]}
-                                className="inline-block align-middle rounded-sm flex-shrink-0"
+                                className="inline-block align-middle rounded-none flex-shrink-0"
                               />
                             )}
                           </h3>
@@ -2589,7 +2567,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-3 gap-1 text-[9px] font-mono">
                           {[['DPI', m.settings.dpi], ['eDPI', formatEdpi(m.settings.edpi)], ['SENS', m.settings.sensitivity]].map(([label, val]) => (
-                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-lg border`}>
+                            <div key={String(label)} className={`${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'} p-1.5 rounded-none border`}>
                               <span className={`${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} block uppercase text-[7px]`}>{label}</span>
                               <span className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{val}</span>
                             </div>
@@ -2694,7 +2672,7 @@ export default function App() {
       </AnimatePresence>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-500 text-sm font-mono max-w-2xl mx-auto">
+        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/50 rounded-none text-red-500 text-sm font-mono max-w-2xl mx-auto">
           {error}
         </div>
       )}
@@ -2733,15 +2711,15 @@ export default function App() {
 
         return (
           <div className="max-w-7xl mx-auto mt-16 px-4 md:px-8">
-            <div className="mb-6 flex items-center gap-3">
-              <Trophy size={20} className="text-emerald-500" />
-              <h2 className={`text-2xl font-bold tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
-                {lang === 'ko' ? '프로게이머 TOP 5 장비' : 'Pro Gamer Top 5 Gear'}
+            <div className="mb-6 flex items-baseline gap-3 flex-wrap">
+              <h2 className={`text-3xl md:text-4xl font-black tracking-tighter uppercase leading-none ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+                {lang === 'ko' ? '프로 TOP 5 장비' : 'PRO TOP 5 GEAR'}
               </h2>
-              <span className={`text-[10px] font-mono ${theme === 'dark' ? 'text-[#444]' : 'text-[#aaa]'} uppercase tracking-widest ml-1`}>
-                {lang === 'ko' ? `전 게임 ${allProList.length}명 기준` : `all games · ${allProList.length} pros`}
+              <span className={`text-[11px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}`}>
+                {lang === 'ko' ? '카테고리별 가장 많이 쓰이는 장비' : 'most used per category'}
               </span>
             </div>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {categories.map(cat => {
                 const items = getTopGear(cat.key);
@@ -2750,92 +2728,145 @@ export default function App() {
                 const item = items[idx];
                 if (!item) return null;
                 const amazonLink = getAmazonLink(item.name);
-                return (
-                  <div key={cat.key} className={`flex flex-col rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+                const totalPros = allProList.filter(p => {
+                  const v = cat.key === 'mouse' ? (p.gear.mouse || p.gear.controller || '') : (p.gear[cat.key] || '');
+                  return v.trim();
+                }).length;
+                const usagePct = totalPros > 0 ? Math.round((item.count / totalPros) * 100) : 0;
 
-                    {/* Category header */}
-                    <div className={`flex items-center justify-between px-3 py-2 border-b ${theme === 'dark' ? 'border-[#1e1e22] bg-[#111]' : 'border-[#f0f0f0] bg-[#fafafa]'}`}>
-                      <span className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                return (
+                  <div
+                    key={cat.key}
+                    className={`group relative flex flex-col rounded-none border overflow-hidden transition-all duration-300 ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22] hover:border-emerald-500/40' : 'bg-white border-[#e5e7eb] hover:border-emerald-500/50 hover:shadow-lg'}`}
+                  >
+                    {/* Top accent strip — emerald glow on hover */}
+                    <div className={`absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/0 to-transparent group-hover:via-emerald-500/60 transition-all duration-500`} />
+
+                    {/* Category header — // syntax */}
+                    <div className={`flex items-center justify-between px-3 py-2 border-b ${theme === 'dark' ? 'border-[#1e1e22] bg-[#0a0a0c]' : 'border-[#f0f0f0] bg-[#fafafa]'}`}>
+                      <span className={`flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        <span className={theme === 'dark' ? 'text-emerald-500/40' : 'text-emerald-600/40'}>//</span>
                         {cat.icon}{cat.label}
                       </span>
-                      {/* dot indicators */}
-                      <div className="flex items-center gap-1">
-                        {items.map((_, i) => (
-                          <button
-                            key={i}
-                            onClick={() => { setTopGearDir(prev => ({ ...prev, [cat.key]: (i > idx ? 1 : -1) as 1 | -1 })); setTopGearIdx(prev => ({ ...prev, [cat.key]: i })); }}
-                            className={`rounded-full transition-all ${i === idx ? 'w-3.5 h-1.5 bg-emerald-500' : `w-1.5 h-1.5 ${theme === 'dark' ? 'bg-[#333]' : 'bg-[#ddd]'}`}`}
-                          />
-                        ))}
-                      </div>
+                      <span className={`text-[8px] font-mono ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                        {idx + 1}/{items.length}
+                      </span>
                     </div>
 
-                    {/* Up button */}
-                    <button
-                      onClick={() => goGear(cat.key, -1, items.length)}
-                      disabled={idx === 0}
-                      className={`flex items-center justify-center py-1 transition-colors border-b ${theme === 'dark' ? 'border-[#1a1a1a]' : 'border-[#f0f0f0]'} ${idx === 0 ? 'opacity-20 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-[#151515] text-[#555]' : 'hover:bg-[#f5f5f5] text-[#bbb]'}`}
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-
-                    {/* Rank badge + image + info — 세로 슬라이드 */}
-                    <div className="overflow-hidden">
-                      <AnimatePresence mode="wait" custom={dir}>
+                    {/* Image with rank badge + floating nav arrows */}
+                    <div className="relative overflow-hidden h-28">
+                      <AnimatePresence custom={dir} initial={false}>
                         <motion.div
                           key={`${cat.key}-${idx}`}
                           custom={dir}
                           variants={{
-                            enter: (d: number) => ({ y: d * 40, opacity: 0 }),
-                            center: { y: 0, opacity: 1 },
-                            exit: (d: number) => ({ y: d * -40, opacity: 0 }),
+                            enter: (d: number) => ({ x: `${d * 100}%` }),
+                            center: { x: '0%' },
+                            exit: (d: number) => ({ x: `${d * -100}%` }),
                           }}
                           initial="enter"
                           animate="center"
                           exit="exit"
-                          transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                          transition={{ duration: 0.35, ease: [0.32, 0.72, 0.34, 1] }}
+                          className="absolute inset-0"
                         >
-                          {/* Image with rank badge */}
-                          <div className="relative">
-                            <div className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shadow-lg
-                              ${idx === 0 ? 'bg-amber-400 text-black' : idx === 1 ? 'bg-[#c0c0c0] text-black' : idx === 2 ? 'bg-amber-700 text-white' : theme === 'dark' ? 'bg-[#222] text-[#777]' : 'bg-[#e5e7eb] text-[#888]'}`}>
-                              {item.rank}
-                            </div>
-                            <GearImage productName={item.name} icon={cat.key} theme={theme} />
+                          {/* Rank badge */}
+                          <div className={`absolute top-2 left-2 z-10 px-1.5 h-5 rounded-none flex items-center justify-center text-[9px] font-black font-mono shadow-md tracking-tight
+                            ${idx === 0 ? 'bg-emerald-500 text-black' : idx === 1 ? 'bg-emerald-500/60 text-black' : idx === 2 ? 'bg-emerald-500/30 text-emerald-300' : theme === 'dark' ? 'bg-[#222] text-[#888]' : 'bg-[#e5e7eb] text-[#888]'}`}>
+                            #{item.rank}
                           </div>
-
-                          {/* Info */}
-                          <div className="p-3 flex flex-col gap-2">
-                            <div>
-                              <p className={`text-[11px] font-bold leading-tight ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#222]'}`}>{item.name}</p>
-                              <p className={`text-[9px] font-mono mt-0.5 ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>
-                                {lang === 'ko' ? `${item.count}명 사용` : `${item.count} pros`}
-                              </p>
-                            </div>
-                            {amazonLink ? (
-                              <a href={amazonLink} target="_blank" rel="noopener noreferrer"
-                                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'}`}>
-                                <ShoppingCart size={10} /> {lang === 'ko' ? '아마존' : 'Amazon'}
-                              </a>
-                            ) : (
-                              <a href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`} target="_blank" rel="noopener noreferrer"
-                                className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border border-[#333] text-[#555] hover:text-[#777]' : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#aaa] hover:text-[#888]'}`}>
-                                <ExternalLink size={10} /> {lang === 'ko' ? '검색' : 'Search'}
-                              </a>
-                            )}
-                          </div>
+                          <GearImage productName={item.name} icon={cat.key} theme={theme} />
                         </motion.div>
                       </AnimatePresence>
+
+                      {/* Floating prev/next arrows over image */}
+                      <button
+                        onClick={() => goGear(cat.key, -1, items.length)}
+                        disabled={idx === 0}
+                        aria-label="prev"
+                        className={`absolute left-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition-all backdrop-blur-sm
+                          ${idx === 0
+                            ? 'opacity-0 pointer-events-none'
+                            : theme === 'dark'
+                              ? 'bg-black/50 border border-emerald-500/20 text-emerald-400 opacity-0 group-hover:opacity-100 hover:bg-emerald-500/20'
+                              : 'bg-white/80 border border-emerald-500/20 text-emerald-600 opacity-0 group-hover:opacity-100 hover:bg-emerald-50'}`}
+                      >
+                        <ChevronLeft size={13} />
+                      </button>
+                      <button
+                        onClick={() => goGear(cat.key, 1, items.length)}
+                        disabled={idx >= items.length - 1}
+                        aria-label="next"
+                        className={`absolute right-1 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition-all backdrop-blur-sm
+                          ${idx >= items.length - 1
+                            ? 'opacity-0 pointer-events-none'
+                            : theme === 'dark'
+                              ? 'bg-black/50 border border-emerald-500/20 text-emerald-400 opacity-0 group-hover:opacity-100 hover:bg-emerald-500/20'
+                              : 'bg-white/80 border border-emerald-500/20 text-emerald-600 opacity-0 group-hover:opacity-100 hover:bg-emerald-50'}`}
+                      >
+                        <ChevronRight size={13} />
+                      </button>
                     </div>
 
-                    {/* Down button */}
-                    <button
-                      onClick={() => goGear(cat.key, 1, items.length)}
-                      disabled={idx >= items.length - 1}
-                      className={`flex items-center justify-center py-1 transition-colors border-t mt-auto ${theme === 'dark' ? 'border-[#1a1a1a]' : 'border-[#f0f0f0]'} ${idx >= items.length - 1 ? 'opacity-20 cursor-not-allowed' : theme === 'dark' ? 'hover:bg-[#151515] text-[#555]' : 'hover:bg-[#f5f5f5] text-[#bbb]'}`}
-                    >
-                      <ChevronDown size={14} />
-                    </button>
+                    {/* Info area */}
+                    <div className="p-3 flex flex-col gap-2.5 flex-1">
+                      <div>
+                        <p className={`text-[12px] font-bold leading-tight tracking-tight ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{item.name}</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className={`text-[9px] font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                            {item.count}
+                          </span>
+                          <span className={`text-[8px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>
+                            {lang === 'ko' ? '명' : 'PROS'}
+                          </span>
+                          <span className={`text-[8px] font-mono ${theme === 'dark' ? 'text-[#333]' : 'text-[#d1d5db]'}`}>·</span>
+                          <span className={`text-[9px] font-mono font-bold ${theme === 'dark' ? 'text-emerald-400/70' : 'text-emerald-600/80'}`}>
+                            {usagePct}%
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Dot indicators above the button */}
+                      <div className="flex items-center justify-center gap-1.5 py-0.5">
+                        {items.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => { setTopGearDir(prev => ({ ...prev, [cat.key]: (i > idx ? 1 : -1) as 1 | -1 })); setTopGearIdx(prev => ({ ...prev, [cat.key]: i })); }}
+                            className={`rounded-full transition-all ${i === idx ? 'w-4 h-1 bg-emerald-500' : `w-1 h-1 ${theme === 'dark' ? 'bg-[#2a2a2e] hover:bg-[#3a3a40]' : 'bg-[#d1d5db] hover:bg-[#9ca3af]'}`}`}
+                            aria-label={`go to ${i + 1}`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Action button — bracket-style mono */}
+                      {amazonLink ? (
+                        <a
+                          href={amazonLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`mt-auto flex items-center justify-center gap-1.5 py-2 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest transition-all
+                            ${theme === 'dark'
+                              ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/60'
+                              : 'bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 hover:border-amber-400'}`}
+                        >
+                          <ShoppingCart size={10} />
+                          <span>[{lang === 'ko' ? '아마존' : 'AMAZON'}]</span>
+                        </a>
+                      ) : (
+                        <a
+                          href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`mt-auto flex items-center justify-center gap-1.5 py-2 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest transition-all
+                            ${theme === 'dark'
+                              ? 'bg-[#0a0a0a] border border-[#1e1e22] text-[#666] hover:text-emerald-400 hover:border-emerald-500/30'
+                              : 'bg-[#f9fafb] border border-[#e5e7eb] text-[#9ca3af] hover:text-emerald-600 hover:border-emerald-300'}`}
+                        >
+                          <ExternalLink size={10} />
+                          <span>[{lang === 'ko' ? '검색' : 'SEARCH'}]</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -2848,7 +2879,7 @@ export default function App() {
 
       {/* ── Info Tabs (How / eDPI / About) ── */}
       <div className="max-w-7xl mx-auto mt-20 pb-20 px-4 md:px-8">
-        <div className={`rounded-2xl border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
+        <div className={`rounded-none border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
           {/* Tab buttons */}
           <div className={`flex border-b ${theme === 'dark' ? 'border-[#1e1e22]' : 'border-[#e5e7eb]'}`}>
             {([
@@ -2885,7 +2916,7 @@ export default function App() {
                 ].map((s, i) => (
                   <div key={i} className="relative">
                     <span className={`absolute -top-1 right-0 text-4xl font-black ${theme === 'dark' ? 'text-[#15171a]' : 'text-[#f0f0f0]'} select-none`}>{s.step}</span>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>{s.icon}</div>
+                    <div className={`w-10 h-10 rounded-none flex items-center justify-center mb-4 ${theme === 'dark' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>{s.icon}</div>
                     <h3 className={`font-bold tracking-tight text-base mb-2 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>{s.title}</h3>
                     <p className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>{s.body}</p>
                   </div>
@@ -2901,7 +2932,7 @@ export default function App() {
                       ? 'eDPI(Effective DPI, 유효 DPI)는 마우스 DPI와 인게임 감도를 곱한 값으로, 서로 다른 설정을 동일한 기준으로 비교할 수 있게 해주는 지표입니다.'
                       : 'eDPI (Effective DPI) is calculated by multiplying your mouse DPI by your in-game sensitivity. It allows fair comparison of setups across different hardware configurations.'}
                   </p>
-                  <div className={`p-4 rounded-xl font-mono text-center ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e22]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
+                  <div className={`p-4 rounded-none font-mono text-center ${theme === 'dark' ? 'bg-[#111] border border-[#1e1e22]' : 'bg-[#f9fafb] border border-[#e5e7eb]'}`}>
                     <span className={`text-lg font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>eDPI = DPI × Sensitivity</span>
                   </div>
                   <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#666]' : 'text-[#6b7280]'}`}>
@@ -2917,7 +2948,7 @@ export default function App() {
                     { game: 'Overwatch 2', range: '1200 – 2400' },
                     { game: 'Apex Legends', range: '800 – 1600' },
                   ].map(g => (
-                    <div key={g.game} className={`flex items-center justify-between py-3 px-4 rounded-lg ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f9fafb]'}`}>
+                    <div key={g.game} className={`flex items-center justify-between py-3 px-4 rounded-none ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f9fafb]'}`}>
                       <span className={`text-sm font-semibold ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#111]'}`}>{g.game}</span>
                       <span className={`text-xs font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{lang === 'ko' ? `평균 eDPI ${g.range}` : `Avg eDPI ${g.range}`}</span>
                     </div>
@@ -2934,7 +2965,7 @@ export default function App() {
                     { val: '4',    label: lang === 'ko' ? '지원 게임'    : 'Games Covered' },
                     { val: '100%', label: lang === 'ko' ? '무료 서비스'  : 'Free to Use' },
                   ].map(s => (
-                    <div key={s.val} className={`p-4 rounded-xl text-center ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f9fafb]'}`}>
+                    <div key={s.val} className={`p-4 rounded-none text-center ${theme === 'dark' ? 'bg-[#111]' : 'bg-[#f9fafb]'}`}>
                       <p className={`text-2xl font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{s.val}</p>
                       <p className={`text-xs mt-1 ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>{s.label}</p>
                     </div>
@@ -2959,7 +2990,7 @@ export default function App() {
       {/* Footer */}
       <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4 md:px-8`}>
         {/* Amazon Associates Disclosure */}
-        <div className={`max-w-7xl mx-auto mb-8 px-4 py-3 rounded-lg text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#1e1e22]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
+        <div className={`max-w-7xl mx-auto mb-8 px-4 py-3 rounded-none text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#1e1e22]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
           <span className={`${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'} font-semibold`}>Amazon Associates</span>
           {' '}— {t.affiliateDisclosure}
         </div>
@@ -3001,7 +3032,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border w-full max-w-lg rounded-2xl overflow-hidden shadow-2xl`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'} border w-full max-w-lg rounded-none overflow-hidden shadow-2xl`}
             >
               <div className={`p-6 border-b ${theme === 'dark' ? 'border-[#333]' : 'border-[#e5e7eb]'} flex items-center justify-between`}>
                 <h2 className={`text-xl font-black ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} uppercase tracking-tighter`}>
@@ -3020,7 +3051,7 @@ export default function App() {
                 </p>
                 <button 
                   onClick={() => setActivePolicy(null)}
-                  className="mt-8 w-full py-3 bg-emerald-500 text-black font-black uppercase tracking-widest rounded-xl hover:bg-emerald-400 transition-colors"
+                  className="mt-8 w-full py-3 bg-emerald-500 text-black font-black uppercase tracking-widest rounded-none hover:bg-emerald-400 transition-colors"
                 >
                   {t.close}
                 </button>
@@ -3039,7 +3070,7 @@ export default function App() {
             exit={{ opacity: 0, y: 50 }}
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] w-full max-w-md px-4"
           >
-            <div className={`p-4 rounded-2xl shadow-2xl flex items-center justify-between gap-4 ${notification.type === 'success' ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white'}`}>
+            <div className={`p-4 rounded-none shadow-2xl flex items-center justify-between gap-4 ${notification.type === 'success' ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white'}`}>
               <div className="flex items-center gap-3">
                 {notification.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
                 <p className="text-xs font-bold uppercase tracking-wider">{notification.message}</p>
@@ -3060,7 +3091,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-none max-w-md w-full shadow-2xl text-center`}
             >
               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <RefreshCcw size={32} />
@@ -3074,13 +3105,13 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={() => setShowRevertConfirm(false)}
-                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-none font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
                 >
                   취소
                 </button>
                 <button 
                   onClick={executeRevertLinks}
-                  className="py-3 bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-red-400 transition-all"
+                  className="py-3 bg-red-500 text-white rounded-none font-bold uppercase tracking-widest text-xs hover:bg-red-400 transition-all"
                 >
                   복구 실행
                 </button>
@@ -3098,7 +3129,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-none max-w-md w-full shadow-2xl text-center`}
             >
               <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Wand2 size={32} />
@@ -3115,13 +3146,13 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => setShowStripColorsConfirm(false)}
-                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-none font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
                 >
                   취소
                 </button>
                 <button
                   onClick={executeStripColors}
-                  className="py-3 bg-amber-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-amber-400 transition-all"
+                  className="py-3 bg-amber-500 text-black rounded-none font-bold uppercase tracking-widest text-xs hover:bg-amber-400 transition-all"
                 >
                   실행
                 </button>
@@ -3139,7 +3170,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-none max-w-md w-full shadow-2xl text-center`}
             >
               <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <ExternalLink size={32} />
@@ -3153,13 +3184,13 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={() => setShowFixLinksConfirm(false)}
-                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-none font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
                 >
                   취소
                 </button>
                 <button 
                   onClick={executeFixLinks}
-                  className="py-3 bg-blue-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-blue-400 transition-all"
+                  className="py-3 bg-blue-500 text-white rounded-none font-bold uppercase tracking-widest text-xs hover:bg-blue-400 transition-all"
                 >
                   수정 실행
                 </button>
@@ -3177,7 +3208,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-3xl max-w-md w-full shadow-2xl text-center`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border p-8 rounded-none max-w-md w-full shadow-2xl text-center`}
             >
               <div className="w-16 h-16 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Sword size={32} />
@@ -3191,13 +3222,13 @@ export default function App() {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={() => setShowMigrateConfirm(false)}
-                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
+                  className={`py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-none font-bold uppercase tracking-widest text-xs hover:bg-white/5 transition-all`}
                 >
                   취소
                 </button>
                 <button 
                   onClick={executeMigration}
-                  className="py-3 bg-orange-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-orange-400 transition-all"
+                  className="py-3 bg-orange-500 text-black rounded-none font-bold uppercase tracking-widest text-xs hover:bg-orange-400 transition-all"
                 >
                   이전 실행
                 </button>
@@ -3215,12 +3246,12 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl`}
             >
               {/* Modal Header */}
               <div className={`p-6 border-b ${theme === 'dark' ? 'border-[#333] bg-[#1a1b1e]' : 'border-[#e5e7eb] bg-[#f3f4f6]'} flex flex-col md:flex-row md:items-center justify-between gap-4`}>
                 <div className="flex items-center gap-4">
-                  <div className={`p-2 ${theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-600/10'} rounded-lg`}>
+                  <div className={`p-2 ${theme === 'dark' ? 'bg-emerald-500/10' : 'bg-emerald-600/10'} rounded-none`}>
                     <Users className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`} size={24} />
                   </div>
                   <div>
@@ -3233,7 +3264,7 @@ export default function App() {
                   {user?.email === ADMIN_EMAIL && (
                     <button 
                       onClick={handleSeedDatabase}
-                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100'} border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all`}
                       title={t.seedData}
                     >
                       <Shield size={12} /> {t.seedData}
@@ -3242,7 +3273,7 @@ export default function App() {
                   {user?.email === ADMIN_EMAIL && (
                     <button 
                       onClick={() => setShowBulkAuditModal(true)}
-                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20' : 'bg-purple-50 border-purple-200 text-purple-600 hover:bg-purple-100'} border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all`}
                       title={t.bulkAudit}
                     >
                       <Target size={12} /> {t.bulkAudit}
@@ -3251,7 +3282,7 @@ export default function App() {
                   {user?.email === ADMIN_EMAIL && (
                     <button
                       onClick={handleCleanAllNames}
-                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100'} border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all`}
                       title="Clean all names (remove full names)"
                     >
                       <Wand2 size={12} /> Clean All
@@ -3260,7 +3291,7 @@ export default function App() {
                   {user?.email === ADMIN_EMAIL && (
                     <button
                       onClick={() => setShowStripColorsConfirm(true)}
-                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100'} border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all`}
+                      className={`flex items-center gap-2 px-3 py-2 ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100'} border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all`}
                       title="장비명에서 색깔 단어 일괄 제거"
                     >
                       <Wand2 size={12} /> Strip Colors
@@ -3270,7 +3301,7 @@ export default function App() {
                   {user?.email === ADMIN_EMAIL && (
                     <button
                       onClick={() => setShowTodayPanel(v => !v)}
-                      className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-1.5 px-3 py-2 border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
                         showTodayPanel
                           ? 'bg-blue-500 border-blue-500 text-black font-bold'
                           : theme === 'dark'
@@ -3286,7 +3317,7 @@ export default function App() {
                   {/* 오늘 추가된 선수만 보기 토글 */}
                   <button
                     onClick={() => setShowTodayOnly(v => !v)}
-                    className={`flex items-center gap-1.5 px-3 py-2 border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
+                    className={`flex items-center gap-1.5 px-3 py-2 border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
                       showTodayOnly
                         ? 'bg-emerald-500 border-emerald-500 text-black font-bold'
                         : theme === 'dark'
@@ -3311,7 +3342,7 @@ export default function App() {
                       placeholder={lang === 'ko' ? '선수, 팀, 장비 검색...' : 'Search players, teams, gear...'}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className={`w-full md:w-56 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg pl-10 pr-4 py-2 text-xs font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500' : 'focus:border-emerald-600'} transition-all`}
+                      className={`w-full md:w-56 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none pl-10 pr-4 py-2 text-xs font-mono focus:outline-none ${theme === 'dark' ? 'focus:border-emerald-500' : 'focus:border-emerald-600'} transition-all`}
                     />
                   </div>
 
@@ -3320,7 +3351,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setShowNationalityDropdown(v => !v)}
-                      className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
+                      className={`flex items-center gap-2 px-3 py-2 border rounded-none text-[10px] font-mono uppercase tracking-widest transition-all whitespace-nowrap ${
                         nationalityFilter
                           ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400'
                           : theme === 'dark'
@@ -3335,7 +3366,7 @@ export default function App() {
                             src={`https://flagcdn.com/20x15/${nationalityFilter.toLowerCase()}.png`}
                             srcSet={`https://flagcdn.com/40x30/${nationalityFilter.toLowerCase()}.png 2x`}
                             alt={nationalityFilter}
-                            className="w-5 h-[15px] object-cover rounded-sm"
+                            className="w-5 h-[15px] object-cover rounded-none"
                           />
                           <span>{nationalityFilter}</span>
                           <span
@@ -3361,7 +3392,7 @@ export default function App() {
                           onClick={() => setShowNationalityDropdown(false)}
                         />
                         <div
-                          className={`absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto pgm-scroll rounded-lg border shadow-xl z-50 ${
+                          className={`absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto pgm-scroll rounded-none border shadow-xl z-50 ${
                             theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb] pgm-scroll-light'
                           }`}
                         >
@@ -3398,7 +3429,7 @@ export default function App() {
                                   src={`https://flagcdn.com/20x15/${code.toLowerCase()}.png`}
                                   srcSet={`https://flagcdn.com/40x30/${code.toLowerCase()}.png 2x`}
                                   alt={code}
-                                  className="w-5 h-[15px] object-cover rounded-sm flex-shrink-0"
+                                  className="w-5 h-[15px] object-cover rounded-none flex-shrink-0"
                                 />
                                 <span className="truncate">{displayName}</span>
                                 <span className="ml-auto opacity-60 font-mono">{count}</span>
@@ -3411,7 +3442,7 @@ export default function App() {
                   </div>
                   <button 
                     onClick={() => fetchProList(true)} 
-                    className={`p-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-emerald-600'} border rounded-lg transition-all`}
+                    className={`p-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-emerald-400' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-emerald-600'} border rounded-none transition-all`}
                     title={t.refresh}
                     disabled={listLoading}
                   >
@@ -3419,7 +3450,7 @@ export default function App() {
                   </button>
                   <button 
                     onClick={() => setShowList(false)} 
-                    className={`p-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-white' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-black'} border rounded-lg transition-all`}
+                    className={`p-2 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-white' : 'bg-white border-[#d1d5db] text-[#4b5563] hover:text-black'} border rounded-none transition-all`}
                   >
                     <X size={18} />
                   </button>
@@ -3497,7 +3528,7 @@ export default function App() {
                                     srcSet={`https://flagcdn.com/40x30/${code.toLowerCase()}.png 2x`}
                                     width="20" height="15"
                                     alt={code}
-                                    className="rounded-sm flex-shrink-0"
+                                    className="rounded-none flex-shrink-0"
                                   />
                                 ) : null; })()}
                                 <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-black'} group-hover:text-emerald-500 transition-colors`}>{pro.name}</span>
@@ -3526,7 +3557,7 @@ export default function App() {
                                   href={pro.profileUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className={`inline-flex p-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-lg hover:text-emerald-400 hover:border-emerald-500/50 border transition-all`}
+                                  className={`inline-flex p-2 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-none hover:text-emerald-400 hover:border-emerald-500/50 border transition-all`}
                                   title={t.viewProfile}
                                 >
                                   <ExternalLink size={14} />
@@ -3538,14 +3569,14 @@ export default function App() {
                                         placeholder="URL"
                                         value={tempUrls[pro.id || pro.name] ?? pro.profileUrl ?? ''}
                                         onChange={(e) => setTempUrls(prev => ({ ...prev, [pro.id || pro.name]: e.target.value }))}
-                                        className={`w-32 text-[10px] font-mono ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded px-2 py-1 focus:outline-none focus:border-emerald-500 transition-all`}
+                                        className={`w-32 text-[10px] font-mono ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-2 py-1 focus:outline-none focus:border-emerald-500 transition-all`}
                                       />
                                       <button 
                                         onClick={() => {
                                           setEditingPro(pro);
                                           setShowEditModal(true);
                                         }}
-                                        className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-blue-400 hover:border-blue-500/50 border transition-all`}
+                                        className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-none hover:text-blue-400 hover:border-blue-500/50 border transition-all`}
                                         title={t.edit}
                                       >
                                         <Pencil size={12} />
@@ -3553,14 +3584,14 @@ export default function App() {
                                       <button 
                                         onClick={() => handleUpdatePro(pro, tempUrls[pro.id || pro.name])}
                                       disabled={updatingProId === (pro.id || pro.name)}
-                                      className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-emerald-400 hover:border-emerald-500/50 border transition-all disabled:opacity-50`}
+                                      className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-none hover:text-emerald-400 hover:border-emerald-500/50 border transition-all disabled:opacity-50`}
                                       title={t.update}
                                     >
                                       <RefreshCcw size={12} className={updatingProId === (pro.id || pro.name) ? 'animate-spin' : ''} />
                                     </button>
                                     <button
                                       onClick={() => handleDeletePro(pro)}
-                                      className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-red-400 hover:border-red-500/50 border transition-all`}
+                                      className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-none hover:text-red-400 hover:border-red-500/50 border transition-all`}
                                       title="Delete"
                                     >
                                       <Trash2 size={12} />
@@ -3576,23 +3607,23 @@ export default function App() {
                                           onChange={(e) => setTempNationality(e.target.value.toUpperCase())}
                                           onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNationality(pro, tempNationality); if (e.key === 'Escape') setEditingNationalityId(null); }}
                                           autoFocus
-                                          className={`w-10 text-[10px] font-mono text-center uppercase ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded px-1 py-1 focus:outline-none focus:border-emerald-500`}
+                                          className={`w-10 text-[10px] font-mono text-center uppercase ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-1 py-1 focus:outline-none focus:border-emerald-500`}
                                         />
                                         <button
                                           onClick={() => handleSaveNationality(pro, tempNationality)}
-                                          className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} rounded hover:text-emerald-400 hover:border-emerald-500/50 border text-emerald-500 transition-all text-[10px] font-bold`}
+                                          className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} rounded-none hover:text-emerald-400 hover:border-emerald-500/50 border text-emerald-500 transition-all text-[10px] font-bold`}
                                           title="저장"
                                         >✓</button>
                                         <button
                                           onClick={() => setEditingNationalityId(null)}
-                                          className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-red-400 border transition-all text-[10px]`}
+                                          className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-none hover:text-red-400 border transition-all text-[10px]`}
                                           title="취소"
                                         >✕</button>
                                       </div>
                                     ) : (
                                       <button
                                         onClick={() => { setEditingNationalityId(pro.id || pro.name); setTempNationality(pro.nationality || PLAYER_NATIONALITIES[pro.name] || ''); }}
-                                        className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded hover:text-yellow-400 hover:border-yellow-500/50 border transition-all`}
+                                        className={`p-1.5 ${theme === 'dark' ? 'bg-[#151619] border-[#333] text-[#555]' : 'bg-white border-[#d1d5db] text-[#6b7280]'} rounded-none hover:text-yellow-400 hover:border-yellow-500/50 border transition-all`}
                                         title="국적 편집"
                                       >🏳️</button>
                                     )}
@@ -3695,7 +3726,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
@@ -3716,7 +3747,7 @@ export default function App() {
                       type="text"
                       value={editingPro.name || ''}
                       onChange={(e) => setEditingPro({...editingPro, name: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3726,7 +3757,7 @@ export default function App() {
                       type="text"
                       value={editingPro.team || ''}
                       onChange={(e) => setEditingPro({...editingPro, team: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3734,7 +3765,7 @@ export default function App() {
                     <select 
                       value={editingPro.game || 'Valorant'}
                       onChange={(e) => setEditingPro({...editingPro, game: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     >
                       {GAMES.map(g => <option key={g.name} value={g.name}>{g.name}</option>)}
                     </select>
@@ -3745,7 +3776,7 @@ export default function App() {
                       type="url"
                       value={editingPro.profileUrl || ''}
                       onChange={(e) => setEditingPro({...editingPro, profileUrl: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3754,7 +3785,7 @@ export default function App() {
                       type="url"
                       value={editingPro.imageUrl || ''}
                       onChange={(e) => setEditingPro({...editingPro, imageUrl: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3763,7 +3794,7 @@ export default function App() {
                       type="url"
                       value={editingPro.teamLogoUrl || ''}
                       onChange={(e) => setEditingPro({...editingPro, teamLogoUrl: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                 </div>
@@ -3775,7 +3806,7 @@ export default function App() {
                       type="text"
                       value={editingPro.gear.mouse || ''}
                       onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, mouse: e.target.value}})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3784,7 +3815,7 @@ export default function App() {
                       type="text"
                       value={editingPro.gear.keyboard || ''}
                       onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, keyboard: e.target.value}})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3793,7 +3824,7 @@ export default function App() {
                       type="text"
                       value={editingPro.gear.monitor || ''}
                       onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, monitor: e.target.value}})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3802,7 +3833,7 @@ export default function App() {
                       type="text"
                       value={editingPro.gear.mousepad || ''}
                       onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, mousepad: e.target.value}})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3811,7 +3842,7 @@ export default function App() {
                       type="text"
                       value={editingPro.gear.controller || ''}
                       onChange={(e) => setEditingPro({...editingPro, gear: {...editingPro.gear, controller: e.target.value}})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                 </div>
@@ -3827,7 +3858,7 @@ export default function App() {
                         const edpi = Number((dpi * editingPro.settings.sensitivity).toFixed(1));
                         setEditingPro({...editingPro, settings: {...editingPro.settings, dpi, edpi}});
                       }}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3841,7 +3872,7 @@ export default function App() {
                         const edpi = Number((editingPro.settings.dpi * sensitivity).toFixed(1));
                         setEditingPro({...editingPro, settings: {...editingPro.settings, sensitivity, edpi}});
                       }}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                   <div className="space-y-2">
@@ -3855,7 +3886,7 @@ export default function App() {
                         const sensitivity = editingPro.settings.dpi > 0 ? Number((edpi / editingPro.settings.dpi).toFixed(4)) : 0;
                         setEditingPro({...editingPro, settings: {...editingPro.settings, edpi, sensitivity}});
                       }}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     />
                   </div>
                 </div>
@@ -3864,14 +3895,14 @@ export default function App() {
                   <button 
                     type="button"
                     onClick={() => setShowEditModal(false)}
-                    className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#555] hover:text-white' : 'bg-gray-100 text-gray-500 hover:text-black'} transition-all`}
+                    className={`flex-1 py-4 rounded-none font-black uppercase tracking-widest text-xs ${theme === 'dark' ? 'bg-[#0a0a0a] text-[#555] hover:text-white' : 'bg-gray-100 text-gray-500 hover:text-black'} transition-all`}
                   >
                     {t.cancel}
                   </button>
                   <button 
                     type="submit"
                     disabled={loading}
-                    className="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs bg-emerald-500 text-black hover:bg-emerald-400 transition-all disabled:opacity-50"
+                    className="flex-1 py-4 rounded-none font-black uppercase tracking-widest text-xs bg-emerald-500 text-black hover:bg-emerald-400 transition-all disabled:opacity-50"
                   >
                     {loading ? t.updating : t.save}
                   </button>
@@ -3896,7 +3927,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
@@ -3936,7 +3967,7 @@ export default function App() {
                       type="text"
                       value={newPro.name || ''}
                       onChange={(e) => setNewPro({...newPro, name: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       placeholder="e.g. TenZ"
                     />
                   </div>
@@ -3947,7 +3978,7 @@ export default function App() {
                       type="text"
                       value={newPro.team || ''}
                       onChange={(e) => setNewPro({...newPro, team: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       placeholder="e.g. Sentinels"
                     />
                   </div>
@@ -3956,7 +3987,7 @@ export default function App() {
                     <select 
                       value={newPro.game || 'Valorant'}
                       onChange={(e) => setNewPro({...newPro, game: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                     >
                       {GAMES.map(g => <option key={g.name} value={g.name}>{g.name}</option>)}
                     </select>
@@ -3968,14 +3999,14 @@ export default function App() {
                         type="url"
                         value={newPro.profileUrl || ''}
                         onChange={(e) => setNewPro({...newPro, profileUrl: e.target.value})}
-                        className={`flex-1 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                        className={`flex-1 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                         placeholder={t.autoFetchPlaceholder}
                       />
                       <button 
                         type="button"
                         onClick={handleFetchFromUrl}
                         disabled={fetchingData || !newPro.profileUrl}
-                        className={`px-4 py-3 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600/30 text-emerald-600'} border rounded-xl text-[10px] font-mono uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+                        className={`px-4 py-3 ${theme === 'dark' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-emerald-600/10 border-emerald-600/30 text-emerald-600'} border rounded-none text-[10px] font-mono uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
                       >
                         {fetchingData ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
                         {fetchingData ? '...' : t.autoFetch}
@@ -3988,7 +4019,7 @@ export default function App() {
                       type="url"
                       value={newPro.imageUrl || ''}
                       onChange={(e) => setNewPro({...newPro, imageUrl: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       placeholder="https://..."
                     />
                   </div>
@@ -3998,13 +4029,13 @@ export default function App() {
                       type="url"
                       value={newPro.teamLogoUrl || ''}
                       onChange={(e) => setNewPro({...newPro, teamLogoUrl: e.target.value})}
-                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                      className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       placeholder="https://..."
                     />
                   </div>
                 </div>
 
-                <div className={`p-6 rounded-2xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'}`}>
+                <div className={`p-6 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f8f9fa] border-[#d1d5db]'}`}>
                   <h3 className={`text-xs font-mono uppercase tracking-widest mb-4 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{t.gearSettings}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InputGroup 
@@ -4079,7 +4110,7 @@ export default function App() {
                           const edpi = Number((dpi * newPro.settings.sensitivity).toFixed(1));
                           setNewPro({...newPro, settings: {...newPro.settings, dpi, edpi}});
                         }}
-                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       />
                     </div>
                     <div className="space-y-1">
@@ -4093,7 +4124,7 @@ export default function App() {
                           const edpi = Number((newPro.settings.dpi * sensitivity).toFixed(1));
                           setNewPro({...newPro, settings: {...newPro.settings, sensitivity, edpi}});
                         }}
-                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       />
                     </div>
                     <div className="space-y-1">
@@ -4107,7 +4138,7 @@ export default function App() {
                           const sensitivity = newPro.settings.dpi > 0 ? Number((edpi / newPro.settings.dpi).toFixed(4)) : 0;
                           setNewPro({...newPro, settings: {...newPro.settings, edpi, sensitivity}});
                         }}
-                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
+                        className={`w-full ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-2 text-xs font-mono focus:outline-none focus:border-emerald-500 transition-all`}
                       />
                     </div>
                   </div>
@@ -4117,14 +4148,14 @@ export default function App() {
                   <button 
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className={`flex-1 py-4 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-red-500/10 hover:text-red-400 transition-all`}
+                    className={`flex-1 py-4 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-none font-bold uppercase tracking-widest text-xs hover:bg-red-500/10 hover:text-red-400 transition-all`}
                   >
                     {t.cancel}
                   </button>
                   <button 
                     type="submit"
                     disabled={loading}
-                    className="flex-1 py-4 bg-emerald-500 text-black rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-emerald-500 text-black rounded-none font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                     {loading ? t.adding : t.save}
@@ -4151,7 +4182,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl`}
+              className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none p-8 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-2xl`}
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -4178,12 +4209,12 @@ export default function App() {
                 )}
                 {claudeMessages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-sans leading-relaxed ${
+                    <div className={`max-w-[85%] p-4 rounded-none text-sm font-sans leading-relaxed ${
                       msg.role === 'user' 
-                        ? 'bg-purple-600 text-white rounded-tr-none' 
+                        ? 'bg-purple-600 text-white rounded-none-tr-none' 
                         : theme === 'dark' 
-                          ? 'bg-[#0a0a0a] border border-[#333] text-[#aaa] rounded-tl-none' 
-                          : 'bg-[#f3f4f6] text-[#1a1a1a] rounded-tl-none'
+                          ? 'bg-[#0a0a0a] border border-[#333] text-[#aaa] rounded-none-tl-none' 
+                          : 'bg-[#f3f4f6] text-[#1a1a1a] rounded-none-tl-none'
                     }`}>
                       {msg.content}
                     </div>
@@ -4191,7 +4222,7 @@ export default function App() {
                 ))}
                 {claudeLoading && (
                   <div className="flex justify-start">
-                    <div className={`p-4 rounded-2xl ${theme === 'dark' ? 'bg-[#0a0a0a] border border-[#333]' : 'bg-[#f3f4f6]'} rounded-tl-none`}>
+                    <div className={`p-4 rounded-none ${theme === 'dark' ? 'bg-[#0a0a0a] border border-[#333]' : 'bg-[#f3f4f6]'} rounded-none-tl-none`}>
                       <Loader2 size={16} className="animate-spin text-purple-500" />
                     </div>
                   </div>
@@ -4204,12 +4235,12 @@ export default function App() {
                   value={claudeInput}
                   onChange={(e) => setClaudeInput(e.target.value)}
                   placeholder="Type your message..."
-                  className={`flex-1 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-purple-500 transition-all`}
+                  className={`flex-1 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-sans focus:outline-none focus:border-purple-500 transition-all`}
                 />
                 <button 
                   type="submit"
                   disabled={claudeLoading || !claudeInput.trim()}
-                  className="px-6 bg-purple-600 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 bg-purple-600 text-white rounded-none font-bold uppercase tracking-widest text-xs hover:bg-purple-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Send
                 </button>

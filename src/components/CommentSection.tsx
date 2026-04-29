@@ -55,14 +55,14 @@ export function ReportedCommentsModal({ theme, t, onClose }: {
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
       <div
         ref={modalRef}
-        className={`w-full max-w-2xl max-h-[80vh] flex flex-col rounded-2xl border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#333]' : 'bg-white border-[#d1d5db]'}`}
+        className={`w-full max-w-2xl max-h-[80vh] flex flex-col rounded-none border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#333]' : 'bg-white border-[#d1d5db]'}`}
         onClick={e => e.stopPropagation()}
       >
         <div className={`flex items-center justify-between p-4 border-b ${theme === 'dark' ? 'border-[#222]' : 'border-[#e5e7eb]'}`}>
           <p className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-red-400">
             <Flag size={12} /> {t.reportedComments} {!loading && `(${reported.length})`}
           </p>
-          <button onClick={onClose} className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-white/10 text-[#888]' : 'hover:bg-black/10 text-[#4b5563]'}`}>
+          <button onClick={onClose} className={`p-1 rounded-none ${theme === 'dark' ? 'hover:bg-white/10 text-[#888]' : 'hover:bg-black/10 text-[#4b5563]'}`}>
             <X size={16} />
           </button>
         </div>
@@ -72,20 +72,20 @@ export function ReportedCommentsModal({ theme, t, onClose }: {
           ) : reported.length === 0 ? (
             <p className={`text-xs text-center py-8 ${theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]'}`}>{t.noReportedComments}</p>
           ) : reported.map(c => (
-            <div key={c.id} className={`p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+            <div key={c.id} className={`p-3 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span className={`text-[10px] font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{c.nickname}</span>
                     <span className={`text-[9px] font-mono ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>{formatTs(c.createdAt)}</span>
-                    <span className="text-[9px] font-mono text-red-400 border border-red-500/30 px-1 rounded">신고 {c.reports}</span>
-                    <span className={`text-[9px] font-mono px-1 rounded ${theme === 'dark' ? 'bg-[#1a1a1a] text-[#555]' : 'bg-[#f3f4f6] text-[#6b7280]'}`}>{t.proIdLabel}: {c.proId}</span>
+                    <span className="text-[9px] font-mono text-red-400 border border-red-500/30 px-1 rounded-none">신고 {c.reports}</span>
+                    <span className={`text-[9px] font-mono px-1 rounded-none ${theme === 'dark' ? 'bg-[#1a1a1a] text-[#555]' : 'bg-[#f3f4f6] text-[#6b7280]'}`}>{t.proIdLabel}: {c.proId}</span>
                   </div>
                   <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#374151]'}`}>{c.text}</p>
                 </div>
                 <button
                   onClick={() => handleDelete(c)}
-                  className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-1 rounded text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
+                  className={`flex-shrink-0 flex items-center gap-0.5 px-1.5 py-1 rounded-none text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
                 >
                   <Trash2 size={9} /> {t.deleteComment}
                 </button>
@@ -200,13 +200,13 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowReported(true)}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-orange-500/30 text-orange-400 hover:bg-orange-500/10' : 'border-orange-300 text-orange-500 hover:bg-orange-50'}`}
+                className={`flex items-center gap-1 px-2 py-1 rounded-none text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-orange-500/30 text-orange-400 hover:bg-orange-500/10' : 'border-orange-300 text-orange-500 hover:bg-orange-50'}`}
               >
                 <Flag size={9} /> {t.viewReported}
               </button>
               <button
                 onClick={toggleEnabled}
-                className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-mono border transition-all ${
+                className={`flex items-center gap-1 px-2 py-1 rounded-none text-[9px] font-mono border transition-all ${
                   enabled
                     ? theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-400 text-red-500 hover:bg-red-50'
                     : theme === 'dark' ? 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10' : 'border-emerald-500 text-emerald-600 hover:bg-emerald-50'
@@ -223,14 +223,14 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
         ) : (
           <>
             {enabled && (
-              <div className={`mb-4 p-3 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#222]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+              <div className={`mb-4 p-3 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#222]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
                 <input
                   type="text"
                   value={nickname}
                   onChange={e => setNickname(e.target.value)}
                   placeholder={t.nicknamePlaceholder}
                   maxLength={20}
-                  className={`w-full mb-2 px-3 py-1.5 rounded-lg text-xs font-mono border bg-transparent outline-none ${
+                  className={`w-full mb-2 px-3 py-1.5 rounded-none text-xs font-mono border bg-transparent outline-none ${
                     theme === 'dark' ? 'border-[#333] text-[#aaa] placeholder-[#444] focus:border-emerald-500/50' : 'border-[#d1d5db] text-[#374151] placeholder-[#9ca3af] focus:border-emerald-500'
                   } transition-colors`}
                 />
@@ -242,14 +242,14 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                     onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handlePost()}
                     placeholder={t.commentPlaceholder}
                     maxLength={300}
-                    className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-mono border bg-transparent outline-none ${
+                    className={`flex-1 px-3 py-1.5 rounded-none text-xs font-mono border bg-transparent outline-none ${
                       theme === 'dark' ? 'border-[#333] text-[#ccc] placeholder-[#444] focus:border-emerald-500/50' : 'border-[#d1d5db] text-[#374151] placeholder-[#9ca3af] focus:border-emerald-500'
                     } transition-colors`}
                   />
                   <button
                     onClick={handlePost}
                     disabled={posting || !text.trim()}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-black rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-emerald-500 text-black rounded-none text-[10px] font-bold uppercase tracking-wider hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                   >
                     {posting ? <Loader2 size={10} className="animate-spin" /> : <Send size={10} />}
                     {posting ? t.posting : t.postComment}
@@ -267,7 +267,7 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                 {comments.map(c => (
                   <div
                     key={c.id}
-                    className={`p-3 rounded-xl border transition-all ${c.reports >= 3 && !isAdmin ? 'opacity-30' : ''} ${
+                    className={`p-3 rounded-none border transition-all ${c.reports >= 3 && !isAdmin ? 'opacity-30' : ''} ${
                       theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-white border-[#e5e7eb]'
                     }`}
                   >
@@ -280,13 +280,13 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                           onKeyDown={e => e.key === 'Enter' && handleEditSave(c.id)}
                           maxLength={300}
                           autoFocus
-                          className={`w-full px-3 py-1.5 rounded-lg text-xs font-mono border bg-transparent outline-none ${
+                          className={`w-full px-3 py-1.5 rounded-none text-xs font-mono border bg-transparent outline-none ${
                             theme === 'dark' ? 'border-emerald-500/50 text-[#ccc]' : 'border-emerald-500 text-[#374151]'
                           }`}
                         />
                         <div className="flex gap-1 justify-end">
-                          <button onClick={() => setEditingId(null)} className={`px-2 py-1 rounded text-[9px] font-mono border ${theme === 'dark' ? 'border-[#333] text-[#555] hover:text-[#aaa]' : 'border-[#d1d5db] text-[#9ca3af]'}`}>{t.cancel}</button>
-                          <button onClick={() => handleEditSave(c.id)} className="px-2 py-1 rounded text-[9px] font-mono bg-emerald-500 text-black hover:bg-emerald-400">{t.saveEdit}</button>
+                          <button onClick={() => setEditingId(null)} className={`px-2 py-1 rounded-none text-[9px] font-mono border ${theme === 'dark' ? 'border-[#333] text-[#555] hover:text-[#aaa]' : 'border-[#d1d5db] text-[#9ca3af]'}`}>{t.cancel}</button>
+                          <button onClick={() => handleEditSave(c.id)} className="px-2 py-1 rounded-none text-[9px] font-mono bg-emerald-500 text-black hover:bg-emerald-400">{t.saveEdit}</button>
                         </div>
                       </div>
                     ) : (
@@ -296,7 +296,7 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                             <span className={`text-[10px] font-mono font-bold ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>{c.nickname}</span>
                             <span className={`text-[9px] font-mono ${theme === 'dark' ? 'text-[#444]' : 'text-[#bbb]'}`}>{formatTs(c.createdAt)}</span>
                             {c.reports > 0 && isAdmin && (
-                              <span className="text-[9px] font-mono text-red-400 border border-red-500/30 px-1 rounded">{t.report} {c.reports}</span>
+                              <span className="text-[9px] font-mono text-red-400 border border-red-500/30 px-1 rounded-none">{t.report} {c.reports}</span>
                             )}
                           </div>
                           <p className={`text-xs leading-relaxed ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#374151]'}`}>{c.text}</p>
@@ -306,13 +306,13 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                             <>
                               <button
                                 onClick={() => { setEditingId(c.id); setEditText(c.text); }}
-                                className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-[#333] text-[#555] hover:border-emerald-500/40 hover:text-emerald-400' : 'border-[#e5e7eb] text-[#9ca3af] hover:border-emerald-400 hover:text-emerald-600'}`}
+                                className={`flex items-center gap-0.5 px-1.5 py-1 rounded-none text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-[#333] text-[#555] hover:border-emerald-500/40 hover:text-emerald-400' : 'border-[#e5e7eb] text-[#9ca3af] hover:border-emerald-400 hover:text-emerald-600'}`}
                               >
                                 <Pencil size={9} /> {t.editComment}
                               </button>
                               <button
                                 onClick={() => handleDelete(c.id)}
-                                className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
+                                className={`flex items-center gap-0.5 px-1.5 py-1 rounded-none text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
                               >
                                 <Trash2 size={9} /> {t.deleteComment}
                               </button>
@@ -321,7 +321,7 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                           {isAdmin && !isAuthor(c) && (
                             <button
                               onClick={() => handleDelete(c.id)}
-                              className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
+                              className={`flex items-center gap-0.5 px-1.5 py-1 rounded-none text-[9px] font-mono border transition-all ${theme === 'dark' ? 'border-red-500/30 text-red-400 hover:bg-red-500/10' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
                             >
                               <Trash2 size={9} /> {t.deleteComment}
                             </button>
@@ -330,7 +330,7 @@ export function CommentSection({ proId, theme, t, isAdmin }: {
                             <button
                               onClick={() => handleReport(c)}
                               disabled={reportedIds.has(c.id)}
-                              className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-[9px] font-mono border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                              className={`flex items-center gap-0.5 px-1.5 py-1 rounded-none text-[9px] font-mono border transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                                 reportedIds.has(c.id)
                                   ? theme === 'dark' ? 'border-[#333] text-[#555]' : 'border-[#e5e7eb] text-[#9ca3af]'
                                   : theme === 'dark' ? 'border-[#333] text-[#555] hover:border-red-500/40 hover:text-red-400' : 'border-[#e5e7eb] text-[#9ca3af] hover:border-red-300 hover:text-red-500'

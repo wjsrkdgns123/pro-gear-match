@@ -54,7 +54,7 @@ export function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer }: {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
-        className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl`}
+        className={`${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none p-8 max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl`}
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -76,13 +76,13 @@ export function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer }: {
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className={`w-full h-32 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all resize-none`}
+              className={`w-full h-32 ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-emerald-500 transition-all resize-none`}
               placeholder="Asuna, TenZ, https://liquipedia.net/valorant/Aspas..."
             />
             <button
               onClick={performAudit}
               disabled={!inputText.trim() || isAuditing}
-              className="w-full py-3 bg-emerald-500 text-black rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 bg-emerald-500 text-black rounded-none font-bold uppercase tracking-widest text-xs hover:bg-emerald-400 transition-all flex items-center justify-center gap-2"
             >
               {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
               {t.checkMissing}
@@ -95,7 +95,7 @@ export function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer }: {
                 <h3 className="text-xs font-mono uppercase tracking-widest text-red-400 flex items-center gap-2">
                   <X size={14} /> {t.missing} ({results.missing.length})
                 </h3>
-                <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#fff5f5] border-red-100'} max-h-64 overflow-y-auto space-y-2`}>
+                <div className={`p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#fff5f5] border-red-100'} max-h-64 overflow-y-auto space-y-2`}>
                   {results.missing.length === 0 ? (
                     <p className="text-xs text-[#555] italic">{t.noMissing}</p>
                   ) : (
@@ -118,7 +118,7 @@ export function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer }: {
                 <h3 className="text-xs font-mono uppercase tracking-widest text-emerald-400 flex items-center gap-2">
                   <CheckCircle2 size={14} /> {t.existing} ({results.existing.length})
                 </h3>
-                <div className={`p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f0fff4] border-emerald-100'} max-h-64 overflow-y-auto space-y-2`}>
+                <div className={`p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-[#f0fff4] border-emerald-100'} max-h-64 overflow-y-auto space-y-2`}>
                   {results.existing.map((name, i) => (
                     <div key={i} className="text-xs font-mono text-[#555] truncate" title={name}>{name}</div>
                   ))}
@@ -131,7 +131,7 @@ export function BulkAuditModal({ theme, t, proList, onClose, onAddPlayer }: {
         <div className="mt-6 pt-6 border-t border-[#333] flex justify-end">
           <button
             onClick={onClose}
-            className={`px-8 py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-emerald-500/10 hover:text-emerald-400 transition-all`}
+            className={`px-8 py-3 border ${theme === 'dark' ? 'border-[#333] text-[#888]' : 'border-[#d1d5db] text-[#4b5563]'} rounded-none font-bold uppercase tracking-widest text-xs hover:bg-emerald-500/10 hover:text-emerald-400 transition-all`}
           >
             {t.close}
           </button>

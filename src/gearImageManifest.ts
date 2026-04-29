@@ -1,0 +1,30 @@
+// Auto-generated from public/gear-images/. Lists locally-cached gear photos
+// keyed by slug, so the client can render an image without hitting any API.
+export const GEAR_IMAGE_MANIFEST: Record<string, string> = {
+  "artisan-ninja-fx-zero-soft": "/gear-images/artisan-ninja-fx-zero-soft.jpg",
+  "artisan-type-99": "/gear-images/artisan-type-99.jpg",
+  "benq-xl2546k": "/gear-images/benq-xl2546k.jpg",
+  "logitech-g-pro-x-superlight-2-black": "/gear-images/logitech-g-pro-x-superlight-2-black.jpg",
+  "logitech-g-pro-x-superlight-2": "/gear-images/logitech-g-pro-x-superlight-2.jpg",
+  "logitech-g-pro-x-superlight-black": "/gear-images/logitech-g-pro-x-superlight-black.jpg",
+  "logitech-g-pro-x-superlight": "/gear-images/logitech-g-pro-x-superlight.jpg",
+  "logitech-g-pro-x-tkl-keyboard": "/gear-images/logitech-g-pro-x-tkl-keyboard.jpg",
+  "logitech-g-pro-x2-superstrike": "/gear-images/logitech-g-pro-x2-superstrike.jpg",
+  "logitech-g640": "/gear-images/logitech-g640.jpg",
+  "pulsar-x2v2": "/gear-images/pulsar-x2v2.jpg",
+  "razer-deathadder-v4-pro-black": "/gear-images/razer-deathadder-v4-pro-black.jpg",
+  "razer-gigantus-v2": "/gear-images/razer-gigantus-v2.jpg",
+  "razer-huntsman-v3-pro-tkl-black": "/gear-images/razer-huntsman-v3-pro-tkl-black.jpg",
+  "razer-viper-8khz": "/gear-images/razer-viper-8khz.jpg",
+  "razer-viper-v3-pro-black": "/gear-images/razer-viper-v3-pro-black.jpg",
+  "razer-viper-v3-pro-white": "/gear-images/razer-viper-v3-pro-white.jpg",
+  "razer-viper-v3-pro": "/gear-images/razer-viper-v3-pro.jpg",
+  "steelseries-qck-heavy": "/gear-images/steelseries-qck-heavy.jpg",
+  "wooting-60he": "/gear-images/wooting-60he.webp",
+  "wooting-80he-black": "/gear-images/wooting-80he-black.jpg",
+  "zowie-xl2546": "/gear-images/zowie-xl2546.jpg",
+  "zowie-xl2546k": "/gear-images/zowie-xl2546k.jpg",
+  "zowie-xl2566k": "/gear-images/zowie-xl2566k.jpg",
+  "zowie-xl2566x": "/gear-images/zowie-xl2566x.jpg",
+  "zowie-xl2586x": "/gear-images/zowie-xl2586x.jpg"
+};

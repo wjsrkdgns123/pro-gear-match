@@ -56,7 +56,7 @@ export function EdpiDistributionChart({ proList, userEdpi, proEdpi, proName, gam
   const tooClose = Math.abs(userX - proX) < 20;
 
   return (
-    <div className={`mt-6 p-4 rounded-xl border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+    <div className={`mt-6 p-4 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e1e]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <p className={`text-xs font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#555]' : 'text-[#888]'}`}>
           {game} eDPI {lang === 'ko' ? '분포' : 'Distribution'} · {edpiValues.length}{lang === 'ko' ? '명' : ' pros'}

@@ -21,7 +21,7 @@ function ProGearItemImpl({ icon, label, value, theme, amazonUrl, priceCheckLabel
           href={amazonUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-mono uppercase tracking-wider border transition-all
+          className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-none text-[9px] font-mono uppercase tracking-wider border transition-all
             ${theme === 'dark'
               ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-amber-400 hover:border-amber-500/50'
               : 'bg-white border-[#d1d5db] text-[#6b7280] hover:text-amber-600 hover:border-amber-400'}`}

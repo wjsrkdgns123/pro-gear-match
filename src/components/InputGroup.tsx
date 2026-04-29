@@ -63,7 +63,7 @@ export function InputGroup({ label, icon, value, placeholder, hint, onChange, th
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
           onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-          className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'} transition-colors placeholder:text-[#9ca3af]`}
+          className={`w-full ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none px-4 py-2 focus:outline-none ${theme === 'dark' ? 'focus:border-[#555]' : 'focus:border-[#9ca3af]'} transition-colors placeholder:text-[#9ca3af]`}
         />
         {loading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -78,7 +78,7 @@ export function InputGroup({ label, icon, value, placeholder, hint, onChange, th
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className={`absolute z-50 left-0 right-0 mt-1 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-lg shadow-xl overflow-y-auto max-h-60`}
+            className={`absolute z-50 left-0 right-0 mt-1 ${theme === 'dark' ? 'bg-[#151619] border-[#333]' : 'bg-white border-[#d1d5db]'} border rounded-none shadow-xl overflow-y-auto max-h-60`}
           >
             {suggestions.map((suggestion, idx) => (
               <button

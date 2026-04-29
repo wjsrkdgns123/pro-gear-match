@@ -116,7 +116,7 @@ export function ProDetail() {
         </header>
 
         {/* Sensitivity block */}
-        <section className={`${card} border rounded-2xl p-6 mb-6`}>
+        <section className={`${card} border rounded-none p-6 mb-6`}>
           <h2 className={`text-xs font-mono uppercase tracking-widest ${muted} mb-4`}>
             {lang === 'ko' ? '민감도' : 'Sensitivity'}
           </h2>
@@ -175,7 +175,7 @@ function GearCard({
   const Icon = { mouse: Mouse, keyboard: Keyboard, monitor: Monitor, mousepad: Layers }[icon];
 
   return (
-    <div className={`${card} border rounded-xl overflow-hidden`}>
+    <div className={`${card} border rounded-none overflow-hidden`}>
       <GearImage productName={value} icon={icon} theme={theme} />
       <div className="p-4">
         <div className={`flex items-center gap-2 ${muted} text-[10px] font-mono uppercase tracking-widest mb-1`}>

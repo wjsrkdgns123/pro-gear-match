@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Mouse, Keyboard, Monitor, Layers, Loader2 } from 'lucide-react';
 import { getAmazonLink } from '../utils/gear';
+import { slugify } from '../utils/slug';
+import { GEAR_IMAGE_MANIFEST } from '../gearImageManifest';
 
 export function GearImage({ productName, icon }: {
   productName: string;
@@ -13,11 +15,27 @@ export function GearImage({ productName, icon }: {
 
   useEffect(() => {
     if (!productName) { setStatus('error'); return; }
+
+    // 1) Local manifest hit — instant, works in production (no API needed).
+    const slug = slugify(productName);
+    const local = GEAR_IMAGE_MANIFEST[slug];
+    if (local) {
+      setImgUrl(local);
+      setStatus('ok');
+      return;
+    }
+
+    // 2) Otherwise try the dev-only scraper API. In production (static deploy)
+    //    this returns 404/HTML and we fall through to the icon fallback.
     let cancelled = false;
     const params = new URLSearchParams({ name: productName });
     if (amazonUrl) params.set('url', amazonUrl);
     fetch(`/api/gear-image?${params}`)
-      .then(r => r.json())
+      .then(r => {
+        const ct = r.headers.get('content-type') || '';
+        if (!r.ok || !ct.includes('application/json')) throw new Error('no-api');
+        return r.json();
+      })
       .then((d: { image: string | null }) => {
         if (cancelled) return;
         if (d.image) { setImgUrl(d.image); setStatus('ok'); }
