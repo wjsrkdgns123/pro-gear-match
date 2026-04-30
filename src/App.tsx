@@ -18,6 +18,8 @@ import { GearImage } from './components/GearImage';
 import { EdpiDistributionChart } from './components/EdpiDistributionChart';
 import { CommentSection } from './components/CommentSection';
 import { StaticPageView } from './components/StaticPageView';
+import { BlogView } from './components/BlogView';
+import { getAllPostsSorted } from './data/blogPosts';
 import { getAmazonLink } from './utils/gear';
 import type { PageType } from './utils/pageType';
 import { setSEO, seoForPage } from './utils/seo';
@@ -97,16 +99,30 @@ export default function App() {
     if (p === '/privacy') return 'privacy';
     if (p === '/terms') return 'terms';
     if (p === '/affiliate-disclosure') return 'affiliate';
+    if (p === '/blog' || p.startsWith('/blog/')) return 'blog';
     return 'home';
   });
+  const [blogSlug, setBlogSlug] = useState<string | null>(() => {
+    const p = window.location.pathname;
+    const m = p.match(/^\/blog\/([^/?#]+)/);
+    return m ? m[1] : null;
+  });
+
+  const selectBlogSlug = (slug: string | null) => {
+    history.pushState({}, '', slug ? `/blog/${slug}` : '/blog');
+    setBlogSlug(slug);
+    window.scrollTo({ top: 0 });
+  };
 
   const navigate = (page: PageType) => {
     const pathMap: Record<PageType, string> = {
       home: '/', 'how-it-works': '/how-it-works', about: '/about',
       privacy: '/privacy', terms: '/terms', affiliate: '/affiliate-disclosure',
+      blog: '/blog',
     };
     history.pushState({}, '', pathMap[page]);
     setCurrentPage(page);
+    if (page === 'blog') setBlogSlug(null);
     window.scrollTo(0, 0);
     setSEO(seoForPage(page, lang));
   };
@@ -157,6 +173,13 @@ export default function App() {
   const [totalProCount, setTotalProCount] = useState(0);
   const [excelStatus, setExcelStatus] = useState<{ loading: boolean, success?: boolean, proFound?: boolean, photoFound?: boolean, error?: string } | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [navScrolled, setNavScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setNavScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const [infoTab, setInfoTab] = useState<'how' | 'edpi' | 'about'>('how');
   const [nationalityFilter, setNationalityFilter] = useState<string>('');
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
@@ -1084,12 +1107,23 @@ export default function App() {
     }
   };
 
+  if (currentPage === 'blog') {
+    return (
+      <BlogView
+        slug={blogSlug}
+        theme={theme}
+        lang={lang}
+        onNavigate={navigate}
+        onSelectSlug={selectBlogSlug}
+      />
+    );
+  }
   if (currentPage !== 'home') {
     return <StaticPageView page={currentPage} theme={theme} lang={lang} t={t} onNavigate={navigate} />;
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#050507] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans relative overflow-hidden`}>
+    <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark' ? 'bg-[#050507] text-[#e0e0e0]' : 'bg-[#f0f2f5] text-[#1a1a1a]'} font-sans relative overflow-x-clip`}>
       {theme === 'dark' && (
         <div className="fixed inset-0 pointer-events-none" style={{backgroundImage: 'linear-gradient(rgba(16,185,129,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.028) 1px, transparent 1px)', backgroundSize: '44px 44px'}} />
       )}
@@ -1100,16 +1134,21 @@ export default function App() {
           <div className="fixed bottom-[5%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none" style={{background: 'radial-gradient(circle, rgba(6,182,212,0.03) 0%, transparent 65%)'}} />
         </>
       )}
-      <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
-        {/* ─── NAV ─── */}
-        <motion.nav
-          initial={{ opacity: 0, y: -12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="relative flex items-center justify-between py-4 mb-6"
-          style={{ zIndex: 2 }}
-        >
-          {/* Logo (unchanged) */}
+      {/* ─── NAV (sticky — entire bar stays in place; bg fades in on scroll) ─── */}
+      <motion.nav
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className={`sticky top-0 w-full z-50 transition-[border-color] duration-150 ${
+          theme === 'dark' ? 'bg-[#050507]' : 'bg-[#f0f2f5]'
+        } ${
+          navScrolled
+            ? (theme === 'dark' ? 'border-b border-[#1e1e22]' : 'border-b border-[#e5e7eb]')
+            : 'border-b border-transparent'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between py-3">
+          {/* Logo */}
           <div className="flex items-center gap-3">
             <div className="relative">
               {theme === 'dark' && <div className="absolute inset-0 bg-emerald-500/25 rounded-none blur-md" />}
@@ -1122,7 +1161,9 @@ export default function App() {
           </div>
 
           {/* Center: Pro Gamer global search */}
-          <HeaderSearch allProList={allProList} lang={lang} theme={theme} />
+          <div className="hidden md:block flex-1 max-w-2xl mx-6">
+            <HeaderSearch allProList={allProList} lang={lang} theme={theme} wide />
+          </div>
 
 
           {/* Right icons */}
@@ -1172,8 +1213,11 @@ export default function App() {
               </button>
             )}
           </div>
-        </motion.nav>
+        </div>
+      </motion.nav>
 
+
+      <div className="relative max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-6">
         {/* ─── HERO ─── */}
         <section className="relative pt-6 pb-10" style={{ zIndex: 1 }}>
           {/* Background esports scene images — right side only, dark mode only */}
@@ -2877,6 +2921,61 @@ export default function App() {
 
       {/* Main page comment section — hidden */}
 
+      {/* ── Latest blog posts ── */}
+      {(() => {
+        const recent = getAllPostsSorted().slice(0, 3);
+        return (
+          <div className="max-w-7xl mx-auto mt-20 px-4 md:px-8">
+            <div className="mb-6 flex items-baseline gap-3 flex-wrap">
+              <h2 className={`text-3xl md:text-4xl font-black tracking-tighter uppercase leading-none ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+                {lang === 'ko' ? '가이드 & 분석' : 'Guides & Analysis'}
+              </h2>
+              <span className={`text-[11px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}`}>
+                {lang === 'ko' ? '데이터 기반 FPS 인사이트' : 'data-driven FPS insights'}
+              </span>
+              <button
+                onClick={() => navigate('blog')}
+                className={`ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none border text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-[#0c0c0e] border-[#1e1e22] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40'
+                    : 'bg-white border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'
+                }`}
+              >
+                {lang === 'ko' ? '전체 보기' : 'View All'} →
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recent.map(p => {
+                const meta = lang === 'ko' ? p.ko : p.en;
+                return (
+                  <button
+                    key={p.slug}
+                    onClick={() => { selectBlogSlug(p.slug); navigate('blog'); }}
+                    className={`group text-left p-5 rounded-none border transition-all ${
+                      theme === 'dark'
+                        ? 'bg-[#0c0c0e] border-[#1e1e22] hover:border-emerald-500/40 hover:bg-emerald-500/[0.02]'
+                        : 'bg-white border-[#e5e7eb] hover:border-emerald-500/40 hover:bg-emerald-50/30'
+                    }`}
+                  >
+                    <div className={`flex items-center gap-2 text-[9px] font-mono uppercase tracking-widest mb-2 ${theme === 'dark' ? 'text-emerald-400/70' : 'text-emerald-600/80'}`}>
+                      <span>{p.date}</span>
+                      <span className={theme === 'dark' ? 'text-[#333]' : 'text-[#d1d5db]'}>·</span>
+                      <span>{p.readMins} {lang === 'ko' ? '분' : 'min'}</span>
+                    </div>
+                    <h3 className={`text-base font-black tracking-tight leading-snug mb-2 group-hover:text-emerald-400 transition-colors ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+                      {meta.title}
+                    </h3>
+                    <p className={`text-[12px] leading-relaxed line-clamp-3 ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>
+                      {meta.excerpt}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── Info Tabs (How / eDPI / About) ── */}
       <div className="max-w-7xl mx-auto mt-20 pb-20 px-4 md:px-8">
         <div className={`rounded-none border overflow-hidden ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}>
@@ -2989,6 +3088,21 @@ export default function App() {
 
       {/* Footer */}
       <footer className={`border-t ${theme === 'dark' ? 'border-[#333] bg-[#0a0a0a]' : 'border-[#d1d5db] bg-[#f8f9fa]'} py-12 px-4 md:px-8`}>
+        {/* Back to top — primary CTA style matching 매칭 시작 button */}
+        <div className="max-w-md mx-auto mb-10 px-4">
+          <motion.button
+            onClick={() => { navigate('home'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+            className="group w-full relative overflow-hidden font-black py-4 rounded-none transition-all duration-200 flex items-center justify-center gap-2 uppercase tracking-widest text-sm bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+            <ChevronUp size={17} className="group-hover:-translate-y-0.5 transition-transform" />
+            {lang === 'ko' ? '메인 화면으로' : 'Back to Top'}
+          </motion.button>
+        </div>
+
         {/* Amazon Associates Disclosure */}
         <div className={`max-w-7xl mx-auto mb-8 px-4 py-3 rounded-none text-center text-[11px] ${theme === 'dark' ? 'bg-[#111] text-[#666] border border-[#1e1e22]' : 'bg-[#f0fdf4] text-[#6b7280] border border-[#d1fae5]'}`}>
           <span className={`${theme === 'dark' ? 'text-emerald-500' : 'text-emerald-600'} font-semibold`}>Amazon Associates</span>
@@ -3001,6 +3115,7 @@ export default function App() {
           </div>
           <div className={`flex flex-wrap justify-center gap-6 text-[10px] font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-widest`}>
             <button onClick={() => navigate('how-it-works')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '작동 방식' : 'How It Works'}</button>
+            <button onClick={() => navigate('blog')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '블로그' : 'Blog'}</button>
             <button onClick={() => navigate('about')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '소개' : 'About'}</button>
             <button onClick={() => navigate('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
             <button onClick={() => navigate('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>

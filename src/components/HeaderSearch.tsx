@@ -11,12 +11,14 @@ interface Props {
   allProList: ProGamer[];
   lang: Language;
   theme: Theme;
+  /** When true, the search bar fills its container instead of being capped at max-w-2xl. */
+  wide?: boolean;
 }
 
 // Memoized so that App-level re-renders (matches, settings, etc.) don't
 // re-render the search bar. State for menu toggles + filter selections lives
 // here, so opening menus is instant — no App re-render involved.
-export const HeaderSearch = React.memo(function HeaderSearch({ allProList, lang, theme }: Props) {
+export const HeaderSearch = React.memo(function HeaderSearch({ allProList, lang, theme, wide = false }: Props) {
   const [globalSearch, setGlobalSearch] = useState('');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [searchGameFilter, setSearchGameFilter] = useState<string>('');
@@ -95,7 +97,7 @@ export const HeaderSearch = React.memo(function HeaderSearch({ allProList, lang,
   const activeFilterCount = (searchGameFilter ? 1 : 0) + (searchCountryFilter ? 1 : 0);
 
   return (
-    <div ref={globalSearchWrapRef} className="hidden md:block flex-1 max-w-2xl mx-6 relative">
+    <div ref={globalSearchWrapRef} className={`hidden md:block flex-1 relative ${wide ? 'w-full' : 'max-w-2xl mx-6'}`}>
       <div className="flex items-center gap-1.5">
         {/* Search input */}
         <div className="relative flex-1">

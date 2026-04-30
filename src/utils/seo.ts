@@ -97,8 +97,29 @@ export function seoForPage(page: string, lang: 'en' | 'ko'): SEOInput {
         ? 'Amazon Associates 제휴 링크 사용에 관한 고지사항.'
         : 'Disclosure about our Amazon Associates affiliate links.',
     },
+    blog: {
+      title: isKo ? '블로그 - 가이드 & 분석 - ProGear Match' : 'Blog — Guides & Analysis — ProGear Match',
+      description: isKo
+        ? 'eDPI, 감도, 장비, 프로 분석 등 FPS 게이머가 알아야 할 모든 것을 데이터 기반으로 풀어드립니다.'
+        : 'Data-driven guides on eDPI, sensitivity, gear, and pro analysis for FPS gamers.',
+    },
   };
   return map[page] || map.home;
+}
+
+/** SEO meta for an individual blog post. */
+export function seoForBlogPost(
+  title: string,
+  excerpt: string,
+  slug: string,
+  lang: 'en' | 'ko',
+): SEOInput {
+  return {
+    title: lang === 'ko' ? `${title} - 블로그 - ProGear Match` : `${title} — Blog — ProGear Match`,
+    description: excerpt,
+    canonical: typeof window !== 'undefined' ? `${window.location.origin}/blog/${slug}` : undefined,
+    ogType: 'article',
+  };
 }
 
 export function seoForPro(

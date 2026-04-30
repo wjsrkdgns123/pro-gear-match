@@ -1,0 +1,15 @@
+import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const sa = JSON.parse(fs.readFileSync(path.join(__dirname,'..','service-account.json'),'utf8'));
+if (!admin.apps.length) admin.initializeApp({ credential: admin.credential.cert(sa) });
+const db = admin.firestore();
+db.settings({ databaseId: 'ai-studio-6d824db4-a574-4a12-be39-0476107b494a' });
+const snap = await db.collection('pro-gamers').get();
+const byGame = {};
+snap.forEach(d => { const g = d.data().game || 'unknown'; byGame[g] = (byGame[g] || 0) + 1; });
+console.log('DB 총합:', snap.size);
+for (const [game, cnt] of Object.entries(byGame)) console.log(`  ${game}: ${cnt}명`);
+process.exit(0);
