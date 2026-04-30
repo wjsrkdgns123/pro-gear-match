@@ -1,1 +1,1 @@
-export type PageType = 'home' | 'how-it-works' | 'about' | 'privacy' | 'terms' | 'affiliate' | 'blog';
+export type PageType = 'home' | 'how-it-works' | 'about' | 'privacy' | 'terms' | 'affiliate' | 'blog' | 'gear';

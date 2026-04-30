@@ -19,6 +19,7 @@ import { EdpiDistributionChart } from './components/EdpiDistributionChart';
 import { CommentSection } from './components/CommentSection';
 import { StaticPageView } from './components/StaticPageView';
 import { BlogView } from './components/BlogView';
+import { GearView } from './components/GearView';
 import { getAllPostsSorted } from './data/blogPosts';
 import { getAmazonLink } from './utils/gear';
 import type { PageType } from './utils/pageType';
@@ -100,6 +101,7 @@ export default function App() {
     if (p === '/terms') return 'terms';
     if (p === '/affiliate-disclosure') return 'affiliate';
     if (p === '/blog' || p.startsWith('/blog/')) return 'blog';
+    if (p === '/gear' || p.startsWith('/gear/')) return 'gear';
     return 'home';
   });
   const [blogSlug, setBlogSlug] = useState<string | null>(() => {
@@ -107,6 +109,17 @@ export default function App() {
     const m = p.match(/^\/blog\/([^/?#]+)/);
     return m ? m[1] : null;
   });
+  const [gearSlug, setGearSlug] = useState<string | null>(() => {
+    const p = window.location.pathname;
+    const m = p.match(/^\/gear\/([^/?#]+)/);
+    return m ? m[1] : null;
+  });
+
+  const selectGearSlug = (s: string | null) => {
+    history.pushState({}, '', s ? `/gear/${s}` : '/gear');
+    setGearSlug(s);
+    window.scrollTo({ top: 0 });
+  };
 
   const selectBlogSlug = (slug: string | null) => {
     history.pushState({}, '', slug ? `/blog/${slug}` : '/blog');
@@ -118,11 +131,12 @@ export default function App() {
     const pathMap: Record<PageType, string> = {
       home: '/', 'how-it-works': '/how-it-works', about: '/about',
       privacy: '/privacy', terms: '/terms', affiliate: '/affiliate-disclosure',
-      blog: '/blog',
+      blog: '/blog', gear: '/gear',
     };
     history.pushState({}, '', pathMap[page]);
     setCurrentPage(page);
     if (page === 'blog') setBlogSlug(null);
+    if (page === 'gear') setGearSlug(null);
     window.scrollTo(0, 0);
     setSEO(seoForPage(page, lang));
   };
@@ -1115,6 +1129,18 @@ export default function App() {
         lang={lang}
         onNavigate={navigate}
         onSelectSlug={selectBlogSlug}
+      />
+    );
+  }
+  if (currentPage === 'gear') {
+    return (
+      <GearView
+        slug={gearSlug}
+        allProList={allProList}
+        theme={theme}
+        lang={lang}
+        onNavigate={navigate}
+        onSelectSlug={selectGearSlug}
       />
     );
   }
@@ -2762,6 +2788,16 @@ export default function App() {
               <span className={`text-[11px] font-mono uppercase tracking-widest ${theme === 'dark' ? 'text-[#666]' : 'text-[#9ca3af]'}`}>
                 {lang === 'ko' ? '카테고리별 가장 많이 쓰이는 장비' : 'most used per category'}
               </span>
+              <button
+                onClick={() => navigate('gear')}
+                className={`ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none border text-[10px] font-mono uppercase tracking-widest transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-[#0c0c0e] border-[#1e1e22] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40'
+                    : 'bg-white border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'
+                }`}
+              >
+                {lang === 'ko' ? '장비 목록' : 'Full Gear DB'} →
+              </button>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -3116,6 +3152,7 @@ export default function App() {
           <div className={`flex flex-wrap justify-center gap-6 text-[10px] font-mono ${theme === 'dark' ? 'text-[#888]' : 'text-[#4b5563]'} uppercase tracking-widest`}>
             <button onClick={() => navigate('how-it-works')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '작동 방식' : 'How It Works'}</button>
             <button onClick={() => navigate('blog')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '블로그' : 'Blog'}</button>
+            <button onClick={() => navigate('gear')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '장비 정보' : 'Gear'}</button>
             <button onClick={() => navigate('about')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '소개' : 'About'}</button>
             <button onClick={() => navigate('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
             <button onClick={() => navigate('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>
