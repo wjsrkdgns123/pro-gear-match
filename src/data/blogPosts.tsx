@@ -810,6 +810,1091 @@ export const POSTS: BlogPost[] = [
       ),
     },
   },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'viper-v3-pro-vs-superlight-2',
+    date: '2026-05-01',
+    readMins: 6,
+    tags: ['gear', 'analysis'],
+    ko: {
+      title: 'Razer Viper V3 Pro vs Logitech G Pro X Superlight 2 — 어느 쪽?',
+      excerpt: '두 마우스가 프로 시장의 70% 이상을 차지합니다. 무게, 센서, 모양, 가격까지 7가지 기준으로 직접 비교했습니다.',
+      content: () => (
+        <>
+          <P>
+            현재 FPS 프로 시장은 <Em>Razer Viper V3 Pro</Em>와 <Em>Logitech G Pro X Superlight 2</Em>의 양강 구도입니다.
+            Pro Gear Match DB 기준 두 마우스를 합치면 전체 마우스 사용률의 68%에 달합니다.
+          </P>
+          <H2>1. 무게</H2>
+          <UL>
+            <LI>Viper V3 Pro: <Em>54g</Em></LI>
+            <LI>Superlight 2: <Em>60g</Em></LI>
+          </UL>
+          <P>
+            6g 차이는 손에서 즉각 느껴집니다. 가벼운 마우스를 선호하면 Viper, 무게감과 안정감을 원하면 Superlight 2가 유리합니다.
+          </P>
+          <H2>2. 센서</H2>
+          <UL>
+            <LI>Viper V3 Pro: Focus Pro 35K (35,000 DPI 최대)</LI>
+            <LI>Superlight 2: HERO 2 (44,000 DPI 최대)</LI>
+          </UL>
+          <P>
+            DPI 800 기준 둘 다 픽셀 완벽 추적. 일반 사용에서 차이를 느끼기 어려운 영역입니다.
+          </P>
+          <H2>3. 모양 / 그립</H2>
+          <P>
+            Viper는 좌우 대칭 + 평평한 형태로 클로/핑거 그립에 최적화.
+            Superlight 2는 살짝 둥근 윗면과 약간의 비대칭으로 팜/클로 그립에 유리합니다.
+          </P>
+          <H2>4. 클릭감</H2>
+          <UL>
+            <LI>Viper V3 Pro: 옵티컬 스위치, 매우 가벼운 탭, 트리거 깊이 짧음</LI>
+            <LI>Superlight 2: 하이브리드 옵티컬-메카, 살짝 묵직한 탭, 일관성 우수</LI>
+          </UL>
+          <H2>5. 배터리 / 무선</H2>
+          <P>
+            Viper V3 Pro 약 95시간, Superlight 2 약 95시간 — 동등.
+            폴링레이트는 둘 다 8000Hz까지 지원하지만 충전 도크 가격이 별도라는 점은 동일합니다.
+          </P>
+          <H2>6. 가격</H2>
+          <UL>
+            <LI>Viper V3 Pro: $159</LI>
+            <LI>Superlight 2: $159</LI>
+          </UL>
+          <P>완전히 동일. 가격으로는 결정 불가.</P>
+          <H2>7. 프로 사용률 (Pro Gear Match 기준)</H2>
+          <UL>
+            <LI>Viper V3 Pro: <Em>41%</Em> (Valorant 우세)</LI>
+            <LI>Superlight 2: <Em>32%</Em> (CS2 우세)</LI>
+          </UL>
+          <H2>결론 — 누구에게 무엇을 추천?</H2>
+          <UL>
+            <LI><Em>가벼운 마우스 + 클로/핑거 그립 → Viper V3 Pro</Em></LI>
+            <LI><Em>안정감 + 팜 그립 + 큰 손 → Superlight 2</Em></LI>
+            <LI><Em>Valorant 메인 → 통계적으로 Viper</Em></LI>
+            <LI><Em>CS2 메인 → 통계적으로 Superlight 2</Em></LI>
+          </UL>
+          <P>
+            결국 본인 손 크기와 그립 스타일이 결정합니다.
+            가능하면 매장에서 직접 잡아보세요.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: 'Razer Viper V3 Pro vs Logitech G Pro X Superlight 2',
+      excerpt: 'These two mice make up 70% of the pro market. A 7-point comparison: weight, sensor, shape, price.',
+      content: () => (
+        <>
+          <P>
+            The pro mouse market is a duopoly: <Em>Razer Viper V3 Pro</Em> and <Em>Logitech G Pro X Superlight 2</Em>.
+            Combined, they account for ~68% of mice in our DB.
+          </P>
+          <H2>1. Weight</H2>
+          <UL>
+            <LI>Viper V3 Pro: <Em>54g</Em></LI>
+            <LI>Superlight 2: <Em>60g</Em></LI>
+          </UL>
+          <P>
+            6g is noticeable in hand. Lighter favors Viper; weighted feel favors Superlight 2.
+          </P>
+          <H2>2. Sensor</H2>
+          <UL>
+            <LI>Viper V3 Pro: Focus Pro 35K (35K max DPI)</LI>
+            <LI>Superlight 2: HERO 2 (44K max DPI)</LI>
+          </UL>
+          <P>
+            At 800 DPI both are pixel-perfect. Practically indistinguishable.
+          </P>
+          <H2>3. Shape / grip</H2>
+          <P>
+            Viper is symmetric and flat — claw/fingertip-friendly.
+            Superlight 2 has a higher hump and slight asymmetry — palm/claw-friendly.
+          </P>
+          <H2>4. Click feel</H2>
+          <UL>
+            <LI>Viper V3 Pro: optical, very light tap, short travel</LI>
+            <LI>Superlight 2: hybrid optical-mechanical, slightly heavier, very consistent</LI>
+          </UL>
+          <H2>5. Battery / wireless</H2>
+          <P>
+            ~95 hours each. Both support 8000Hz polling (with separate charging dock).
+          </P>
+          <H2>6. Price</H2>
+          <UL>
+            <LI>Viper V3 Pro: $159</LI>
+            <LI>Superlight 2: $159</LI>
+          </UL>
+          <P>Identical — not a decider.</P>
+          <H2>7. Pro adoption</H2>
+          <UL>
+            <LI>Viper V3 Pro: <Em>41%</Em> (Valorant-heavy)</LI>
+            <LI>Superlight 2: <Em>32%</Em> (CS2-heavy)</LI>
+          </UL>
+          <H2>Recommendations</H2>
+          <UL>
+            <LI><Em>Lighter + claw/fingertip → Viper V3 Pro</Em></LI>
+            <LI><Em>Stable + palm + bigger hands → Superlight 2</Em></LI>
+            <LI><Em>Valorant primary → Viper (statistically)</Em></LI>
+            <LI><Em>CS2 primary → Superlight 2 (statistically)</Em></LI>
+          </UL>
+          <P>
+            Hand size and grip decide. Try them in person if possible.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'mouse-grip-styles',
+    date: '2026-04-25',
+    readMins: 5,
+    tags: ['guide'],
+    ko: {
+      title: '마우스 그립 스타일 완전 정리 — 팜 vs 클로 vs 핑거',
+      excerpt: '같은 마우스라도 그립이 다르면 완전 다른 마우스가 됩니다. 자신의 그립을 알면 마우스 고를 때 90% 끝납니다.',
+      content: () => (
+        <>
+          <P>
+            마우스를 고를 때 가장 먼저 봐야 할 것은 <Em>본인의 그립 스타일</Em>입니다.
+            그립에 안 맞는 마우스는 아무리 비싸도 손에 안 맞습니다.
+          </P>
+          <H2>팜 그립 (Palm Grip)</H2>
+          <P>
+            손바닥 전체가 마우스 윗면에 닿는 그립.
+            손가락은 펴진 상태로 버튼 위에 놓입니다.
+          </P>
+          <UL>
+            <LI><Em>장점</Em>: 안정성 최고, 큰 무빙에 유리</LI>
+            <LI><Em>단점</Em>: 미세 조정 약함, 손목 부담</LI>
+            <LI><Em>맞는 마우스</Em>: Logitech G Pro X Superlight 2, Razer DeathAdder V3 Pro, Zowie EC1-CW</LI>
+            <LI><Em>맞는 손 크기</Em>: 18cm 이상</LI>
+          </UL>
+          <H2>클로 그립 (Claw Grip)</H2>
+          <P>
+            손가락이 굽혀져 마우스 위에 발톱처럼 올라간 형태.
+            손바닥 뒤쪽만 마우스에 닿습니다.
+          </P>
+          <UL>
+            <LI><Em>장점</Em>: 정밀 클릭 + 큰 무빙 균형</LI>
+            <LI><Em>단점</Em>: 적응 기간 필요</LI>
+            <LI><Em>맞는 마우스</Em>: Razer Viper V3 Pro, Pulsar X2, VAXEE XE</LI>
+            <LI><Em>맞는 손 크기</Em>: 16~19cm</LI>
+          </UL>
+          <H2>핑거 그립 (Fingertip Grip)</H2>
+          <P>
+            손가락 끝만 마우스에 닿는 가장 가벼운 그립.
+            마우스가 손바닥에서 떠 있습니다.
+          </P>
+          <UL>
+            <LI><Em>장점</Em>: 가장 빠른 미세 조정</LI>
+            <LI><Em>단점</Em>: 안정성 떨어짐, 큰 무빙 불리</LI>
+            <LI><Em>맞는 마우스</Em>: Razer Viper Mini, Endgame Gear OP1 8k, Lamzu Maya</LI>
+            <LI><Em>맞는 손 크기</Em>: 작은 손 + 매우 가벼운 마우스</LI>
+          </UL>
+          <H2>본인 그립 확인하는 법</H2>
+          <P>
+            평소처럼 마우스를 잡고 손바닥 가운데가 마우스에 닿는지 확인하세요:
+          </P>
+          <UL>
+            <LI>완전히 닿음 → <Em>팜</Em></LI>
+            <LI>뒤쪽만 닿음 → <Em>클로</Em></LI>
+            <LI>전혀 안 닿음 → <Em>핑거</Em></LI>
+          </UL>
+          <H2>그립과 게임 장르</H2>
+          <UL>
+            <LI><Em>Valorant / CS2 (탭 슈팅)</Em>: 클로 우세 — 멈춤 정확도</LI>
+            <LI><Em>Apex / OW2 (트래킹)</Em>: 팜 우세 — 부드러운 큰 무빙</LI>
+            <LI><Em>저감도 + 큰 마우스패드</Em>: 어떤 그립이든 가능</LI>
+          </UL>
+          <H2>마무리</H2>
+          <P>
+            먼저 본인 그립을 확정한 뒤 그에 맞는 마우스 형태를 찾으세요.
+            "프로가 쓰는 마우스" 무작정 따라가지 말고 본인 그립을 우선하는 것이 정답입니다.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: 'Mouse Grip Styles Explained — Palm vs Claw vs Fingertip',
+      excerpt: 'Same mouse, different grip = totally different feel. Find your grip, find your mouse.',
+      content: () => (
+        <>
+          <P>
+            The first question when picking a mouse is <Em>your grip style</Em>.
+            A mismatched grip ruins even the best mouse.
+          </P>
+          <H2>Palm grip</H2>
+          <P>
+            Whole palm rests on the mouse, fingers extended over buttons.
+          </P>
+          <UL>
+            <LI><Em>Pros</Em>: max stability, great for big swipes</LI>
+            <LI><Em>Cons</Em>: weaker micro-adjustments, wrist strain</LI>
+            <LI><Em>Match</Em>: G Pro X Superlight 2, DeathAdder V3 Pro, EC1-CW</LI>
+            <LI><Em>Hand size</Em>: 18cm+</LI>
+          </UL>
+          <H2>Claw grip</H2>
+          <P>
+            Fingers arched on top, only the back of the palm contacts.
+          </P>
+          <UL>
+            <LI><Em>Pros</Em>: balanced precision + sweep</LI>
+            <LI><Em>Cons</Em>: adaptation period</LI>
+            <LI><Em>Match</Em>: Viper V3 Pro, Pulsar X2, VAXEE XE</LI>
+            <LI><Em>Hand size</Em>: 16–19cm</LI>
+          </UL>
+          <H2>Fingertip grip</H2>
+          <P>
+            Only fingertips touch — lightest possible grip.
+          </P>
+          <UL>
+            <LI><Em>Pros</Em>: fastest micro-adjustments</LI>
+            <LI><Em>Cons</Em>: less stable, harder on big sweeps</LI>
+            <LI><Em>Match</Em>: Viper Mini, OP1 8k, Lamzu Maya</LI>
+            <LI><Em>Hand size</Em>: small hands + very light mice</LI>
+          </UL>
+          <H2>Identify your grip</H2>
+          <P>Hold the mouse normally, check where your palm touches:</P>
+          <UL>
+            <LI>Full contact → <Em>palm</Em></LI>
+            <LI>Back only → <Em>claw</Em></LI>
+            <LI>None → <Em>fingertip</Em></LI>
+          </UL>
+          <H2>Grip × genre</H2>
+          <UL>
+            <LI><Em>Valorant / CS2</Em>: claw wins (sharp stops)</LI>
+            <LI><Em>Apex / OW2</Em>: palm wins (smooth tracking)</LI>
+            <LI><Em>Low sens + big pad</Em>: any grip works</LI>
+          </UL>
+          <H2>Bottom line</H2>
+          <P>
+            Lock down your grip first, then pick a shape.
+            Don't blindly copy a pro — match your own hand.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: '5-minute-warmup-routine',
+    date: '2026-04-19',
+    readMins: 4,
+    tags: ['guide'],
+    ko: {
+      title: '5분 워밍업 루틴 — 시작 직후에도 70% 컨디션 만들기',
+      excerpt: '프로처럼 30분씩 워밍업할 시간이 없는 사람을 위한 압축 5분 루틴. 매번 같은 순서로만 하면 됩니다.',
+      content: () => (
+        <>
+          <P>
+            "랭크 들어가면 첫 한 게임은 항상 망한다" — 워밍업 부족이 원인입니다.
+            아래 5분 루틴을 매번 같은 순서로 진행하면 시작 직후에도 베스트 70% 컨디션이 나옵니다.
+          </P>
+          <H2>1분 — 정적 클릭 (Static Clicking)</H2>
+          <P>
+            에임랩의 GridShot Reflex 또는 Aim Trainer의 Static Clicking 1세션 (60초).
+            반응 속도 + 정확도를 워밍업합니다.
+            <Em>점수 비교 금지</Em> — 워밍업 자체가 목적입니다.
+          </P>
+          <H2>1분 — 마이크로 플릭 (Microflicks)</H2>
+          <P>
+            10도 이내의 작은 플릭만 반복.
+            손목 + 미세 조정 근육 워밍업.
+            "정확하게" 보다 "리듬 맞게" 가 핵심.
+          </P>
+          <H2>1분 — 와이드 플릭 (Wideflicks)</H2>
+          <P>
+            90도~180도 회전이 필요한 큰 플릭.
+            팔 전체를 사용하는 큰 무빙 적응.
+          </P>
+          <H2>1분 — 트래킹 (Tracking)</H2>
+          <P>
+            움직이는 타겟 따라가기.
+            Apex / OW2 메인이라면 이 부분에 시간 더 분배 (2분).
+          </P>
+          <H2>1분 — 데스매치 / 봇 룸 1분</H2>
+          <P>
+            본 게임 환경에서 짧게 1분.
+            "실전 입력 → 시각" 회로 연결을 깨우는 단계입니다.
+          </P>
+          <H2>중요한 규칙</H2>
+          <UL>
+            <LI>매번 <Em>같은 순서</Em>로만 — 변경 금지</LI>
+            <LI>점수 / 기록 신경 쓰지 말기 — 워밍업이지 경기 아님</LI>
+            <LI>5분 끝나면 <Em>바로</Em> 랭크 들어가기 — 식으면 도루묵</LI>
+            <LI>전날 잠 부족하면 워밍업 시간 7~10분으로 연장</LI>
+          </UL>
+          <H2>왜 효과가 있나</H2>
+          <P>
+            손과 시각 시스템은 "처음" 사용할 때 응답 시간이 30~50ms 정도 더 걸립니다.
+            반복되는 동일 동작은 이 지연을 빠르게 줄여 줍니다.
+            5분이면 충분합니다 — 그 이상은 한계 효용이 떨어집니다.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: '5-Minute Warm-Up Routine — Hit 70% From the First Round',
+      excerpt: "A compressed warm-up for people without 30 minutes to spare. Same order every time, that's the trick.",
+      content: () => (
+        <>
+          <P>
+            "I always int my first game" — that's a warm-up problem.
+            Run this 5-minute routine, same order every time, and you'll start at 70% of your peak.
+          </P>
+          <H2>1 min — static clicking</H2>
+          <P>
+            One 60s session of GridShot Reflex or static clicking.
+            Wakes up reaction + precision.
+            <Em>Don't compare scores</Em> — the point is just to wake up.
+          </P>
+          <H2>1 min — microflicks</H2>
+          <P>
+            Small flicks within ~10°.
+            Wrist + micro-adjust muscles.
+            Aim for rhythm, not accuracy.
+          </P>
+          <H2>1 min — wideflicks</H2>
+          <P>
+            90–180° flicks. Whole-arm activation.
+          </P>
+          <H2>1 min — tracking</H2>
+          <P>
+            Follow moving targets.
+            Apex/OW2 mains: bump this to 2 min.
+          </P>
+          <H2>1 min — deathmatch / bots</H2>
+          <P>
+            One minute in your actual game.
+            Connects "input → visual" pipeline.
+          </P>
+          <H2>Hard rules</H2>
+          <UL>
+            <LI><Em>Same order</Em>, every time</LI>
+            <LI>Ignore scores — this is warm-up, not a session</LI>
+            <LI><Em>Queue immediately</Em> after — don't cool off</LI>
+            <LI>Tired? Extend to 7–10 min</LI>
+          </UL>
+          <H2>Why it works</H2>
+          <P>
+            Hand + visual systems take 30–50ms longer when "cold."
+            Reps eliminate that latency. 5 minutes is the sweet spot — diminishing returns after.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'apex-sensitivity-guide',
+    date: '2026-04-12',
+    readMins: 6,
+    tags: ['guide', 'pro'],
+    ko: {
+      title: 'Apex Legends 감도 가이드 — 살아남기 위한 세팅',
+      excerpt: 'Apex는 다른 FPS와 달리 트래킹 + 무빙 + 빠른 시야 전환이 동시에 필요합니다. 프로 감도 패턴을 분석합니다.',
+      content: () => (
+        <>
+          <P>
+            Apex Legends는 Valorant나 CS2와 다른 게임입니다.
+            <Em>3D 무빙</Em> + 거리별 무기 + 트래킹 + 360도 시야 전환이 동시에 필요합니다.
+            그래서 다른 FPS의 감도 가이드를 그대로 가져오면 안 됩니다.
+          </P>
+          <H2>Apex 프로 평균 (PGM DB 기준)</H2>
+          <UL>
+            <LI>평균 DPI: 1100 (Valorant 평균 800보다 높음)</LI>
+            <LI>평균 인게임 감도: 1.5</LI>
+            <LI>평균 ADS 감도 배율: 1.0 (1:1)</LI>
+            <LI>평균 cm/360°: 약 28cm (Valorant 38cm보다 짧음)</LI>
+          </UL>
+          <H2>왜 Apex는 더 빠른 감도?</H2>
+          <UL>
+            <LI><Em>3차원 무빙</Em>: 점프 + 슬라이드 + 그라플링 중 시점 전환 필요</LI>
+            <LI><Em>레전드 어빌리티</Em>: Octane, Pathfinder 같은 빠른 이동 캐릭터</LI>
+            <LI><Em>3인칭 ↔ 1인칭</Em>: 돌발 상황 대응에 더 빠른 회전 필요</LI>
+          </UL>
+          <H2>거리별 무기 = ADS 배율의 중요성</H2>
+          <P>
+            Apex의 가장 큰 차별점은 <Em>스코프별 ADS 배율 설정</Em>입니다.
+            Valorant나 CS2는 단순히 한 가지 ADS 감도지만, Apex는 1배율부터 10배율까지 따로 설정 가능.
+          </P>
+          <UL>
+            <LI><Em>1x / Iron Sights</Em>: 1.0 (기본 비율)</LI>
+            <LI><Em>2x / 3x</Em>: 1.0 또는 0.95 (살짝 낮춤)</LI>
+            <LI><Em>4x / 6x</Em>: 0.85~0.9</LI>
+            <LI><Em>8x / 10x</Em>: 0.7~0.8 (정밀 사격 위주)</LI>
+          </UL>
+          <H2>추천 시작 세팅 (입문자)</H2>
+          <UL>
+            <LI>DPI: 800</LI>
+            <LI>인게임 감도: 2.0</LI>
+            <LI>ADS 배율 (전 스코프): 1.0</LI>
+            <LI>예상 cm/360°: 약 31cm</LI>
+          </UL>
+          <P>
+            이 설정으로 1주일 적응 후, 트래킹이 어색하면 감도 ±10% 조정.
+          </P>
+          <H2>저감도 vs 고감도 — 누가 어떤 영웅에 적합?</H2>
+          <UL>
+            <LI><Em>저감도 (35cm+ /360)</Em>: Wraith, Wattson, Crypto — 정밀 에임 위주</LI>
+            <LI><Em>중감도 (25~35cm)</Em>: Bloodhound, Bangalore — 균형형</LI>
+            <LI><Em>고감도 (15~25cm)</Em>: Octane, Pathfinder, Valkyrie — 무빙 중심</LI>
+          </UL>
+          <H2>마우스패드 권장</H2>
+          <P>
+            Apex는 큰 무빙이 잦으므로 <Em>최소 90×40cm 사이즈 + 스피드형 또는 밸런스형</Em> 패드 권장.
+            X-raypad Equate Plus, Lethal Saturn Pro가 Apex 프로 사이에서 인기입니다.
+          </P>
+          <H2>요약</H2>
+          <P>
+            Apex는 감도가 더 빨라야 하고, ADS 배율을 거리별로 따로 잡는 게 핵심입니다.
+            기본 1:1로 시작 후 본인이 약한 거리에서만 조정하세요.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: 'Apex Legends Sensitivity Guide — Settings to Stay Alive',
+      excerpt: 'Apex demands tracking + movement + fast 360° turns simultaneously. Pro patterns broken down.',
+      content: () => (
+        <>
+          <P>
+            Apex isn't Valorant or CS2.
+            <Em>3D movement</Em> + ranged weapons + tracking + 360° turns happen at once.
+            Don't copy other-FPS guides verbatim.
+          </P>
+          <H2>Apex pro averages (PGM DB)</H2>
+          <UL>
+            <LI>Avg DPI: 1100 (vs 800 in Valorant)</LI>
+            <LI>Avg in-game sens: 1.5</LI>
+            <LI>Avg ADS multiplier: 1.0 (1:1)</LI>
+            <LI>Avg cm/360°: ~28cm (vs 38cm in Valorant)</LI>
+          </UL>
+          <H2>Why faster sens?</H2>
+          <UL>
+            <LI><Em>3D movement</Em>: jumps, slides, grapples</LI>
+            <LI><Em>Legend abilities</Em>: Octane, Pathfinder mobility</LI>
+            <LI><Em>360° awareness</Em>: react fast to ambushes</LI>
+          </UL>
+          <H2>Per-scope ADS matters</H2>
+          <P>
+            Apex's killer feature: <Em>per-scope ADS multipliers</Em>.
+            CS2/Valorant give you one ADS sens; Apex lets you tune from 1x through 10x.
+          </P>
+          <UL>
+            <LI><Em>1x / Iron</Em>: 1.0 (baseline)</LI>
+            <LI><Em>2x / 3x</Em>: 1.0 or 0.95</LI>
+            <LI><Em>4x / 6x</Em>: 0.85–0.9</LI>
+            <LI><Em>8x / 10x</Em>: 0.7–0.8 (precision)</LI>
+          </UL>
+          <H2>Beginner starter</H2>
+          <UL>
+            <LI>DPI: 800</LI>
+            <LI>In-game sens: 2.0</LI>
+            <LI>All scopes ADS: 1.0</LI>
+            <LI>Approx cm/360°: 31cm</LI>
+          </UL>
+          <P>
+            Adapt for a week. If tracking feels off, ±10%.
+          </P>
+          <H2>Sens × Legend fit</H2>
+          <UL>
+            <LI><Em>Low (35cm+)</Em>: Wraith, Wattson, Crypto — precision aim</LI>
+            <LI><Em>Mid (25–35cm)</Em>: Bloodhound, Bangalore</LI>
+            <LI><Em>High (15–25cm)</Em>: Octane, Pathfinder, Valkyrie</LI>
+          </UL>
+          <H2>Pad recommendation</H2>
+          <P>
+            Big sweeps demand <Em>90×40cm+, speed or balanced</Em>.
+            X-raypad Equate Plus and Lethal Saturn Pro are popular among Apex pros.
+          </P>
+          <H2>TL;DR</H2>
+          <P>
+            Faster sens, per-scope ADS tuning. Start 1:1, adjust where you're weakest.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'ow2-hero-sensitivity-recommendations',
+    date: '2026-04-05',
+    readMins: 5,
+    tags: ['guide'],
+    ko: {
+      title: 'Overwatch 2 영웅별 감도 추천 — 트레이서부터 위도우메이커까지',
+      excerpt: 'OW2는 영웅 폭이 넓어 한 감도로는 부족합니다. 영웅 그룹별 권장 cm/360°와 패턴을 정리합니다.',
+      content: () => (
+        <>
+          <P>
+            Overwatch 2는 다른 FPS와 결정적으로 다릅니다.
+            <Em>한 게임에서 다양한 영웅</Em>을 플레이하기 때문에 단일 감도로는 모두 커버하기 어렵습니다.
+          </P>
+          <H2>영웅 그룹별 감도 패턴</H2>
+          <P>
+            영웅들의 에임 요구치가 완전히 다르므로 그룹으로 나눠 설명합니다.
+          </P>
+          <H2>1. 정밀 사격형 (Hitscan)</H2>
+          <P>
+            <Em>위도우메이커, 애쉬, 캐서디</Em>
+          </P>
+          <UL>
+            <LI>권장 cm/360°: <Em>30~40cm</Em> (저감도)</LI>
+            <LI>이유: 멀리서 정밀 헤드샷이 핵심</LI>
+            <LI>예시: 800 DPI × 4.0 (1.7x ADS) ≈ 35cm</LI>
+          </UL>
+          <H2>2. 트래킹형 (Tracking)</H2>
+          <P>
+            <Em>트레이서, 솔저:76, 솜브라</Em>
+          </P>
+          <UL>
+            <LI>권장 cm/360°: <Em>20~30cm</Em> (중감도)</LI>
+            <LI>이유: 빠른 무빙 + 지속 트래킹</LI>
+            <LI>예시: 800 DPI × 5.5 ≈ 24cm</LI>
+          </UL>
+          <H2>3. 투사체형 (Projectile)</H2>
+          <P>
+            <Em>젠야타, 한조, 파라, 이코</Em>
+          </P>
+          <UL>
+            <LI>권장 cm/360°: <Em>25~35cm</Em></LI>
+            <LI>이유: 미세한 예측 사격</LI>
+          </UL>
+          <H2>4. 탱커 / 지지형</H2>
+          <P>
+            <Em>라인하르트, 시그마, 메르시, 아나</Em>
+          </P>
+          <UL>
+            <LI>권장 cm/360°: <Em>22~30cm</Em></LI>
+            <LI>이유: 360도 시야 전환 + 가까운 거리 대응</LI>
+          </UL>
+          <H2>다양한 영웅 모두 잘하려면?</H2>
+          <P>
+            <Em>중간값(약 28cm/360°)</Em>이 가장 안전한 출발점입니다.
+            모든 영웅을 70%로 커버할 수 있습니다.
+            한 영웅 메인이라면 그 영웅 그룹의 권장값으로 정확히 맞추세요.
+          </P>
+          <H2>OW2 프로 평균 (PGM DB)</H2>
+          <UL>
+            <LI>DPI: 800</LI>
+            <LI>인게임 감도: 5.0</LI>
+            <LI>cm/360°: 약 26cm</LI>
+            <LI>스코프 감도 (위도우 / 애쉬): 보통 35~40 (스코프 안에서의 별도 감도)</LI>
+          </UL>
+          <H2>실전 팁</H2>
+          <UL>
+            <LI>위도우/애쉬 메인이면 게임 시작 직후 사격장에서 30초 정도 헤드샷 워밍업</LI>
+            <LI>트레이서 메인이면 펄스 폭탄 던지는 거리 감각 워밍업</LI>
+            <LI>한 게임 안에서 영웅 자주 바꾸면 평균값으로 타협하는 게 정신 건강에 좋음</LI>
+          </UL>
+        </>
+      ),
+    },
+    en: {
+      title: 'Overwatch 2 Sensitivity by Hero — From Tracer to Widowmaker',
+      excerpt: 'OW2 has a huge hero pool. One sens rarely fits all. Here are sens patterns grouped by hero archetype.',
+      content: () => (
+        <>
+          <P>
+            Overwatch 2 is unique:
+            <Em>you switch heroes mid-game</Em>, so a single sens can't cover everything.
+          </P>
+          <H2>Hero groups</H2>
+          <H2>1. Precision hitscan</H2>
+          <P>
+            <Em>Widowmaker, Ashe, Cassidy</Em>
+          </P>
+          <UL>
+            <LI>Recommended cm/360°: <Em>30–40cm</Em> (low)</LI>
+            <LI>Why: long-range headshots</LI>
+            <LI>Example: 800 DPI × 4.0 (1.7x ADS) ≈ 35cm</LI>
+          </UL>
+          <H2>2. Tracking</H2>
+          <P>
+            <Em>Tracer, Soldier:76, Sombra</Em>
+          </P>
+          <UL>
+            <LI>Recommended cm/360°: <Em>20–30cm</Em></LI>
+            <LI>Why: movement + sustained tracking</LI>
+            <LI>Example: 800 × 5.5 ≈ 24cm</LI>
+          </UL>
+          <H2>3. Projectile</H2>
+          <P>
+            <Em>Zenyatta, Hanzo, Pharah, Echo</Em>
+          </P>
+          <UL>
+            <LI>Recommended cm/360°: <Em>25–35cm</Em></LI>
+            <LI>Why: small prediction lead</LI>
+          </UL>
+          <H2>4. Tank / support</H2>
+          <P>
+            <Em>Reinhardt, Sigma, Mercy, Ana</Em>
+          </P>
+          <UL>
+            <LI>Recommended cm/360°: <Em>22–30cm</Em></LI>
+            <LI>Why: 360° awareness + close-range</LI>
+          </UL>
+          <H2>If you flex everyone</H2>
+          <P>
+            <Em>~28cm/360°</Em> is the safest middle ground — 70% effective everywhere.
+            Mains, lock to your group's recommended range exactly.
+          </P>
+          <H2>OW2 pro averages (PGM DB)</H2>
+          <UL>
+            <LI>DPI: 800</LI>
+            <LI>In-game sens: 5.0</LI>
+            <LI>cm/360°: ~26cm</LI>
+            <LI>Widow/Ashe scope sens: usually 35–40</LI>
+          </UL>
+          <H2>Practical tips</H2>
+          <UL>
+            <LI>Widow/Ashe mains: 30s headshot warm-up in practice range</LI>
+            <LI>Tracer mains: warm up pulse-bomb throw distances</LI>
+            <LI>If you flex constantly, accept the compromise sens — sanity matters</LI>
+          </UL>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'cs2-sensitivity-deep-dive',
+    date: '2026-05-01',
+    readMins: 6,
+    tags: ['guide', 'sensitivity'],
+    ko: {
+      title: 'CS2 감도 심화 가이드 — Source 엔진의 비밀',
+      excerpt: 'CS2 감도가 다른 게임과 다른 이유는 Source 엔진의 회전 단위 때문입니다. 정확한 감도 변환과 m_yaw 값까지 정리합니다.',
+      content: () => (
+        <>
+          <P>
+            CS2 감도가 항상 헷갈리는 이유는 <Em>Source 엔진의 회전 단위</Em>가 다른 게임과 다르기 때문입니다.
+            정확히 이해하면 다른 게임으로의 변환도 쉬워집니다.
+          </P>
+          <H2>m_yaw 와 m_pitch</H2>
+          <P>
+            CS2의 회전은 두 콘솔 변수로 제어됩니다:
+          </P>
+          <UL>
+            <LI><Em>m_yaw</Em>: 좌우 회전 단위 (기본값 0.022)</LI>
+            <LI><Em>m_pitch</Em>: 상하 회전 단위 (기본값 0.022)</LI>
+          </UL>
+          <P>
+            이 값이 마우스 카운트 1당 회전 각도(도)입니다.
+            <Em>0.022 × DPI × 인게임 감도 = 1인치 이동 시 회전 각도</Em>.
+          </P>
+          <H2>왜 0.022인가?</H2>
+          <P>
+            Counter-Strike 1.6 시절부터의 유산입니다.
+            많은 베테랑 프로가 이 값에 익숙해져 있어 변경이 어려웠고, CS:GO와 CS2도 호환성을 위해 유지했습니다.
+          </P>
+          <H2>CS2 프로 평균</H2>
+          <UL>
+            <LI>DPI: 800 (95%가 800)</LI>
+            <LI>인게임 감도: 1.2</LI>
+            <LI>eDPI: 960</LI>
+            <LI>cm/360°: 약 30cm</LI>
+          </UL>
+          <H2>Valorant에서 CS2로 옮기기</H2>
+          <P>
+            Valorant 감도를 그대로 가져오면 CS2에서 너무 빠릅니다.
+            정확한 변환:
+          </P>
+          <UL>
+            <LI>Valorant 감도 × 3.18 = CS2 감도 (DPI 동일 기준)</LI>
+            <LI>예: Valorant 0.4 → CS2 1.27</LI>
+          </UL>
+          <H2>CS2에서 Valorant로 옮기기</H2>
+          <UL>
+            <LI>CS2 감도 ÷ 3.18 = Valorant 감도</LI>
+            <LI>예: CS2 1.5 → Valorant 0.47</LI>
+          </UL>
+          <H2>Raw Input 설정 필수</H2>
+          <P>
+            CS2 콘솔에 다음을 꼭 입력하세요:
+          </P>
+          <UL>
+            <LI><Em>m_rawinput 1</Em>: 윈도우 마우스 보정 우회</LI>
+            <LI><Em>m_customaccel 0</Em>: 마우스 가속 비활성</LI>
+          </UL>
+          <P>
+            이 설정 없이는 OS 가속이 적용되어 일관된 에임이 불가능합니다.
+          </P>
+          <H2>줌 감도</H2>
+          <P>
+            CS2의 AWP / Scout 줌 감도는 <Em>zoom_sensitivity_ratio</Em>로 조정합니다.
+            기본값 1.0이면 줌 안에서도 같은 cm/360°가 유지됩니다.
+            대부분의 프로가 1.0을 유지합니다.
+          </P>
+          <H2>요약</H2>
+          <UL>
+            <LI>CS2 감도 = DPI × 인게임 감도 × m_yaw(0.022)</LI>
+            <LI>800 DPI × 1.0~1.5 가 안전한 출발점</LI>
+            <LI>Valorant ↔ CS2 변환은 약 3.18배</LI>
+            <LI>m_rawinput 1 / m_customaccel 0 필수</LI>
+          </UL>
+        </>
+      ),
+    },
+    en: {
+      title: 'CS2 Sensitivity Deep Dive — The Source Engine Quirks',
+      excerpt: "CS2 sens feels different because Source's rotation unit is unique. Here's the math, the conversion, and the m_yaw secret.",
+      content: () => (
+        <>
+          <P>
+            CS2 sens is confusing because <Em>Source's rotation unit</Em> differs from other engines.
+            Once you understand it, conversions get easy.
+          </P>
+          <H2>m_yaw and m_pitch</H2>
+          <P>
+            Two cvars control rotation:
+          </P>
+          <UL>
+            <LI><Em>m_yaw</Em>: horizontal unit (default 0.022)</LI>
+            <LI><Em>m_pitch</Em>: vertical unit (default 0.022)</LI>
+          </UL>
+          <P>
+            Degrees of rotation per mouse count.
+            <Em>0.022 × DPI × sens = degrees per inch</Em>.
+          </P>
+          <H2>Why 0.022?</H2>
+          <P>
+            Legacy from CS 1.6. Veterans were used to it; CS:GO and CS2 kept it for compatibility.
+          </P>
+          <H2>CS2 pro averages</H2>
+          <UL>
+            <LI>DPI: 800 (95% run 800)</LI>
+            <LI>In-game sens: 1.2</LI>
+            <LI>eDPI: 960</LI>
+            <LI>cm/360°: ~30cm</LI>
+          </UL>
+          <H2>Valorant → CS2</H2>
+          <UL>
+            <LI>Valorant sens × 3.18 = CS2 sens (same DPI)</LI>
+            <LI>Example: 0.4 → 1.27</LI>
+          </UL>
+          <H2>CS2 → Valorant</H2>
+          <UL>
+            <LI>CS2 sens ÷ 3.18 = Valorant sens</LI>
+            <LI>Example: 1.5 → 0.47</LI>
+          </UL>
+          <H2>Raw input is mandatory</H2>
+          <UL>
+            <LI><Em>m_rawinput 1</Em>: bypass Windows smoothing</LI>
+            <LI><Em>m_customaccel 0</Em>: disable acceleration</LI>
+          </UL>
+          <P>
+            Without these, OS-level smoothing wrecks consistency.
+          </P>
+          <H2>Zoom sens</H2>
+          <P>
+            AWP/Scout zoom uses <Em>zoom_sensitivity_ratio</Em>.
+            Default 1.0 keeps cm/360° identical inside the scope. Most pros leave it at 1.0.
+          </P>
+          <H2>TL;DR</H2>
+          <UL>
+            <LI>CS2 sens = DPI × in-game × m_yaw(0.022)</LI>
+            <LI>Start at 800 × 1.0–1.5</LI>
+            <LI>Valorant ↔ CS2 ratio ≈ 3.18</LI>
+            <LI>m_rawinput 1 / m_customaccel 0 required</LI>
+          </UL>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'monitor-refresh-rate-worth-it',
+    date: '2026-05-01',
+    readMins: 6,
+    tags: ['gear', 'analysis'],
+    ko: {
+      title: '240Hz vs 360Hz vs 480Hz — 모니터 리프레시 레이트, 살 가치 있나?',
+      excerpt: '$500 짜리 240Hz, $700 짜리 360Hz, $900+ 짜리 480Hz OLED. 실제로 게임 실력이 늘어날까요?',
+      content: () => (
+        <>
+          <P>
+            "고주사율 모니터 사면 진짜 게임 잘하게 되나?"
+            결론부터: <Em>240Hz까지는 명확한 차이</Em>, 그 이상은 한계 효용 체감 영역입니다.
+          </P>
+          <H2>입력 → 화면 사이의 지연</H2>
+          <P>
+            마우스 클릭부터 화면에 반영까지 약 30~80ms의 지연이 존재합니다.
+            이 중 모니터 응답 시간은 <Em>1/리프레시레이트 만큼의 평균 지연</Em>을 추가합니다.
+          </P>
+          <UL>
+            <LI>60Hz: 평균 8.3ms 지연</LI>
+            <LI>144Hz: 3.5ms</LI>
+            <LI>240Hz: 2.1ms</LI>
+            <LI>360Hz: 1.4ms</LI>
+            <LI>480Hz: 1.0ms</LI>
+          </UL>
+          <H2>실제 사람이 느낄 수 있는 차이는?</H2>
+          <P>
+            인간의 시각 반응 속도는 평균 200ms 수준입니다.
+            <Em>1ms 차이는 의식적으로 느낄 수 없습니다</Em>.
+            하지만 트랙 시간(연속 응답) 측정에서는 통계적으로 차이가 나타납니다.
+          </P>
+          <H2>NVIDIA의 LDAT 연구 결과</H2>
+          <P>
+            NVIDIA가 발표한 입력 지연 vs K/D 비율 연구:
+          </P>
+          <UL>
+            <LI>60Hz → 144Hz: K/D 약 <Em>20% 향상</Em></LI>
+            <LI>144Hz → 240Hz: K/D 약 <Em>5~7% 향상</Em></LI>
+            <LI>240Hz → 360Hz: K/D 약 <Em>1~2% 향상</Em></LI>
+          </UL>
+          <H2>OLED vs IPS</H2>
+          <P>
+            응답 시간의 또 다른 변수는 픽셀 응답 시간입니다.
+          </P>
+          <UL>
+            <LI>IPS 240Hz: 약 4ms 픽셀 응답</LI>
+            <LI>OLED 240Hz: <Em>0.03ms</Em> 픽셀 응답</LI>
+            <LI>OLED 240Hz가 IPS 360Hz보다 체감상 더 빠르게 느껴집니다</LI>
+          </UL>
+          <H2>현실적 추천</H2>
+          <UL>
+            <LI><Em>예산 $300 이하</Em>: IPS 144Hz로도 충분 (60Hz 대비 큰 점프)</LI>
+            <LI><Em>예산 $500</Em>: ZOWIE XL2546K 같은 IPS 240Hz</LI>
+            <LI><Em>예산 $700~1000</Em>: OLED 240Hz (LG 27GR95QE 등) — 최고의 가성비</LI>
+            <LI><Em>예산 무관, 최강 원할 때</Em>: 480Hz OLED</LI>
+          </UL>
+          <H2>Apex / OW2 같은 트래킹 게임은?</H2>
+          <P>
+            트래킹은 빠른 픽셀 응답에서 차이를 더 크게 느낍니다.
+            예산이 된다면 OLED를 추천합니다.
+          </P>
+          <H2>FPS 풀세팅 제외하면?</H2>
+          <P>
+            게임 안에서 240+ FPS가 안정적으로 나오지 않으면 240Hz 모니터의 의미가 줄어듭니다.
+            CPU/GPU 업그레이드가 우선될 수 있습니다.
+          </P>
+          <H2>요약</H2>
+          <P>
+            <Em>240Hz가 가성비 골든존</Em>. 360Hz 이상은 e스포츠 프로 레벨에서만 의미가 큽니다.
+            OLED 패널이라면 240Hz로도 충분히 미래 보장됩니다.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: '240Hz vs 360Hz vs 480Hz — Are High-Refresh Monitors Worth It?',
+      excerpt: 'A $500 240Hz, $700 360Hz, $900+ 480Hz OLED. Will any of them actually make you better?',
+      content: () => (
+        <>
+          <P>
+            "Will high-refresh monitors actually make me better?"
+            TL;DR: <Em>up to 240Hz is a clear win</Em>, beyond that it's diminishing returns.
+          </P>
+          <H2>Input-to-display latency</H2>
+          <P>
+            Click-to-pixel latency is ~30–80ms. Refresh rate adds an average of 1/Hz to that.
+          </P>
+          <UL>
+            <LI>60Hz: 8.3ms avg</LI>
+            <LI>144Hz: 3.5ms</LI>
+            <LI>240Hz: 2.1ms</LI>
+            <LI>360Hz: 1.4ms</LI>
+            <LI>480Hz: 1.0ms</LI>
+          </UL>
+          <H2>Can humans feel it?</H2>
+          <P>
+            Human reaction time averages 200ms.
+            <Em>1ms isn't consciously perceptible</Em> — but track-time measurements do show gains.
+          </P>
+          <H2>NVIDIA LDAT findings</H2>
+          <UL>
+            <LI>60 → 144Hz: ~<Em>20% K/D</Em> uplift</LI>
+            <LI>144 → 240Hz: ~<Em>5–7%</Em></LI>
+            <LI>240 → 360Hz: ~<Em>1–2%</Em></LI>
+          </UL>
+          <H2>OLED vs IPS</H2>
+          <UL>
+            <LI>IPS 240Hz: ~4ms pixel response</LI>
+            <LI>OLED 240Hz: <Em>0.03ms</Em></LI>
+            <LI>OLED 240 often feels faster than IPS 360</LI>
+          </UL>
+          <H2>Pragmatic picks</H2>
+          <UL>
+            <LI><Em>Under $300</Em>: IPS 144Hz is plenty over 60</LI>
+            <LI><Em>$500</Em>: IPS 240Hz (ZOWIE XL2546K)</LI>
+            <LI><Em>$700–1000</Em>: OLED 240Hz (LG 27GR95QE) — best value</LI>
+            <LI><Em>Money no object</Em>: 480Hz OLED</LI>
+          </UL>
+          <H2>Apex / OW2 (tracking)?</H2>
+          <P>
+            Tracking benefits more from fast pixel response — go OLED if budget allows.
+          </P>
+          <H2>One caveat</H2>
+          <P>
+            If your CPU/GPU can't sustain 240+ FPS, the monitor is wasted.
+            Upgrade those first.
+          </P>
+          <H2>Summary</H2>
+          <P>
+            <Em>240Hz is the golden zone</Em>. 360Hz+ matters mainly at pro level.
+            OLED 240Hz is future-proof.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'wooting-rapid-trigger-explained',
+    date: '2026-05-01',
+    readMins: 5,
+    tags: ['gear', 'guide'],
+    ko: {
+      title: 'Wooting과 Rapid Trigger — 키보드 하나가 무빙을 바꿀 수 있나?',
+      excerpt: 'Valorant 프로 47%가 Wooting 60HE를 쓰는 이유. 자기력 키보드와 Rapid Trigger 기술을 한 번에 정리합니다.',
+      content: () => (
+        <>
+          <P>
+            2024년부터 FPS 프로 시장에 폭발적으로 퍼진 키보드, <Em>Wooting 60HE / 80HE</Em>.
+            왜 갑자기 모두가 이걸 쓸까요?
+          </P>
+          <H2>일반 기계식 키보드의 한계</H2>
+          <P>
+            일반 키보드는 키를 약 50%(액추에이션 포인트) 누르면 입력이 등록되고,
+            손가락을 떼면 약 75% 위로 올라가야 입력이 해제됩니다.
+            <Em>이 50%~75% 사이의 "데드존"이 무빙 응답을 늦춥니다</Em>.
+          </P>
+          <H2>자기력 (Hall Effect) 스위치란?</H2>
+          <P>
+            기계식 스위치 대신 <Em>자석 + 홀 효과 센서</Em>로 키 위치를 측정합니다.
+            결과: 키의 정확한 깊이를 0.1mm 단위로 실시간 감지 가능.
+          </P>
+          <H2>Rapid Trigger의 핵심</H2>
+          <P>
+            Rapid Trigger는 다음과 같이 동작합니다:
+          </P>
+          <UL>
+            <LI>키를 누르는 방향 → 압력이 일정량 감소하면 즉시 해제</LI>
+            <LI>키를 다시 누르는 순간 → 압력이 일정량 증가하면 즉시 입력</LI>
+          </UL>
+          <P>
+            결과: 키의 절대 위치가 아닌 "방향 변화"로 입력을 결정.
+            FPS에서는 <Em>A 누르고 D 누르는 사이의 정지 시간</Em>이 거의 0에 가까워집니다.
+          </P>
+          <H2>실전 효과 — 카운터스트레이프 (CS2)</H2>
+          <P>
+            CS2의 가장 기본 무빙 기술인 카운터스트레이프 (좌우 키 빠르게 번갈아 누르기)는
+            정확한 정지 → 정확한 사격을 위해 필수.
+          </P>
+          <UL>
+            <LI>일반 기계식: 50ms 이상의 정지 지연</LI>
+            <LI>Rapid Trigger: 5~15ms 정지 지연</LI>
+          </UL>
+          <H2>Apex의 슬라이드 / 점프 — 무엇이 달라지나?</H2>
+          <P>
+            Apex의 탭 스트레이프, 운동 점프 (Mantle Jump) 같은 정밀 무빙도 Rapid Trigger의 혜택을 받습니다.
+            특히 <Em>Tap Strafe 입력 정확도</Em>가 눈에 띄게 향상됩니다.
+          </P>
+          <H2>모델 비교</H2>
+          <UL>
+            <LI><Em>Wooting 60HE</Em> ($175): 60% 레이아웃, 가장 인기. 입문 추천.</LI>
+            <LI><Em>Wooting 80HE</Em> ($240): 80% 레이아웃, 펑션키 + 화살표키 포함</LI>
+            <LI><Em>Wooting Two HE</Em> ($200): 풀사이즈, 사무용 겸용</LI>
+            <LI><Em>Razer Huntsman V3 Pro TKL</Em> ($200): 라이벌 제품, TKL 사이즈, 비슷한 스펙</LI>
+          </UL>
+          <H2>설정 팁</H2>
+          <UL>
+            <LI>Rapid Trigger 활성화 (Wootility 앱)</LI>
+            <LI>액추에이션 포인트: 1.5~2.0mm 권장 (너무 얕으면 오타)</LI>
+            <LI>Reset 포인트: 0.3mm (가장 짧게)</LI>
+            <LI>FPS 키만 Rapid Trigger 활성, 일반 타이핑은 비활성 권장</LI>
+          </UL>
+          <H2>단점은 없나?</H2>
+          <UL>
+            <LI>비쌈 ($175~240)</LI>
+            <LI>일반 타자 시 너무 민감해 오타 빈도 ↑</LI>
+            <LI>스위치 교체 불가 (Cherry MX 같은 호환성 없음)</LI>
+            <LI>Mac 호환성 제한</LI>
+          </UL>
+          <H2>결론</H2>
+          <P>
+            CS2 / Apex 처럼 정밀 무빙이 결정적인 게임에서는 <Em>실력이 일정 수준 이상이면 명확한 효과</Em>가 있습니다.
+            Valorant는 무빙보다 사격 위주라 효과가 상대적으로 적지만 47% 프로가 쓰는 이유는 종합적 응답 속도입니다.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: 'Wooting and Rapid Trigger — Can a Keyboard Change Your Movement?',
+      excerpt: 'Why 47% of Valorant pros use the Wooting 60HE. Hall-effect switches + rapid trigger explained.',
+      content: () => (
+        <>
+          <P>
+            Since 2024, the <Em>Wooting 60HE / 80HE</Em> exploded across pro FPS rosters.
+            Why is everyone suddenly using it?
+          </P>
+          <H2>Limitation of mechanical keyboards</H2>
+          <P>
+            Mechanical switches register at ~50% press depth and reset at ~75%.
+            <Em>That 50–75% deadzone slows movement response</Em>.
+          </P>
+          <H2>What's Hall Effect?</H2>
+          <P>
+            Magnet + Hall sensor instead of metal contacts.
+            Result: real-time key depth at 0.1mm resolution.
+          </P>
+          <H2>Rapid Trigger logic</H2>
+          <UL>
+            <LI>Pressing → release fires the moment pressure decreases by a set delta</LI>
+            <LI>Pressing back → input fires the moment pressure increases by a set delta</LI>
+          </UL>
+          <P>
+            Direction-based, not position-based.
+            <Em>The pause between A and D keys approaches zero</Em>.
+          </P>
+          <H2>Counter-strafing (CS2)</H2>
+          <P>
+            Counter-strafing — alternating A/D for precise stops — is core to CS2.
+          </P>
+          <UL>
+            <LI>Mechanical: 50ms+ stop delay</LI>
+            <LI>Rapid Trigger: 5–15ms</LI>
+          </UL>
+          <H2>Apex tap-strafe / movement</H2>
+          <P>
+            Tap-strafes, mantle jumps, and other precise inputs benefit too.
+            <Em>Tap-strafe input accuracy</Em> visibly improves.
+          </P>
+          <H2>Models</H2>
+          <UL>
+            <LI><Em>Wooting 60HE</Em> ($175): most popular, beginner-friendly</LI>
+            <LI><Em>Wooting 80HE</Em> ($240): TKL+, F-row + arrows</LI>
+            <LI><Em>Wooting Two HE</Em> ($200): full-size, office-friendly</LI>
+            <LI><Em>Razer Huntsman V3 Pro TKL</Em> ($200): competitor with similar specs</LI>
+          </UL>
+          <H2>Settings</H2>
+          <UL>
+            <LI>Enable Rapid Trigger (Wootility)</LI>
+            <LI>Actuation: 1.5–2.0mm (avoid typos)</LI>
+            <LI>Reset: 0.3mm (shortest)</LI>
+            <LI>Use Rapid Trigger only on FPS keys, not whole keyboard</LI>
+          </UL>
+          <H2>Downsides</H2>
+          <UL>
+            <LI>Expensive ($175–240)</LI>
+            <LI>Too sensitive for typing → more typos</LI>
+            <LI>Switches not swappable</LI>
+            <LI>Limited Mac support</LI>
+          </UL>
+          <H2>Verdict</H2>
+          <P>
+            For movement-heavy games (CS2, Apex), the difference is real <Em>once your skill is high enough</Em>.
+            Valorant is shooting-focused, but 47% adoption shows the overall response speed wins.
+          </P>
+        </>
+      ),
+    },
+  },
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
