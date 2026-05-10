@@ -1,12 +1,4 @@
-# Cloudflare Pages rewrites. Wildcard patterns like /blog/* trip Cloudflare's
-# "infinite loop" validator (false positive but blocks the entire deploy), so
-# we keep this list to explicit top-level paths only. Per-slug detail pages
-# (/blog/{slug}, /gear/{slug}) are handled by scripts/generate_route_html.mjs
-# which writes dist/<route>/index.html for each one at build time.
-/how-it-works /index.html 200
-/about /index.html 200
-/privacy /index.html 200
-/terms /index.html 200
-/affiliate-disclosure /index.html 200
-/blog /index.html 200
-/gear /index.html 200
+# Pre-rendered per-route HTML (scripts/generate_route_html.mjs writes
+# dist/<route>/index.html for every SPA path) handles all current routes
+# automatically — Cloudflare Pages serves the directory index. Keeping
+# _redirects empty avoids conflicts that previously caused 307 redirects to /.
