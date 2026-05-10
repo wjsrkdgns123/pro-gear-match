@@ -1,3 +1,6 @@
+# Cloudflare Pages SPA fallback: every path that doesn't match an actual file
+# in dist/ gets rewritten to index.html with status 200, so client-side React
+# routing can take over. Order matters — more-specific rules first, wildcard last.
 /how-it-works /index.html 200
 /about /index.html 200
 /privacy /index.html 200
@@ -7,3 +10,4 @@
 /blog/* /index.html 200
 /gear /index.html 200
 /gear/* /index.html 200
+/* /index.html 200
