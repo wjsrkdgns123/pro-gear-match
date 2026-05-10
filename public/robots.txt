@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://progearmatch.com/sitemap.xml
+Sitemap: https://progearmatch.site/sitemap.xml

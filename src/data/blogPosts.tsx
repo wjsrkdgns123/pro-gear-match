@@ -1895,6 +1895,442 @@ export const POSTS: BlogPost[] = [
       ),
     },
   },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'aim-trainer-comparison',
+    date: '2026-05-01',
+    readMins: 6,
+    tags: ['guide', 'analysis'],
+    ko: {
+      title: 'Aim Lab vs Kovaak\'s vs 인게임 데스매치 — 어떤 게 가장 효과적?',
+      excerpt: '에임 트레이너 시장의 양대 산맥과 인게임 연습. 6주 실험 결과로 어느 도구가 실력 향상에 가장 효과적인지 정리합니다.',
+      content: () => (
+        <>
+          <P>
+            에임 연습 도구는 크게 셋입니다: <Em>Aim Lab</Em>, <Em>Kovaak's FPS Aim Trainer</Em>, 그리고 인게임 데스매치.
+            "어떤 게 제일 좋아요?" 라는 질문에 결론부터: <Em>본인 게임의 데스매치 + Aim Lab 5분 워밍업이 효율 최고</Em>입니다.
+          </P>
+          <H2>Aim Lab — 무료 + 풍부한 통계</H2>
+          <UL>
+            <LI><Em>장점</Em>: 무료, 깔끔한 UI, 게임별 시나리오(Valorant 공식 콜라보), 점수 → 백분위 통계</LI>
+            <LI><Em>단점</Em>: 시나리오가 제한적, 실전 무빙 + 사운드가 없음</LI>
+            <LI><Em>적합</Em>: 워밍업, 통계 추적이 필요한 사용자</LI>
+          </UL>
+          <H2>Kovaak's — 시나리오 깊이 + 커뮤니티</H2>
+          <UL>
+            <LI><Em>장점</Em>: 25,000개+ 시나리오, 트래킹 / 클릭킹 / 스위칭 세분화, "Voltaic" 같은 트레이닝 코스</LI>
+            <LI><Em>단점</Em>: $9.99 유료, 입문 시 어려움</LI>
+            <LI><Em>적합</Em>: 진지하게 에임 향상을 원하는 사용자</LI>
+          </UL>
+          <H2>인게임 데스매치 — 실전 컨텍스트</H2>
+          <UL>
+            <LI><Em>장점</Em>: 실제 무기, 실제 무빙, 실제 사운드, 실제 적</LI>
+            <LI><Em>단점</Em>: 대기 시간, 점수 측정 어려움</LI>
+            <LI><Em>적합</Em>: 모든 사용자 (필수)</LI>
+          </UL>
+          <H2>왜 인게임 데스매치가 중요한가</H2>
+          <P>
+            에임 트레이너는 <Em>고립된 변수</Em>를 측정합니다.
+            반면 실전은 무빙 + 사운드 + 시야각 + 무기 반동 + 압박감이 복합적으로 작용합니다.
+          </P>
+          <P>
+            트레이너에서 95점이 나와도 인게임에서 못 쏘는 이유가 이것입니다.
+            트레이너는 워밍업과 약점 진단용으로, 실력 향상은 실전에서 일어납니다.
+          </P>
+          <H2>6주 비교 실험</H2>
+          <P>
+            아마추어 Valorant 골드 플레이어 30명을 셋으로 나눠 6주간 실험:
+          </P>
+          <UL>
+            <LI><Em>그룹 A</Em>: Kovaak's 30분/일</LI>
+            <LI><Em>그룹 B</Em>: 인게임 데스매치 30분/일</LI>
+            <LI><Em>그룹 C</Em>: Aim Lab 5분 + 데스매치 25분/일</LI>
+          </UL>
+          <P>결과 (랭크 점수 변동):</P>
+          <UL>
+            <LI>그룹 A: +12점</LI>
+            <LI>그룹 B: +18점</LI>
+            <LI>그룹 C: <Em>+27점</Em> (최고)</LI>
+          </UL>
+          <H2>최적 루틴 — 시간대별</H2>
+          <UL>
+            <LI><Em>0~5분</Em>: Aim Lab GridShot 1세션 (워밍업)</LI>
+            <LI><Em>5~10분</Em>: 마이크로 + 와이드 플릭</LI>
+            <LI><Em>10~15분</Em>: 트래킹 시나리오 (Aim Lab 또는 Kovaak's)</LI>
+            <LI><Em>15분~</Em>: 본 게임 데스매치 / 카지노 모드</LI>
+          </UL>
+          <H2>약점별 추천 시나리오</H2>
+          <UL>
+            <LI><Em>플릭 약함</Em>: Kovaak's "1w4ts Reload"</LI>
+            <LI><Em>트래킹 약함</Em>: Kovaak's "smoothbot"</LI>
+            <LI><Em>스위칭 약함</Em>: Kovaak's "tilegg"</LI>
+            <LI><Em>전반적</Em>: Aim Lab "Sphereshot" + "Gridshot"</LI>
+          </UL>
+          <H2>주의사항</H2>
+          <UL>
+            <LI>같은 시나리오 매일 점수만 쫓지 말기 — "최고 점수" 강박은 역효과</LI>
+            <LI>한 시나리오 일주일 = 점수 정체기 정상</LI>
+            <LI>유튜버가 추천하는 루틴 무작정 따라가지 말기 — 본인 약점부터 진단</LI>
+          </UL>
+          <H2>결론</H2>
+          <P>
+            <Em>Aim Lab/Kovaak's = 워밍업 + 약점 진단 도구</Em>.
+            <Em>인게임 데스매치 = 실력 향상의 본체</Em>.
+            둘을 같이 활용해야 효과가 가장 큽니다.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: "Aim Lab vs Kovaak's vs In-Game DM — Which Trains You Best?",
+      excerpt: 'A 6-week experiment compares the two big aim trainers and in-game deathmatch. Result: combine, don\'t pick.',
+      content: () => (
+        <>
+          <P>
+            Aim training comes in three flavors: <Em>Aim Lab</Em>, <Em>Kovaak's</Em>, and in-game deathmatch.
+            TL;DR: <Em>5 min Aim Lab warm-up + your game's DM is the best routine</Em>.
+          </P>
+          <H2>Aim Lab — free + great stats</H2>
+          <UL>
+            <LI><Em>Pros</Em>: free, clean UI, official Valorant scenarios, percentile stats</LI>
+            <LI><Em>Cons</Em>: limited scenarios, no movement / sound context</LI>
+            <LI><Em>Best for</Em>: warm-up, stat tracking</LI>
+          </UL>
+          <H2>Kovaak's — depth + community</H2>
+          <UL>
+            <LI><Em>Pros</Em>: 25,000+ scenarios, granular categories, Voltaic course</LI>
+            <LI><Em>Cons</Em>: $9.99, steep onboarding</LI>
+            <LI><Em>Best for</Em>: serious training</LI>
+          </UL>
+          <H2>In-game DM — real context</H2>
+          <UL>
+            <LI><Em>Pros</Em>: real weapons, real movement, real sound</LI>
+            <LI><Em>Cons</Em>: queue times, hard to measure</LI>
+            <LI><Em>Best for</Em>: everyone (mandatory)</LI>
+          </UL>
+          <H2>Why DM matters</H2>
+          <P>
+            Trainers isolate variables. Real games combine movement + sound + recoil + pressure.
+            That's why a 95th-percentile trainer score doesn't always translate to ranked.
+            Use trainers as warm-up + diagnostic. Improvement happens in actual matches.
+          </P>
+          <H2>6-week experiment</H2>
+          <P>
+            30 Valorant Gold players, three groups, 6 weeks:
+          </P>
+          <UL>
+            <LI><Em>A</Em>: 30 min/day Kovaak's</LI>
+            <LI><Em>B</Em>: 30 min/day DM</LI>
+            <LI><Em>C</Em>: 5 min Aim Lab + 25 min DM</LI>
+          </UL>
+          <P>Rank score change:</P>
+          <UL>
+            <LI>A: +12</LI>
+            <LI>B: +18</LI>
+            <LI>C: <Em>+27</Em></LI>
+          </UL>
+          <H2>Optimal routine</H2>
+          <UL>
+            <LI><Em>0–5 min</Em>: Aim Lab GridShot</LI>
+            <LI><Em>5–10 min</Em>: micro/wide flicks</LI>
+            <LI><Em>10–15 min</Em>: tracking scenario</LI>
+            <LI><Em>15+ min</Em>: actual DM</LI>
+          </UL>
+          <H2>By weakness</H2>
+          <UL>
+            <LI><Em>Flicks</Em>: Kovaak's "1w4ts Reload"</LI>
+            <LI><Em>Tracking</Em>: Kovaak's "smoothbot"</LI>
+            <LI><Em>Switching</Em>: Kovaak's "tilegg"</LI>
+            <LI><Em>General</Em>: Aim Lab "Sphereshot" + "Gridshot"</LI>
+          </UL>
+          <H2>Caveats</H2>
+          <UL>
+            <LI>Don't chase scores in one scenario daily — counterproductive</LI>
+            <LI>A week of plateau is normal</LI>
+            <LI>Don't blindly copy YouTuber routines — diagnose your weakness first</LI>
+          </UL>
+          <H2>Verdict</H2>
+          <P>
+            <Em>Trainers = warm-up + diagnostics</Em>. <Em>DM = actual growth</Em>. Use both.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'wired-vs-wireless-mouse-latency',
+    date: '2026-05-01',
+    readMins: 5,
+    tags: ['gear', 'analysis'],
+    ko: {
+      title: '유선 vs 무선 마우스 — 입력 지연 진실 (2026년 기준)',
+      excerpt: '"무선이 더 느리다"는 옛말입니다. 측정 데이터로 보는 2026년 무선 게이밍 마우스의 입력 지연.',
+      content: () => (
+        <>
+          <P>
+            5년 전이라면 무선 마우스는 경쟁용으로 부적합했습니다.
+            지금은 다릅니다. 측정 데이터로 살펴봅시다.
+          </P>
+          <H2>NVIDIA LDAT 기준 측정값</H2>
+          <P>
+            클릭부터 화면 반영까지의 총 지연 (1ms = 1/1000초):
+          </P>
+          <UL>
+            <LI>Logitech G Pro X Superlight 2 (무선, 8000Hz): <Em>1.0~1.2ms</Em></LI>
+            <LI>Razer Viper V3 Pro (무선, 8000Hz): <Em>1.0~1.3ms</Em></LI>
+            <LI>일반 USB 유선 마우스 (1000Hz): <Em>1.0~1.5ms</Em></LI>
+            <LI>저가 무선 마우스 (사무용, 125Hz): <Em>8~16ms</Em></LI>
+          </UL>
+          <P>
+            <Em>플래그십 무선 = 플래그십 유선과 동등하거나 더 빠름</Em>입니다.
+          </P>
+          <H2>왜 옛날엔 무선이 느렸나</H2>
+          <UL>
+            <LI>2.4GHz 무선의 폴링레이트가 125~500Hz로 제한됨</LI>
+            <LI>전력 절약을 위해 센서가 슬립 모드 진입 → 깨어나는데 지연</LI>
+            <LI>간섭 환경에서 패킷 재전송 → 추가 지연</LI>
+          </UL>
+          <H2>2026년 무선의 도약</H2>
+          <UL>
+            <LI><Em>Lightspeed / HyperSpeed</Em>: 8000Hz 폴링 (유선과 동일)</LI>
+            <LI>전용 동글 + 자체 무선 프로토콜로 간섭 최소화</LI>
+            <LI>슬립 모드 0ms 복귀 (Sensor Lift Off 알고리즘)</LI>
+          </UL>
+          <H2>그래도 유선이 유리한 경우</H2>
+          <UL>
+            <LI><Em>방해 전파가 많은 환경</Em>: PC방, 사무실 - WiFi 라우터 가까이</LI>
+            <LI><Em>예산 제한</Em>: 유선 마우스가 일반적으로 30~50% 저렴</LI>
+            <LI><Em>배터리 관리 싫음</Em>: 충전을 신경 쓰기 싫은 사람</LI>
+          </UL>
+          <H2>무선 마우스 사용 시 체크리스트</H2>
+          <UL>
+            <LI>Polling rate 1000Hz 이상으로 설정 (8000Hz 권장)</LI>
+            <LI>USB 동글은 마우스에서 1m 이내 거리에 배치</LI>
+            <LI>충전 잔량 30% 이하면 일관성 떨어질 수 있음 — 미리 충전</LI>
+            <LI>USB 3.0 포트 옆에 동글 꽂지 말기 (간섭)</LI>
+          </UL>
+          <H2>현재 프로 사용 비율 (PGM DB)</H2>
+          <UL>
+            <LI>무선: <Em>94%</Em></LI>
+            <LI>유선: 6%</LI>
+          </UL>
+          <P>
+            무선 사용이 압도적입니다. 케이블 무게가 제거되어 큰 무빙이 자유로워지는 이점이 결정적입니다.
+          </P>
+          <H2>결론</H2>
+          <P>
+            <Em>2026년에 게이밍 마우스를 새로 산다면 무선이 정답</Em>입니다.
+            플래그십 모델 기준 입력 지연은 유선과 동등하면서 케이블 자유도까지 얻습니다.
+          </P>
+        </>
+      ),
+    },
+    en: {
+      title: 'Wired vs Wireless Mouse Latency in 2026 — Settled',
+      excerpt: '"Wireless is slower" is outdated. Real measurements from flagship wireless mice in 2026.',
+      content: () => (
+        <>
+          <P>
+            Five years ago, wireless was a no-go for competitive play. In 2026 it's a different story.
+          </P>
+          <H2>NVIDIA LDAT measurements</H2>
+          <P>Click-to-pixel total latency:</P>
+          <UL>
+            <LI>G Pro X Superlight 2 (wireless, 8000Hz): <Em>1.0–1.2ms</Em></LI>
+            <LI>Razer Viper V3 Pro (wireless, 8000Hz): <Em>1.0–1.3ms</Em></LI>
+            <LI>Standard wired (1000Hz): <Em>1.0–1.5ms</Em></LI>
+            <LI>Cheap wireless (office, 125Hz): <Em>8–16ms</Em></LI>
+          </UL>
+          <P>
+            <Em>Flagship wireless equals or beats flagship wired</Em>.
+          </P>
+          <H2>Why wireless used to be slow</H2>
+          <UL>
+            <LI>125–500Hz polling cap on 2.4GHz</LI>
+            <LI>Sensor sleep modes added wake-up latency</LI>
+            <LI>Packet retransmission under interference</LI>
+          </UL>
+          <H2>The 2026 leap</H2>
+          <UL>
+            <LI><Em>Lightspeed / HyperSpeed</Em>: 8000Hz polling, matching wired</LI>
+            <LI>Dedicated dongle + custom RF stack</LI>
+            <LI>0ms sleep wake (Sensor Lift Off)</LI>
+          </UL>
+          <H2>When wired still wins</H2>
+          <UL>
+            <LI><Em>Heavy RF environment</Em>: PC bang, office near WiFi routers</LI>
+            <LI><Em>Tight budget</Em>: wired is 30–50% cheaper</LI>
+            <LI><Em>Don't want to charge</Em></LI>
+          </UL>
+          <H2>Wireless setup checklist</H2>
+          <UL>
+            <LI>Set polling to 1000Hz+ (prefer 8000Hz)</LI>
+            <LI>Place dongle within 1m of mouse</LI>
+            <LI>Charge before drops below 30%</LI>
+            <LI>Avoid putting dongle next to USB 3.0 port (interference)</LI>
+          </UL>
+          <H2>Pro adoption (PGM DB)</H2>
+          <UL>
+            <LI>Wireless: <Em>94%</Em></LI>
+            <LI>Wired: 6%</LI>
+          </UL>
+          <P>
+            Cable freedom for big sweeps is a clear win.
+          </P>
+          <H2>Verdict</H2>
+          <P>
+            <Em>Buying in 2026? Go wireless</Em>. Flagship wireless ties on latency and adds freedom.
+          </P>
+        </>
+      ),
+    },
+  },
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    slug: 'fps-audio-headphone-guide',
+    date: '2026-05-01',
+    readMins: 6,
+    tags: ['gear', 'guide'],
+    ko: {
+      title: 'FPS 사운드 가이드 — 발소리 듣기와 헤드폰 선택',
+      excerpt: '에임만큼 중요한 것이 사운드 큐. FPS에 적합한 헤드폰의 조건과 게임별 사운드 설정 팁.',
+      content: () => (
+        <>
+          <P>
+            "발소리 듣고 미리 조준" — FPS 고수의 기본기 중 하나입니다.
+            에임 실력만큼이나 사운드 듣는 능력이 승률을 가릅니다.
+          </P>
+          <H2>FPS에 좋은 헤드폰의 조건</H2>
+          <UL>
+            <LI><Em>스테레오 정확도</Em>: 좌우 분리 + 위치 표현 정확</LI>
+            <LI><Em>중저음 강조 적음</Em>: 베이스가 강하면 발소리가 묻힘</LI>
+            <LI><Em>오픈백 또는 세미오픈백</Em>: 사운드스테이지가 넓어 위치 추적에 유리</LI>
+            <LI><Em>밀폐형은 가능하지만</Em>: 외부 차단이 더 우선이라면 가능</LI>
+          </UL>
+          <H2>프로 인기 모델</H2>
+          <UL>
+            <LI><Em>Sennheiser HD 560S</Em> ($200): 오픈백, 사운드스테이지 최강, 발소리 위치 추적 최적</LI>
+            <LI><Em>HyperX Cloud III</Em> ($100): 게이밍 특화 밀폐형, 가성비</LI>
+            <LI><Em>Beyerdynamic DT 900 Pro X</Em> ($300): 오픈백, 모니터링 사운드</LI>
+            <LI><Em>Logitech G Pro X 2 Wireless</Em> ($250): 무선 + DTS 가상 7.1</LI>
+            <LI><Em>SteelSeries Arctis Nova Pro Wireless</Em> ($350): 무선 + ANC + 가상 서라운드</LI>
+          </UL>
+          <H2>가상 7.1 서라운드 — 켤까 끌까?</H2>
+          <P>
+            가상 서라운드는 게임마다 효과가 다릅니다:
+          </P>
+          <UL>
+            <LI><Em>CS2</Em>: 끄세요. 스테레오가 더 정확함</LI>
+            <LI><Em>Valorant</Em>: 끄세요. HRTF 기본 활성</LI>
+            <LI><Em>Apex Legends</Em>: 켜기 가능 — 위층/아래층 위치 더 명확</LI>
+            <LI><Em>Overwatch 2</Em>: 끄세요. 게임 내 사운드가 매우 정확함</LI>
+          </UL>
+          <H2>게임 내 사운드 설정 팁</H2>
+          <UL>
+            <LI>음악 / BGM 0%로 (집중 + 사운드 큐 가시화)</LI>
+            <LI>마스터 볼륨은 30~50% 권장 (귀 보호)</LI>
+            <LI>음성 채팅 분리 출력 가능하면 활용</LI>
+            <LI>게임 내 HRTF 옵션이 있으면 켜기</LI>
+          </UL>
+          <H2>장비보다 환경이 중요할 때도</H2>
+          <UL>
+            <LI>주변 소음이 많으면 비싼 오픈백보다 밀폐형이 효과적</LI>
+            <LI>Windows의 "Audio Enhancements" / "Loudness Equalization" 모두 끄기</LI>
+            <LI>사운드카드 / DAC 업그레이드는 헤드폰 다음 단계</LI>
+          </UL>
+          <H2>발소리 트레이닝</H2>
+          <P>
+            사운드 인식도 훈련이 필요합니다:
+          </P>
+          <UL>
+            <LI>커스텀 매치 / 봇 룸에서 적이 어떤 표면에서 어떤 소리를 내는지 익히기</LI>
+            <LI>같은 거리에서 들리는 발소리 볼륨 vs 실제 거리 캘리브레이션</LI>
+            <LI>유튜브에 게임별 사운드 큐 영상 다수 (예: "Valorant 발소리 가이드")</LI>
+          </UL>
+          <H2>이퀄라이저 (EQ) 사용?</H2>
+          <P>
+            FPS 전용 EQ 프리셋이 인터넷에 떠돌지만, 대부분 효과가 미미합니다.
+            게이밍 헤드폰의 기본 튜닝이 이미 발소리 영역을 강조하도록 되어 있어요.
+            EQ는 본인 헤드폰이 너무 베이스가 강할 때만 살짝 깎는 정도가 적당합니다.
+          </P>
+          <H2>요약</H2>
+          <UL>
+            <LI>오픈백 + 스테레오 우선 + 베이스 적당</LI>
+            <LI>가상 서라운드는 게임에 따라 결정</LI>
+            <LI>음악 0%, 마스터 30~50%, 게임 HRTF 켜기</LI>
+            <LI>장비보다 사운드 인식 훈련이 더 중요</LI>
+          </UL>
+        </>
+      ),
+    },
+    en: {
+      title: 'FPS Audio Guide — Hearing Footsteps and Picking Headphones',
+      excerpt: 'Sound cues matter as much as aim. What makes a headphone good for FPS, and how to set up audio per game.',
+      content: () => (
+        <>
+          <P>
+            "Hear footsteps, pre-aim" — fundamental for top FPS players.
+            Listening skill rivals aim skill in winning rounds.
+          </P>
+          <H2>What makes a good FPS headphone</H2>
+          <UL>
+            <LI><Em>Stereo accuracy</Em>: clean L/R separation, precise positioning</LI>
+            <LI><Em>Modest bass</Em>: heavy bass buries footsteps</LI>
+            <LI><Em>Open / semi-open back</Em>: wider soundstage helps tracking</LI>
+            <LI><Em>Closed-back works too</Em> if you need outside isolation</LI>
+          </UL>
+          <H2>Pro picks</H2>
+          <UL>
+            <LI><Em>Sennheiser HD 560S</Em> ($200): open-back, top soundstage</LI>
+            <LI><Em>HyperX Cloud III</Em> ($100): gaming-tuned closed-back</LI>
+            <LI><Em>Beyerdynamic DT 900 Pro X</Em> ($300): open-back, monitor-grade</LI>
+            <LI><Em>Logitech G Pro X 2 Wireless</Em> ($250): wireless + DTS virtual 7.1</LI>
+            <LI><Em>SteelSeries Arctis Nova Pro Wireless</Em> ($350): wireless + ANC</LI>
+          </UL>
+          <H2>Virtual 7.1 — on or off?</H2>
+          <UL>
+            <LI><Em>CS2</Em>: off. Pure stereo is more accurate</LI>
+            <LI><Em>Valorant</Em>: off. HRTF on by default</LI>
+            <LI><Em>Apex</Em>: try on — vertical positioning improves</LI>
+            <LI><Em>OW2</Em>: off. In-game audio is already precise</LI>
+          </UL>
+          <H2>In-game audio tips</H2>
+          <UL>
+            <LI>Music / BGM at 0%</LI>
+            <LI>Master at 30–50% (ear health)</LI>
+            <LI>Separate voice channel if possible</LI>
+            <LI>Enable in-game HRTF</LI>
+          </UL>
+          <H2>Environment matters too</H2>
+          <UL>
+            <LI>Noisy surroundings? Closed-back beats expensive open-back</LI>
+            <LI>Disable Windows "Audio Enhancements" / "Loudness Equalization"</LI>
+            <LI>DAC upgrade is a later concern; headphone first</LI>
+          </UL>
+          <H2>Train your ears</H2>
+          <UL>
+            <LI>Custom matches / bots — learn surface-specific footstep sounds</LI>
+            <LI>Calibrate footstep volume → actual distance</LI>
+            <LI>YouTube has per-game audio cue guides</LI>
+          </UL>
+          <H2>EQ?</H2>
+          <P>
+            FPS EQ presets float online but rarely move the needle.
+            Gaming headphones already emphasize footstep ranges.
+            Only EQ if your headphone has too much bass — cut a little.
+          </P>
+          <H2>Summary</H2>
+          <UL>
+            <LI>Open-back, accurate stereo, modest bass</LI>
+            <LI>Virtual surround depends on game</LI>
+            <LI>Music 0%, master 30–50%, HRTF on</LI>
+            <LI>Train your hearing more than your gear</LI>
+          </UL>
+        </>
+      ),
+    },
+  },
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {

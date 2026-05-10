@@ -72,8 +72,8 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
         {
           heading: isKo ? '서비스 소개' : 'What Is Pro Gear Match?',
           body: isKo
-            ? 'Pro Gear Match는 FPS e스포츠 팬과 게이머를 위한 무료 감도 매칭 도구입니다. Valorant, CS2, Overwatch 2, Apex Legends 4개 게임에서 활동하는 프로 선수 300명 이상의 마우스 DPI, 인게임 감도, 사용 장비 데이터를 수집·분석하여, 사용자의 설정과 가장 유사한 프로를 찾아드립니다. 완전 무료로 운영되며 회원가입 없이 즉시 이용 가능합니다.'
-            : 'Pro Gear Match is a free sensitivity matching tool for FPS esports fans and gamers. We collect and analyze mouse DPI, in-game sensitivity, and gear data from 300+ professional players across Valorant, CS2, Overwatch 2, and Apex Legends to find the pro whose setup most closely matches yours. It\'s completely free and requires no sign-up.',
+            ? 'Pro Gear Match는 FPS e스포츠 팬과 게이머를 위한 무료 감도 매칭 도구입니다. Valorant, CS2, Overwatch 2, Apex Legends 4개 게임에서 활동하는 프로 선수 1,800명 이상의 마우스 DPI, 인게임 감도, 사용 장비 데이터를 수집·분석하여, 사용자의 설정과 가장 유사한 프로를 찾아드립니다. 완전 무료로 운영되며 회원가입 없이 즉시 이용 가능합니다.'
+            : 'Pro Gear Match is a free sensitivity matching tool for FPS esports fans and gamers. We collect and analyze mouse DPI, in-game sensitivity, and gear data from 1,800+ professional players across Valorant, CS2, Overwatch 2, and Apex Legends to find the pro whose setup most closely matches yours. It\'s completely free and requires no sign-up.',
         },
         {
           heading: isKo ? '우리의 미션' : 'Our Mission',
@@ -107,6 +107,18 @@ export function StaticPageView({ page, theme, lang, onNavigate }: {
               ))}
             </div>
           ),
+        },
+        {
+          heading: isKo ? '운영자 및 전문성' : 'About the Author',
+          body: isKo
+            ? '본 사이트는 10년 이상 FPS 게임을 플레이하고 e스포츠 통계를 추적해 온 1인 개발자가 직접 운영합니다. 모든 프로 선수 데이터는 직접 수집·검증·정제하며, 매주 새로운 경기 결과와 선수 발표에 따라 업데이트됩니다. 블로그의 모든 가이드와 분석 글은 자체 데이터를 기반으로 작성되었으며 다른 사이트의 콘텐츠를 복제하지 않습니다.'
+            : 'This site is independently operated by a developer with 10+ years of FPS gaming experience and esports statistics tracking. All pro player data is personally collected, verified, and curated, with weekly updates based on new match results and team announcements. Every blog guide and analysis is written from our own data — no scraped or duplicated content.',
+        },
+        {
+          heading: isKo ? '데이터 수집 방법론' : 'Methodology',
+          body: isKo
+            ? '데이터 수집 절차:\n• 1차: ProSettings.net, Liquipedia 등 공개 검증된 출처에서 자동 스크래핑\n• 2차: 각 팀 공식 SNS, 선수 트위치/유튜브 방송에서 수동 검증\n• 3차: 비정상값 자동 필터링 (DPI 100 이하·5000 이상, eDPI 50 이하 등)\n• 4차: 정기적 사용자 제보를 통한 개별 보정\n\n모든 수치는 표준화된 단위(eDPI, cm/360°)로 변환되어 비교 가능합니다.'
+            : 'Data collection process:\n• Stage 1: Automated scraping from verified public sources (ProSettings.net, Liquipedia)\n• Stage 2: Manual verification against team social media + player streams\n• Stage 3: Automatic outlier filtering (DPI < 100 or > 5000, eDPI < 50, etc.)\n• Stage 4: User-submitted corrections\n\nAll values are normalized to standard units (eDPI, cm/360°) for fair comparison.',
         },
         {
           heading: isKo ? '문의하기' : 'Contact Us',

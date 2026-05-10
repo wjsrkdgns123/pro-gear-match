@@ -201,6 +201,8 @@ export default function App() {
   const [mostExpCat, setMostExpCat] = useState<'mouse' | 'keyboard' | 'monitor' | 'mousepad'>('mouse');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactCopied, setContactCopied] = useState(false);
   const [editingPro, setEditingPro] = useState<ProGamer | null>(null);
   const [showBulkAuditModal, setShowBulkAuditModal] = useState(false);
   const [fetchingData, setFetchingData] = useState(false);
@@ -3157,7 +3159,7 @@ export default function App() {
             <button onClick={() => navigate('privacy')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.privacyPolicy}</button>
             <button onClick={() => navigate('terms')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{t.termsOfService}</button>
             <button onClick={() => navigate('affiliate')} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '제휴 공시' : 'Affiliate'}</button>
-            <a href="mailto:wjsrkdgns123a@gmail.com?subject=ProGear%20Match%20Feedback" className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '문의' : 'Contact'}</a>
+            <button onClick={() => { setShowContactModal(true); setContactCopied(false); }} className={`hover:${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} transition-colors`}>{lang === 'ko' ? '문의' : 'Contact'}</button>
             {user ? (
               <button onClick={handleLogout} className="flex items-center gap-1 text-red-500 hover:text-red-400 transition-colors">
                 <LogOut size={10} /> {t.logout}
@@ -3861,6 +3863,72 @@ export default function App() {
             onRefreshList={() => fetchProList(true)}
           />
           </Suspense>
+        )}
+      </AnimatePresence>
+
+      {/* Contact Modal */}
+      <AnimatePresence>
+        {showContactModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowContactModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              transition={{ duration: 0.18 }}
+              onClick={(e) => e.stopPropagation()}
+              className={`w-full max-w-md p-6 rounded-none border ${theme === 'dark' ? 'bg-[#0c0c0e] border-[#1e1e22]' : 'bg-white border-[#e5e7eb]'}`}
+            >
+              <div className={`text-[10px] font-mono uppercase tracking-[0.3em] mb-2 ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                / CONTACT
+              </div>
+              <h3 className={`text-xl font-black tracking-tight mb-3 ${theme === 'dark' ? 'text-white' : 'text-[#111]'}`}>
+                {lang === 'ko' ? '문의 / 피드백' : 'Contact / Feedback'}
+              </h3>
+              <p className={`text-sm mb-5 leading-relaxed ${theme === 'dark' ? 'text-[#aaa]' : 'text-[#4b5563]'}`}>
+                {lang === 'ko'
+                  ? '버그 제보, 데이터 수정 요청, 제휴 문의 등 무엇이든 환영합니다. 아래 이메일로 보내주세요.'
+                  : 'Bug reports, data corrections, partnership requests — anything is welcome. Email me below.'}
+              </p>
+              <div className={`flex items-center gap-2 p-3 rounded-none border ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22]' : 'bg-[#f9fafb] border-[#e5e7eb]'}`}>
+                <span className={`flex-1 text-sm font-mono select-all break-all ${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                  wjsrkdgns123a@gmail.com
+                </span>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText('wjsrkdgns123a@gmail.com');
+                      setContactCopied(true);
+                      setTimeout(() => setContactCopied(false), 2000);
+                    } catch {
+                      /* clipboard unavailable */
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-none text-[10px] font-mono uppercase tracking-widest font-bold transition-colors ${
+                    contactCopied
+                      ? 'bg-emerald-500 text-black'
+                      : (theme === 'dark' ? 'bg-[#1e1e22] text-[#888] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600')
+                  }`}
+                >
+                  {contactCopied ? (lang === 'ko' ? '복사됨' : 'Copied') : (lang === 'ko' ? '복사' : 'Copy')}
+                </button>
+              </div>
+              <div className="mt-5">
+                <button
+                  onClick={() => setShowContactModal(false)}
+                  className={`w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-none font-mono text-[11px] uppercase tracking-widest border transition-colors ${theme === 'dark' ? 'bg-[#0a0a0a] border-[#1e1e22] text-[#888] hover:text-emerald-400 hover:border-emerald-500/40' : 'bg-white border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600 hover:border-emerald-500/40'}`}
+                >
+                  {lang === 'ko' ? '닫기' : 'Close'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
