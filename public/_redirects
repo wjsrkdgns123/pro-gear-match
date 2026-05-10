@@ -3,3 +3,7 @@
 /privacy /index.html 200
 /terms /index.html 200
 /affiliate-disclosure /index.html 200
+/blog /index.html 200
+/blog/* /index.html 200
+/gear /index.html 200
+/gear/* /index.html 200
