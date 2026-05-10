@@ -1,13 +1,12 @@
-# Cloudflare Pages SPA fallback: every path that doesn't match an actual file
-# in dist/ gets rewritten to index.html with status 200, so client-side React
-# routing can take over. Order matters — more-specific rules first, wildcard last.
+# Cloudflare Pages rewrites. Wildcard patterns like /blog/* trip Cloudflare's
+# "infinite loop" validator (false positive but blocks the entire deploy), so
+# we keep this list to explicit top-level paths only. Per-slug detail pages
+# (/blog/{slug}, /gear/{slug}) are handled by scripts/generate_route_html.mjs
+# which writes dist/<route>/index.html for each one at build time.
 /how-it-works /index.html 200
 /about /index.html 200
 /privacy /index.html 200
 /terms /index.html 200
 /affiliate-disclosure /index.html 200
 /blog /index.html 200
-/blog/* /index.html 200
 /gear /index.html 200
-/gear/* /index.html 200
-/* /index.html 200
