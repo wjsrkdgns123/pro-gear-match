@@ -55,7 +55,8 @@ function parseBlogPosts(src) {
     const koExcerpt = quoted('excerpt', koBlock).replace(/\\'/g, "'").replace(/\\"/g, '"');
     const enTitle   = quoted('title',   enBlock).replace(/\\'/g, "'").replace(/\\"/g, '"');
     const enExcerpt = quoted('excerpt', enBlock).replace(/\\'/g, "'").replace(/\\"/g, '"');
-    posts.push({ slug, koTitle, koExcerpt, enTitle, enExcerpt });
+    const date      = quoted('date',    block);
+    posts.push({ slug, koTitle, koExcerpt, enTitle, enExcerpt, date });
   }
   return posts;
 }
@@ -188,6 +189,41 @@ function buildRouteHtml(meta) {
     </noscript>`;
   html = html.replace(/<body([^>]*)>/, `<body$1>${noscript}`);
 
+  // 7) Per-route JSON-LD. Blog posts get Article schema so Google can show
+  //    rich results (author, datePublished, headline). Static pages get
+  //    BreadcrumbList back to home so the page sits inside site hierarchy.
+  if (meta.isPost && meta.datePublished) {
+    const articleSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      'headline': meta.h1,
+      'description': meta.description,
+      'image': ogImage,
+      'datePublished': meta.datePublished,
+      'dateModified': meta.datePublished,
+      'author': { '@type': 'Organization', 'name': 'Pro Gear Match' },
+      'publisher': {
+        '@type': 'Organization',
+        'name': 'Pro Gear Match',
+        'logo': { '@type': 'ImageObject', 'url': ogImage },
+      },
+      'mainEntityOfPage': { '@type': 'WebPage', '@id': canonical },
+    };
+    const articleTag = `\n    <script type="application/ld+json">${JSON.stringify(articleSchema)}</script>`;
+    html = html.replace(/(<\/head>)/, articleTag + '$1');
+  } else if (!meta.isHome) {
+    const crumbSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': [
+        { '@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': `${BASE}/` },
+        { '@type': 'ListItem', 'position': 2, 'name': meta.h1, 'item': canonical },
+      ],
+    };
+    const crumbTag = `\n    <script type="application/ld+json">${JSON.stringify(crumbSchema)}</script>`;
+    html = html.replace(/(<\/head>)/, crumbTag + '$1');
+  }
+
   return html;
 }
 
@@ -219,6 +255,7 @@ for (const p of posts) {
       description: p.enExcerpt || p.koExcerpt,
       h1: p.enTitle || p.koTitle,
       body: p.enExcerpt || p.koExcerpt,
+      datePublished: p.date,
     },
   });
 }
@@ -235,6 +272,7 @@ for (const { route, meta } of routes) {
 // and the noscript home body is present for crawlers landing on /.
 const homeMeta = {
   path: '/',
+  isHome: true,
   isPost: false,
   title: 'Pro Gear Match — Find Your Pro Gamer Twin',
   description: 'Match your DPI, in-game sensitivity, and gear with 1,800+ FPS pros across Valorant, CS2, Overwatch 2, and Apex Legends. Free, no signup.',

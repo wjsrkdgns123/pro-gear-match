@@ -207,7 +207,7 @@ export function GearView({ slug, allProList, theme, lang, onNavigate, onSelectSl
                 <a
                   href={amazonUrl}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="sponsored noopener noreferrer"
                   className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-none font-bold uppercase tracking-widest text-xs transition-colors ${
                     isDark ? 'bg-amber-500/10 border border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100'
                   }`}
@@ -218,7 +218,7 @@ export function GearView({ slug, allProList, theme, lang, onNavigate, onSelectSl
                 <a
                   href={`https://www.amazon.com/s?k=${encodeURIComponent(selectedGear.name)}`}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="sponsored noopener noreferrer"
                   className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-none font-mono uppercase tracking-widest text-xs transition-colors ${
                     isDark ? 'bg-[#0c0c0e] border border-[#1e1e22] text-[#888] hover:text-emerald-400' : 'bg-white border border-[#e5e7eb] text-[#4b5563] hover:text-emerald-600'
                   }`}

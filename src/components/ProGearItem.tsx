@@ -20,7 +20,7 @@ function ProGearItemImpl({ icon, label, value, theme, amazonUrl, priceCheckLabel
         <a
           href={amazonUrl}
           target="_blank"
-          rel="noopener noreferrer"
+          rel="sponsored noopener noreferrer"
           className={`flex-shrink-0 flex items-center gap-1 px-2 py-1 rounded-none text-[9px] font-mono uppercase tracking-wider border transition-all
             ${theme === 'dark'
               ? 'bg-[#0a0a0a] border-[#333] text-[#888] hover:text-amber-400 hover:border-amber-500/50'

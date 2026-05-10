@@ -2146,7 +2146,7 @@ export default function App() {
                                     <a
                                       href={amazonLink}
                                       target="_blank"
-                                      rel="noopener noreferrer"
+                                      rel="sponsored noopener noreferrer"
                                       title={lang === 'ko' ? '아마존에서 구매' : 'Buy on Amazon'}
                                       className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[8px] font-bold uppercase tracking-widest border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
                                     >
@@ -2508,7 +2508,7 @@ export default function App() {
                                       <a
                                         href={amazonLink}
                                         target="_blank"
-                                        rel="noopener noreferrer"
+                                        rel="sponsored noopener noreferrer"
                                         className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-none text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border border-amber-200 text-amber-600 hover:bg-amber-100'}`}
                                       >
                                         <ShoppingCart size={10} /> {lang === 'ko' ? '아마존 구매' : 'Buy on Amazon'}
@@ -2517,7 +2517,7 @@ export default function App() {
                                       <a
                                         href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`}
                                         target="_blank"
-                                        rel="noopener noreferrer"
+                                        rel="sponsored noopener noreferrer"
                                         className={`mt-auto flex items-center justify-center gap-1.5 py-1.5 rounded-none text-[10px] font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-[#1a1a1a] border border-[#333] text-[#555] hover:text-[#777]' : 'bg-[#f9f9f9] border border-[#e5e7eb] text-[#aaa] hover:text-[#888]'}`}
                                       >
                                         <ExternalLink size={10} /> {lang === 'ko' ? '검색' : 'Search'}
@@ -2925,7 +2925,7 @@ export default function App() {
                         <a
                           href={amazonLink}
                           target="_blank"
-                          rel="noopener noreferrer"
+                          rel="sponsored noopener noreferrer"
                           className={`mt-auto flex items-center justify-center gap-1.5 py-2 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest transition-all
                             ${theme === 'dark'
                               ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/60'
@@ -2938,7 +2938,7 @@ export default function App() {
                         <a
                           href={`https://www.amazon.com/s?k=${encodeURIComponent(item.name)}`}
                           target="_blank"
-                          rel="noopener noreferrer"
+                          rel="sponsored noopener noreferrer"
                           className={`mt-auto flex items-center justify-center gap-1.5 py-2 rounded-none text-[10px] font-mono font-bold uppercase tracking-widest transition-all
                             ${theme === 'dark'
                               ? 'bg-[#0a0a0a] border border-[#1e1e22] text-[#666] hover:text-emerald-400 hover:border-emerald-500/30'
