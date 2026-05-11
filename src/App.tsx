@@ -46,11 +46,23 @@ const formatEdpi = (val: number) => {
   return val.toFixed(2);
 };
 
+// URL = /<lang>/<rest>. Pull the two apart so route detection and lang
+// initialization share one parser. Returns lang=null when the URL has no
+// /en/ or /ko/ prefix (e.g. stale links — server _redirects handle those,
+// but we still need a sane fallback if the user lands on / before redirect).
+function splitLangPath(pathname: string): { lang: Language | null; rest: string } {
+  const m = pathname.match(/^\/(en|ko)(\/.*)?$/);
+  if (m) return { lang: m[1] as Language, rest: m[2] || '/' };
+  return { lang: null, rest: pathname };
+}
+
 
 export default function App() {
-  // Initialise from localStorage immediately to avoid flash of wrong language.
-  // On first visit (no stored value) default to 'en', then detect by IP once.
+  // Language priority: URL prefix > localStorage > 'en'. IP detection still runs
+  // for first-time visitors when there's no URL prefix and no stored value.
   const [lang, setLang] = useState<Language>(() => {
+    const fromUrl = splitLangPath(window.location.pathname).lang;
+    if (fromUrl) return fromUrl;
     const stored = localStorage.getItem('lang');
     if (stored === 'en' || stored === 'ko') return stored;
     return 'en';
@@ -58,8 +70,14 @@ export default function App() {
   const t = translations[lang];
 
   useEffect(() => {
-    // Only run IP detection when there's no stored preference yet
+    document.documentElement.lang = lang;
+  }, [lang]);
+
+  useEffect(() => {
+    // Skip IP detection when the URL or localStorage already pinned a lang —
+    // overriding either would surprise the user and break shared /ko/ links.
     if (localStorage.getItem('lang')) return;
+    if (splitLangPath(window.location.pathname).lang) return;
     fetch('https://ipapi.co/country_code/')
       .then(r => r.text())
       .then(code => {
@@ -94,46 +112,46 @@ export default function App() {
   const [activePolicy, setActivePolicy] = useState<'privacy' | 'terms' | 'contact' | null>(null);
 
   const [currentPage, setCurrentPage] = useState<PageType>(() => {
-    const p = window.location.pathname;
-    if (p === '/how-it-works') return 'how-it-works';
-    if (p === '/about') return 'about';
-    if (p === '/privacy') return 'privacy';
-    if (p === '/terms') return 'terms';
-    if (p === '/affiliate-disclosure') return 'affiliate';
-    if (p === '/blog' || p.startsWith('/blog/')) return 'blog';
-    if (p === '/gear' || p.startsWith('/gear/')) return 'gear';
+    const { rest } = splitLangPath(window.location.pathname);
+    if (rest === '/how-it-works' || rest === '/how-it-works/') return 'how-it-works';
+    if (rest === '/about' || rest === '/about/') return 'about';
+    if (rest === '/privacy' || rest === '/privacy/') return 'privacy';
+    if (rest === '/terms' || rest === '/terms/') return 'terms';
+    if (rest === '/affiliate-disclosure' || rest === '/affiliate-disclosure/') return 'affiliate';
+    if (rest === '/blog' || rest === '/blog/' || rest.startsWith('/blog/')) return 'blog';
+    if (rest === '/gear' || rest === '/gear/' || rest.startsWith('/gear/')) return 'gear';
     return 'home';
   });
   const [blogSlug, setBlogSlug] = useState<string | null>(() => {
-    const p = window.location.pathname;
-    const m = p.match(/^\/blog\/([^/?#]+)/);
+    const { rest } = splitLangPath(window.location.pathname);
+    const m = rest.match(/^\/blog\/([^/?#]+)/);
     return m ? m[1] : null;
   });
   const [gearSlug, setGearSlug] = useState<string | null>(() => {
-    const p = window.location.pathname;
-    const m = p.match(/^\/gear\/([^/?#]+)/);
+    const { rest } = splitLangPath(window.location.pathname);
+    const m = rest.match(/^\/gear\/([^/?#]+)/);
     return m ? m[1] : null;
   });
 
   const selectGearSlug = (s: string | null) => {
-    history.pushState({}, '', s ? `/gear/${s}` : '/gear');
+    history.pushState({}, '', s ? `/${lang}/gear/${s}/` : `/${lang}/gear/`);
     setGearSlug(s);
     window.scrollTo({ top: 0 });
   };
 
   const selectBlogSlug = (slug: string | null) => {
-    history.pushState({}, '', slug ? `/blog/${slug}` : '/blog');
+    history.pushState({}, '', slug ? `/${lang}/blog/${slug}/` : `/${lang}/blog/`);
     setBlogSlug(slug);
     window.scrollTo({ top: 0 });
   };
 
   const navigate = (page: PageType) => {
     const pathMap: Record<PageType, string> = {
-      home: '/', 'how-it-works': '/how-it-works', about: '/about',
-      privacy: '/privacy', terms: '/terms', affiliate: '/affiliate-disclosure',
-      blog: '/blog', gear: '/gear',
+      home: '/', 'how-it-works': '/how-it-works/', about: '/about/',
+      privacy: '/privacy/', terms: '/terms/', affiliate: '/affiliate-disclosure/',
+      blog: '/blog/', gear: '/gear/',
     };
-    history.pushState({}, '', pathMap[page]);
+    history.pushState({}, '', `/${lang}${pathMap[page]}`);
     setCurrentPage(page);
     if (page === 'blog') setBlogSlug(null);
     if (page === 'gear') setGearSlug(null);
@@ -287,6 +305,10 @@ export default function App() {
   const toggleLanguage = () => {
     const next: Language = lang === 'en' ? 'ko' : 'en';
     localStorage.setItem('lang', next);
+    // Mirror the lang in the URL so SEO + back-button + share-link all behave.
+    const { rest } = splitLangPath(window.location.pathname);
+    const newPath = `/${next}${rest === '/' ? '/' : rest}`;
+    history.replaceState({}, '', newPath + window.location.search + window.location.hash);
     setLang(next);
   };
 
@@ -299,13 +321,20 @@ export default function App() {
 
   useEffect(() => {
     const handle = () => {
-      const p = window.location.pathname;
-      if (p === '/how-it-works') setCurrentPage('how-it-works');
-      else if (p === '/about') setCurrentPage('about');
-      else if (p === '/privacy') setCurrentPage('privacy');
-      else if (p === '/terms') setCurrentPage('terms');
-      else if (p === '/affiliate-disclosure') setCurrentPage('affiliate');
+      const { rest } = splitLangPath(window.location.pathname);
+      if (rest === '/how-it-works' || rest === '/how-it-works/') setCurrentPage('how-it-works');
+      else if (rest === '/about' || rest === '/about/') setCurrentPage('about');
+      else if (rest === '/privacy' || rest === '/privacy/') setCurrentPage('privacy');
+      else if (rest === '/terms' || rest === '/terms/') setCurrentPage('terms');
+      else if (rest === '/affiliate-disclosure' || rest === '/affiliate-disclosure/') setCurrentPage('affiliate');
+      else if (rest === '/blog' || rest === '/blog/' || rest.startsWith('/blog/')) setCurrentPage('blog');
+      else if (rest === '/gear' || rest === '/gear/' || rest.startsWith('/gear/')) setCurrentPage('gear');
       else setCurrentPage('home');
+      // Keep blog/gear slug state in sync with the URL after back/forward.
+      const blogMatch = rest.match(/^\/blog\/([^/?#]+)/);
+      setBlogSlug(blogMatch ? blogMatch[1] : null);
+      const gearMatch = rest.match(/^\/gear\/([^/?#]+)/);
+      setGearSlug(gearMatch ? gearMatch[1] : null);
       window.scrollTo(0, 0);
     };
     window.addEventListener('popstate', handle);

@@ -117,7 +117,7 @@ export function seoForBlogPost(
   return {
     title: lang === 'ko' ? `${title} - 블로그 - ProGear Match` : `${title} — Blog — ProGear Match`,
     description: excerpt,
-    canonical: typeof window !== 'undefined' ? `${window.location.origin}/blog/${slug}` : undefined,
+    canonical: typeof window !== 'undefined' ? `${window.location.origin}/${lang}/blog/${slug}/` : undefined,
     ogType: 'article',
   };
 }

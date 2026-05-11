@@ -1,4 +1,24 @@
-# Pre-rendered per-route HTML (scripts/generate_route_html.mjs writes
-# dist/<route>/index.html for every SPA path) handles all current routes
-# automatically — Cloudflare Pages serves the directory index. Keeping
-# _redirects empty avoids conflicts that previously caused 307 redirects to /.
+# Per-route SPA HTML files (scripts/generate_route_html.mjs writes
+# dist/<lang>/<route>/index.html for every SPA path × language) handle current
+# routes automatically — Cloudflare serves the directory index. Below: legacy
+# unprefixed URLs are 301-redirected to the English variant so existing Google
+# index entries don't 404.
+#
+# Cloudflare Pages serves static assets first, so these rules only fire when
+# no matching file exists in dist/. dist/index.html is a JS+meta redirect to
+# /en/ so we deliberately do NOT add a "/ /en/ 301" rule — the dist file wins
+# and gives crawlers a canonical signal too.
+/blog/*                    /en/blog/:splat            301
+/gear/*                    /en/gear/:splat            301
+/how-it-works              /en/how-it-works/          301
+/about                     /en/about/                 301
+/privacy                   /en/privacy/               301
+/terms                     /en/terms/                 301
+/affiliate-disclosure      /en/affiliate-disclosure/  301
+/how-it-works/             /en/how-it-works/          301
+/about/                    /en/about/                 301
+/privacy/                  /en/privacy/               301
+/terms/                    /en/terms/                 301
+/affiliate-disclosure/     /en/affiliate-disclosure/  301
+/blog                      /en/blog/                  301
+/gear                      /en/gear/                  301

@@ -1,165 +1,489 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://progearmatch.site/</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/en/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/ko/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/gear</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/ko/blog/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/how-it-works</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/en/gear/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/gear/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/gear/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/gear/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/ko/gear/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/gear/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/gear/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/gear/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/how-it-works/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/how-it-works/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/how-it-works/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/how-it-works/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/about</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/ko/how-it-works/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/how-it-works/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/how-it-works/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/how-it-works/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/about/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/about/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/about/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/about/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/affiliate-disclosure</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/ko/about/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/about/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/about/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/about/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/affiliate-disclosure/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/affiliate-disclosure/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/affiliate-disclosure/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/affiliate-disclosure/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/privacy</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/ko/affiliate-disclosure/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/affiliate-disclosure/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/affiliate-disclosure/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/affiliate-disclosure/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/privacy/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/privacy/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/privacy/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/privacy/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/terms</loc>
-    <lastmod>2026-05-10</lastmod>
+    <loc>https://progearmatch.site/ko/privacy/</loc>
+    <lastmod>2026-05-11</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/privacy/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/privacy/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/privacy/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/viper-v3-pro-vs-superlight-2</loc>
+    <loc>https://progearmatch.site/en/terms/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/terms/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/terms/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/terms/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/ko/terms/</loc>
+    <lastmod>2026-05-11</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/terms/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/terms/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/terms/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/viper-v3-pro-vs-superlight-2/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/viper-v3-pro-vs-superlight-2/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/viper-v3-pro-vs-superlight-2/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/viper-v3-pro-vs-superlight-2/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/cs2-sensitivity-deep-dive</loc>
+    <loc>https://progearmatch.site/ko/blog/viper-v3-pro-vs-superlight-2/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/viper-v3-pro-vs-superlight-2/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/viper-v3-pro-vs-superlight-2/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/viper-v3-pro-vs-superlight-2/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/monitor-refresh-rate-worth-it</loc>
+    <loc>https://progearmatch.site/en/blog/cs2-sensitivity-deep-dive/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/cs2-sensitivity-deep-dive/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/cs2-sensitivity-deep-dive/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/cs2-sensitivity-deep-dive/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/wooting-rapid-trigger-explained</loc>
+    <loc>https://progearmatch.site/ko/blog/cs2-sensitivity-deep-dive/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/cs2-sensitivity-deep-dive/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/cs2-sensitivity-deep-dive/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/cs2-sensitivity-deep-dive/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/aim-trainer-comparison</loc>
+    <loc>https://progearmatch.site/en/blog/monitor-refresh-rate-worth-it/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/monitor-refresh-rate-worth-it/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/monitor-refresh-rate-worth-it/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/monitor-refresh-rate-worth-it/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/wired-vs-wireless-mouse-latency</loc>
+    <loc>https://progearmatch.site/ko/blog/monitor-refresh-rate-worth-it/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/monitor-refresh-rate-worth-it/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/monitor-refresh-rate-worth-it/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/monitor-refresh-rate-worth-it/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/fps-audio-headphone-guide</loc>
+    <loc>https://progearmatch.site/en/blog/wooting-rapid-trigger-explained/</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/wooting-rapid-trigger-explained/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/wooting-rapid-trigger-explained/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/wooting-rapid-trigger-explained/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/edpi-explained</loc>
+    <loc>https://progearmatch.site/ko/blog/wooting-rapid-trigger-explained/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/wooting-rapid-trigger-explained/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/wooting-rapid-trigger-explained/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/wooting-rapid-trigger-explained/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/aim-trainer-comparison/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/aim-trainer-comparison/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/aim-trainer-comparison/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/aim-trainer-comparison/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/ko/blog/aim-trainer-comparison/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/aim-trainer-comparison/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/aim-trainer-comparison/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/aim-trainer-comparison/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/wired-vs-wireless-mouse-latency/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/wired-vs-wireless-mouse-latency/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/wired-vs-wireless-mouse-latency/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/wired-vs-wireless-mouse-latency/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/ko/blog/wired-vs-wireless-mouse-latency/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/wired-vs-wireless-mouse-latency/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/wired-vs-wireless-mouse-latency/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/wired-vs-wireless-mouse-latency/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/fps-audio-headphone-guide/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/fps-audio-headphone-guide/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/fps-audio-headphone-guide/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/fps-audio-headphone-guide/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/ko/blog/fps-audio-headphone-guide/</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/fps-audio-headphone-guide/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/fps-audio-headphone-guide/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/fps-audio-headphone-guide/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/edpi-explained/</loc>
     <lastmod>2026-04-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/edpi-explained/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/edpi-explained/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/edpi-explained/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/mouse-grip-styles</loc>
+    <loc>https://progearmatch.site/ko/blog/edpi-explained/</loc>
+    <lastmod>2026-04-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/edpi-explained/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/edpi-explained/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/edpi-explained/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/mouse-grip-styles/</loc>
     <lastmod>2026-04-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/mouse-grip-styles/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/mouse-grip-styles/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/mouse-grip-styles/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/why-pros-use-800-dpi</loc>
+    <loc>https://progearmatch.site/ko/blog/mouse-grip-styles/</loc>
+    <lastmod>2026-04-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/mouse-grip-styles/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/mouse-grip-styles/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/mouse-grip-styles/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/why-pros-use-800-dpi/</loc>
     <lastmod>2026-04-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/why-pros-use-800-dpi/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/why-pros-use-800-dpi/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/why-pros-use-800-dpi/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/5-minute-warmup-routine</loc>
+    <loc>https://progearmatch.site/ko/blog/why-pros-use-800-dpi/</loc>
+    <lastmod>2026-04-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/why-pros-use-800-dpi/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/why-pros-use-800-dpi/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/why-pros-use-800-dpi/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/5-minute-warmup-routine/</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/5-minute-warmup-routine/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/5-minute-warmup-routine/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/5-minute-warmup-routine/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/cm-per-360-cross-game</loc>
+    <loc>https://progearmatch.site/ko/blog/5-minute-warmup-routine/</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/5-minute-warmup-routine/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/5-minute-warmup-routine/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/5-minute-warmup-routine/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/cm-per-360-cross-game/</loc>
     <lastmod>2026-04-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/cm-per-360-cross-game/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/cm-per-360-cross-game/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/cm-per-360-cross-game/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/apex-sensitivity-guide</loc>
+    <loc>https://progearmatch.site/ko/blog/cm-per-360-cross-game/</loc>
+    <lastmod>2026-04-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/cm-per-360-cross-game/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/cm-per-360-cross-game/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/cm-per-360-cross-game/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/apex-sensitivity-guide/</loc>
     <lastmod>2026-04-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/apex-sensitivity-guide/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/apex-sensitivity-guide/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/apex-sensitivity-guide/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/dpi-vs-sensitivity</loc>
+    <loc>https://progearmatch.site/ko/blog/apex-sensitivity-guide/</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/apex-sensitivity-guide/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/apex-sensitivity-guide/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/apex-sensitivity-guide/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/dpi-vs-sensitivity/</loc>
     <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/dpi-vs-sensitivity/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/dpi-vs-sensitivity/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/dpi-vs-sensitivity/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/ow2-hero-sensitivity-recommendations</loc>
+    <loc>https://progearmatch.site/ko/blog/dpi-vs-sensitivity/</loc>
+    <lastmod>2026-04-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/dpi-vs-sensitivity/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/dpi-vs-sensitivity/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/dpi-vs-sensitivity/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/ow2-hero-sensitivity-recommendations/</loc>
     <lastmod>2026-04-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/ow2-hero-sensitivity-recommendations/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/ow2-hero-sensitivity-recommendations/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/ow2-hero-sensitivity-recommendations/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/mousepad-impact-on-aim</loc>
+    <loc>https://progearmatch.site/ko/blog/ow2-hero-sensitivity-recommendations/</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/ow2-hero-sensitivity-recommendations/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/ow2-hero-sensitivity-recommendations/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/ow2-hero-sensitivity-recommendations/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/mousepad-impact-on-aim/</loc>
     <lastmod>2026-04-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/mousepad-impact-on-aim/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/mousepad-impact-on-aim/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/mousepad-impact-on-aim/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/valorant-sensitivity-trends-2026</loc>
+    <loc>https://progearmatch.site/ko/blog/mousepad-impact-on-aim/</loc>
+    <lastmod>2026-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/mousepad-impact-on-aim/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/mousepad-impact-on-aim/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/mousepad-impact-on-aim/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/valorant-sensitivity-trends-2026/</loc>
     <lastmod>2026-03-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/valorant-sensitivity-trends-2026/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/valorant-sensitivity-trends-2026/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/valorant-sensitivity-trends-2026/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/aim-like-a-pro-5-steps</loc>
+    <loc>https://progearmatch.site/ko/blog/valorant-sensitivity-trends-2026/</loc>
+    <lastmod>2026-03-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/valorant-sensitivity-trends-2026/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/valorant-sensitivity-trends-2026/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/valorant-sensitivity-trends-2026/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/aim-like-a-pro-5-steps/</loc>
     <lastmod>2026-03-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/aim-like-a-pro-5-steps/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/aim-like-a-pro-5-steps/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/aim-like-a-pro-5-steps/" />
   </url>
   <url>
-    <loc>https://progearmatch.site/blog/tenz-sensitivity-history</loc>
+    <loc>https://progearmatch.site/ko/blog/aim-like-a-pro-5-steps/</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/aim-like-a-pro-5-steps/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/aim-like-a-pro-5-steps/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/aim-like-a-pro-5-steps/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/en/blog/tenz-sensitivity-history/</loc>
     <lastmod>2026-03-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/tenz-sensitivity-history/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/tenz-sensitivity-history/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/tenz-sensitivity-history/" />
+  </url>
+  <url>
+    <loc>https://progearmatch.site/ko/blog/tenz-sensitivity-history/</loc>
+    <lastmod>2026-03-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+      <xhtml:link rel="alternate" hreflang="en" href="https://progearmatch.site/en/blog/tenz-sensitivity-history/" />
+      <xhtml:link rel="alternate" hreflang="ko" href="https://progearmatch.site/ko/blog/tenz-sensitivity-history/" />
+      <xhtml:link rel="alternate" hreflang="x-default" href="https://progearmatch.site/en/blog/tenz-sensitivity-history/" />
   </url>
 </urlset>
