@@ -466,29 +466,31 @@ export async function getHighlightVideos(playerName: string, game: string): Prom
 export async function getProGamerList(game: string): Promise<ProGamer[]> {
   try {
     const normalizedGame = normalizeGameName(game);
-    console.log(`Fetching ${normalizedGame} pros from Firestore...`);
-    
-    // Diagnostic: Log all docs in the collection to see if anything is "lost"
-    if (auth.currentUser?.email === ADMIN_EMAIL) {
-      const allSnapshot = await getDocs(collection(db, "pro-gamers"));
-      const allPros = allSnapshot.docs.map(d => ({ id: d.id, game: d.data().game, name: d.data().name }));
-      console.log("DIAGNOSTIC: All pro-gamers in DB:", allPros);
-      
-      const asuna = allSnapshot.docs.find(d => 
-        (d.data().name && d.data().name.toLowerCase().includes("asuna")) || 
-        d.id.toLowerCase().includes("asuna")
-      );
-      if (asuna) {
-        console.log("DIAGNOSTIC: Found 'Asuna' entry:", asuna.data());
-        console.log("DIAGNOSTIC: Entry game is:", asuna.data().game, "Requested game is:", normalizedGame);
-      } else {
-        console.log("DIAGNOSTIC: 'Asuna' NOT found in entire collection.");
+
+    // Static-JSON-first: regular users read from build-time exported
+    // public/data/pros-{game}.json instead of Firestore. This protects the
+    // Firestore free-tier daily read quota (50K/day) — without it, traffic
+    // spikes can take the site down for everyone, as we learned in 2026-05.
+    // Admins still hit Firestore directly so they see fresh edits.
+    const isAdmin = auth.currentUser?.email === ADMIN_EMAIL;
+    if (!isAdmin) {
+      try {
+        const slug = normalizedGame.toLowerCase().replace(/\s+/g, '-');
+        const res = await fetch(`/data/pros-${slug}.json`, { cache: 'force-cache' });
+        if (res.ok) {
+          const list: ProGamer[] = await res.json();
+          return list.map((p) => ({ ...p, name: cleanPlayerName(p.name), _rawName: p.name } as ProGamer));
+        }
+        console.warn(`Static pros-${slug}.json not found, falling back to Firestore.`);
+      } catch (e) {
+        console.warn('Static JSON fetch failed, falling back to Firestore:', e);
       }
     }
 
+    console.log(`Fetching ${normalizedGame} pros from Firestore (admin path)...`);
     const q = query(collection(db, "pro-gamers"), where("game", "==", normalizedGame));
     const querySnapshot = await getDocs(q);
-    
+
     console.log(`Fetched ${querySnapshot.size} docs from Firestore for ${normalizedGame}`);
     
     let dbList: ProGamer[] = [];

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "node scripts/generate_sitemap.mjs && vite build && node scripts/generate_route_html.mjs",
+    "build": "node scripts/generate_sitemap.mjs && node scripts/export_static_pros.mjs && vite build && node scripts/generate_route_html.mjs",
     "build:analyze": "cross-env ANALYZE=1 vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
