@@ -385,6 +385,8 @@ const rootRedirect = `<!doctype html>
     <link rel="alternate" hreflang="x-default" href="${BASE}/en/" />
     <meta http-equiv="refresh" content="0; url=/en/" />
     <meta name="robots" content="noindex" />
+    <meta name="google-site-verification" content="iWpvo3tLATlV-UlS1aCZ6DcbESInYCw6h9ZOJC-6ytY" />
+    <meta name="naver-site-verification" content="732c3b8a038d8d95d96f9b7001cd6d223eb08cce" />
     <script>
       (function () {
         var lang = (navigator.language || 'en').toLowerCase().startsWith('ko') ? 'ko' : 'en';
