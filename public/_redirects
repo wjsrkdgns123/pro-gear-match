@@ -8,6 +8,13 @@
 # no matching file exists in dist/. dist/index.html is a JS+meta redirect to
 # /en/ so we deliberately do NOT add a "/ /en/ 301" rule — the dist file wins
 # and gives crawlers a canonical signal too.
+# Recover from stacked /ko/ko/ or /en/en/ URLs (caused by previous redirect-shell
+# bug). Send the user to that language's root instead of looping.
+/ko/ko/*                   /ko/                       301
+/en/en/*                   /en/                       301
+/ko/en/*                   /en/                       301
+/en/ko/*                   /ko/                       301
+
 /blog/*                    /en/blog/:splat            301
 /gear/*                    /en/gear/:splat            301
 /how-it-works              /en/how-it-works/          301
