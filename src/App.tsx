@@ -7,6 +7,7 @@ import { matchProGamer, getProGamerList, deleteProGamer, syncProGamerToDb, clean
 import { translations, getLanguage, Language } from './translations';
 import { PRO_MICE, PRO_KEYBOARDS, PRO_MONITORS, PRO_MOUSEPADS, PLAYER_NATIONALITIES } from './constants';
 import { AMAZON_LINKS_NORMALIZED } from './amazonLinks';
+import { gearDiffText } from './utils/gearDiff';
 import { auth, googleProvider, db } from './firebase';
 import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, User } from 'firebase/auth';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc, increment, setDoc, serverTimestamp, query, orderBy, collectionGroup, where } from 'firebase/firestore';
@@ -2151,45 +2152,57 @@ export default function App() {
                             const same = !!userVal && userVal.toLowerCase() === proVal.toLowerCase();
                             const empty = !userVal;
                             const amazonLink = !same ? getAmazonLink(proVal) : null;
+                            const diffText = !same && !empty
+                              ? gearDiffText(row.key as 'mouse' | 'keyboard' | 'monitor' | 'mousepad', userVal, proVal, lang)
+                              : null;
                             const baseClass = `grid grid-cols-[80px_1fr_1fr_28px] items-center text-[10px] font-mono ${
                               ri > 0 ? (theme === 'dark' ? 'border-t border-[#1e1e22]' : 'border-t border-[#e5e7eb]') : ''
                             }`;
                             return (
-                              <div key={row.key} className={baseClass}>
-                                <div className={`flex items-center gap-1.5 px-3 py-2 uppercase tracking-widest text-[9px] font-bold ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>
-                                  <span className="text-emerald-500">{row.icon}</span>
-                                  {row.label}
+                              <div key={row.key}>
+                                <div className={baseClass}>
+                                  <div className={`flex items-center gap-1.5 px-3 py-2 uppercase tracking-widest text-[9px] font-bold ${theme === 'dark' ? 'text-[#888]' : 'text-[#6b7280]'}`}>
+                                    <span className="text-emerald-500">{row.icon}</span>
+                                    {row.label}
+                                  </div>
+                                  {/* YOU (left) */}
+                                  <div className={`px-3 py-2 truncate ${
+                                    empty ? (theme === 'dark' ? 'text-[#555] italic' : 'text-[#9ca3af] italic')
+                                          : same ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
+                                          : (theme === 'dark' ? 'text-[#ddd]' : 'text-[#1f2937]')
+                                  }`} title={userVal || '—'}>
+                                    {userVal || (lang === 'ko' ? '미입력' : 'not set')}
+                                  </div>
+                                  {/* PRO (right) — with inline Amazon button when user's gear differs */}
+                                  <div className={`px-3 py-2 truncate flex items-center gap-1.5 ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#1f2937]'}`} title={proVal}>
+                                    <span className="truncate flex-1">{proVal}</span>
+                                    {!same && amazonLink && (
+                                      <a
+                                        href={amazonLink}
+                                        target="_blank"
+                                        rel="sponsored noopener noreferrer"
+                                        title={lang === 'ko' ? '아마존에서 구매' : 'Buy on Amazon'}
+                                        className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[8px] font-bold uppercase tracking-widest border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
+                                      >
+                                        <ShoppingCart size={9} /> AMAZON
+                                      </a>
+                                    )}
+                                  </div>
+                                  <div className={`px-2 py-2 text-center font-bold ${
+                                    same ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
+                                         : empty ? (theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]')
+                                         : (theme === 'dark' ? 'text-amber-400' : 'text-amber-600')
+                                  }`}>
+                                    {same ? '✓' : empty ? '—' : '✕'}
+                                  </div>
                                 </div>
-                                {/* YOU (left) */}
-                                <div className={`px-3 py-2 truncate ${
-                                  empty ? (theme === 'dark' ? 'text-[#555] italic' : 'text-[#9ca3af] italic')
-                                        : same ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
-                                        : (theme === 'dark' ? 'text-[#ddd]' : 'text-[#1f2937]')
-                                }`} title={userVal || '—'}>
-                                  {userVal || (lang === 'ko' ? '미입력' : 'not set')}
-                                </div>
-                                {/* PRO (right) — with inline Amazon button when user's gear differs */}
-                                <div className={`px-3 py-2 truncate flex items-center gap-1.5 ${theme === 'dark' ? 'text-[#ddd]' : 'text-[#1f2937]'}`} title={proVal}>
-                                  <span className="truncate flex-1">{proVal}</span>
-                                  {!same && amazonLink && (
-                                    <a
-                                      href={amazonLink}
-                                      target="_blank"
-                                      rel="sponsored noopener noreferrer"
-                                      title={lang === 'ko' ? '아마존에서 구매' : 'Buy on Amazon'}
-                                      className={`flex-shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[8px] font-bold uppercase tracking-widest border ${theme === 'dark' ? 'bg-amber-500/10 border-amber-500/40 text-amber-400 hover:bg-amber-500/20' : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'}`}
-                                    >
-                                      <ShoppingCart size={9} /> AMAZON
-                                    </a>
-                                  )}
-                                </div>
-                                <div className={`px-2 py-2 text-center font-bold ${
-                                  same ? (theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600')
-                                       : empty ? (theme === 'dark' ? 'text-[#555]' : 'text-[#9ca3af]')
-                                       : (theme === 'dark' ? 'text-amber-400' : 'text-amber-600')
-                                }`}>
-                                  {same ? '✓' : empty ? '—' : '✕'}
-                                </div>
+                                {/* Gear difference explanation — only when both items have specs in our DB */}
+                                {diffText && (
+                                  <div className={`px-3 pb-2 pt-1 text-[10px] leading-relaxed ${theme === 'dark' ? 'text-emerald-300/70 bg-emerald-500/[0.02]' : 'text-emerald-700/80 bg-emerald-50/40'}`}>
+                                    <span className={`mr-1.5 font-bold ${theme === 'dark' ? 'text-emerald-400/60' : 'text-emerald-600/60'}`}>↳</span>
+                                    {diffText}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
