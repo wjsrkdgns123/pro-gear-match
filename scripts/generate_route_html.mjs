@@ -393,12 +393,24 @@ const rootRedirect = `<!doctype html>
         var p = window.location.pathname;
         var qs = window.location.search || '';
         var hash = window.location.hash || '';
-        // If user hit a stale path like /blog/foo, send them to /en/blog/foo.
-        // Otherwise (just "/"), send to the detected language root.
-        var target = (p === '/' || p === '')
-          ? '/' + lang + '/'
-          : '/' + lang + p.replace(/\\/$/, '') + '/';
-        window.location.replace(target + qs + hash);
+        var target;
+        // CRITICAL: if path already has /en/ or /ko/ prefix but landed here
+        // (meaning the static file is missing), DON'T add another prefix —
+        // that caused the /ko/ko/ko/... infinite loop. Send to that lang's
+        // root instead so the user gets a working page.
+        var langMatch = p.match(/^\\/(en|ko)(\\/|$)/);
+        if (langMatch) {
+          target = '/' + langMatch[1] + '/';
+        } else if (p === '/' || p === '') {
+          target = '/' + lang + '/';
+        } else {
+          // Legacy unprefixed path like /blog/foo — prepend detected lang.
+          target = '/' + lang + p.replace(/\\/$/, '') + '/';
+        }
+        // Final safety net: never replace to the same URL (would still loop).
+        if (target + qs + hash !== p + qs + hash) {
+          window.location.replace(target + qs + hash);
+        }
       })();
     </script>
   </head>
