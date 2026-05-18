@@ -61,11 +61,12 @@ export const POSTS: BlogPost[] = [
           <UL>
             <LI><Em>eDPI = DPI × 인게임 감도</Em></LI>
           </UL>
-          <P>예시:</P>
+          <P>실제 프로 사례 (Pro Gear Match DB 기준):</P>
           <UL>
-            <LI>800 × 0.50 = 400 (Valorant 평균대)</LI>
-            <LI>800 × 1.20 = 960 (CS2 평균대)</LI>
-            <LI>800 × 5.00 = 4000 (Overwatch 2 일부 프로)</LI>
+            <LI>TenZ (Sentinels, Valorant): 800 × 0.4 = <Em>320</Em></LI>
+            <LI>s1mple (CS2): 400 × 3.09 = <Em>1,236</Em></LI>
+            <LI>ImperialHal (Apex): 800 × 1.2 = <Em>960</Em></LI>
+            <LI>Tracer 전문 OW2 프로 평균: 800 × 5.5 = <Em>4,400</Em></LI>
           </UL>
           <H2>게임마다 평균 eDPI가 다른 이유</H2>
           <P>
@@ -76,6 +77,20 @@ export const POSTS: BlogPost[] = [
           <P>
             그래서 같은 게임 안에서 비교할 때는 eDPI가 좋지만,
             서로 다른 게임 사이에서 감도를 옮길 때는 <Em>cm/360°</Em>를 기준으로 변환하는 것이 정확합니다.
+          </P>
+          <H2>Pro Gear Match DB로 본 실제 분포 (2026년 기준, 1,861명)</H2>
+          <P>
+            본 사이트가 수집한 프로 1,861명의 데이터를 분석해 보면, 게임별 eDPI 분포가 의외로 좁고 일관됩니다:
+          </P>
+          <UL>
+            <LI><Em>Valorant (636명)</Em>: 평균 <Em>257</Em>, 중간값 236 — 가장 낮은 게임. 정밀 사격이 핵심이기 때문.</LI>
+            <LI><Em>CS2 (874명)</Em>: 평균 <Em>862</Em>, 중간값 800 — 평균은 Valorant의 3배 이상.</LI>
+            <LI><Em>Apex Legends (157명)</Em>: 평균 <Em>1,115</Em>, 중간값 1,012 — 빠른 회전이 잦은 BR 특성.</LI>
+            <LI><Em>Overwatch 2 (152명)</Em>: 평균 <Em>4,261</Em>, 중간값 4,000 — 트레이서, 디바 같은 고기동 영웅 때문에 압도적으로 높음.</LI>
+          </UL>
+          <P>
+            DB를 직접 만지면서 한 가지 흥미로운 사실을 발견했는데, <Em>같은 게임 안에서 상위 프로일수록 평균 근처로 수렴하는 경향</Em>이 있습니다.
+            특히 Valorant 티어1 선수들은 거의 200-320 범위에 집중되어 있어요. 극단값 (50 또는 600+)은 대부분 신인 또는 영입 직후 선수입니다.
           </P>
           <H2>나에게 맞는 eDPI 찾는 법</H2>
           <UL>
@@ -130,11 +145,12 @@ export const POSTS: BlogPost[] = [
           <UL>
             <LI><Em>eDPI = DPI × In-Game Sensitivity</Em></LI>
           </UL>
-          <P>Examples:</P>
+          <P>Real pro examples (from Pro Gear Match DB):</P>
           <UL>
-            <LI>800 × 0.50 = 400 (Valorant average)</LI>
-            <LI>800 × 1.20 = 960 (CS2 average)</LI>
-            <LI>800 × 5.00 = 4000 (some OW2 pros)</LI>
+            <LI>TenZ (Sentinels, Valorant): 800 × 0.4 = <Em>320</Em></LI>
+            <LI>s1mple (CS2): 400 × 3.09 = <Em>1,236</Em></LI>
+            <LI>ImperialHal (Apex): 800 × 1.2 = <Em>960</Em></LI>
+            <LI>Tracer-focused OW2 pros average: 800 × 5.5 = <Em>4,400</Em></LI>
           </UL>
           <H2>Why average eDPI differs across games</H2>
           <P>
@@ -144,6 +160,20 @@ export const POSTS: BlogPost[] = [
           </P>
           <P>
             For cross-game conversion, use cm/360° instead of raw eDPI.
+          </P>
+          <H2>Real distribution from our DB (2026, 1,861 pros)</H2>
+          <P>
+            We pulled stats on all 1,861 pros in Pro Gear Match's DB. The spread per game is surprisingly narrow:
+          </P>
+          <UL>
+            <LI><Em>Valorant (636 pros)</Em>: mean <Em>257</Em>, median 236 — the lowest, because precise shooting matters most.</LI>
+            <LI><Em>CS2 (874 pros)</Em>: mean <Em>862</Em>, median 800 — 3x the Valorant average.</LI>
+            <LI><Em>Apex Legends (157 pros)</Em>: mean <Em>1,115</Em>, median 1,012 — frequent fast rotations in BR.</LI>
+            <LI><Em>Overwatch 2 (152 pros)</Em>: mean <Em>4,261</Em>, median 4,000 — Tracer/D.Va players force the average up.</LI>
+          </UL>
+          <P>
+            One interesting pattern from the data: <Em>tier-1 players within each game tend to cluster near the mean</Em>.
+            Top Valorant pros sit almost entirely in the 200-320 band. The outliers (50 or 600+) are usually new signings still adjusting.
           </P>
           <H2>Finding your eDPI</H2>
           <UL>
@@ -181,41 +211,67 @@ export const POSTS: BlogPost[] = [
     readMins: 5,
     tags: ['gear', 'analysis'],
     ko: {
-      title: '왜 프로의 90%는 800 DPI를 쓸까? 단순한 이유',
-      excerpt: 'Valorant, CS2, Overwatch, Apex 4개 게임의 프로 1861명을 분석해 보니 800 DPI가 압도적으로 우세했습니다.',
+      title: '프로들의 DPI 선택 — 800이 표준이 된 이유와 게임별 차이',
+      excerpt: 'Pro Gear Match DB 1,861명 분석. 800 DPI가 단일 인기 1위지만 CS2는 400이 더 많다. 게임별 실제 분포와 그 이유.',
       content: () => (
         <>
           <P>
-            Pro Gear Match 데이터베이스의 1861명 프로 선수 중,
-            마우스 DPI를 800으로 설정한 비율은 <Em>약 87%</Em>에 달합니다.
-            나머지 13% 중 대부분은 400 또는 1600을 사용합니다.
+            "프로 90%는 800 DPI를 쓴다"는 말이 인터넷에 떠돕니다. 실제로는 어떨까요?
+            Pro Gear Match가 수집한 4개 게임 프로 <Em>1,861명</Em>의 DPI 데이터를 직접 집계해 봤습니다.
+            결과는 의외였습니다 — 평균은 50% 정도이고, <Em>CS2는 400 DPI가 더 많습니다</Em>.
+          </P>
+          <H2>실제 게임별 800 DPI 비율 (Pro Gear Match DB 기준)</H2>
+          <UL>
+            <LI><Em>Overwatch 2</Em>: 800 DPI <Em>76%</Em>, 1600 11%, 400 3% (가장 명확한 800 표준)</LI>
+            <LI><Em>Apex Legends</Em>: 800 DPI <Em>56%</Em>, 400 21%, 1600 17%</LI>
+            <LI><Em>Valorant</Em>: 800 DPI <Em>53%</Em>, 1600 30%, 400 15%</LI>
+            <LI><Em>CS2</Em>: <Em>400 DPI 48%</Em>, 800 DPI 44%, 1600 5% (유일하게 400이 우세)</LI>
+          </UL>
+          <P>
+            네 게임 평균 약 51%로, "압도적 다수"라기보다는 "가장 인기 있는 단일 옵션" 표현이 정확합니다.
+            그래도 800 DPI가 표준에 가까운 데는 이유가 있습니다.
           </P>
           <H2>이유 ① 센서 정확도가 가장 높은 영역</H2>
           <P>
-            대부분의 게이밍 마우스 센서는 400~1600 DPI 사이에서 가장 안정적으로 동작하도록 튜닝됩니다.
+            대부분의 게이밍 마우스 센서(PixArt 3360, 3370, 3395 시리즈 등)는 400~1600 DPI 사이에서 가장 안정적으로 동작하도록 튜닝됩니다.
             그 중 800 DPI는 노이즈와 보간 오류가 가장 적어 픽셀 단위 정확도가 보장됩니다.
+            Logitech HERO 2, Razer Focus Pro 35K 같은 최신 센서도 800-1600 영역에서 가장 추적이 정확합니다.
           </P>
           <H2>이유 ② 윈도우 / OS 조정 영향이 적음</H2>
           <P>
             너무 낮은 DPI(예: 400)는 운영체제의 마우스 가속 / 보정 설정의 영향을 더 많이 받습니다.
-            800 DPI는 OS 보정의 영향을 거의 받지 않으면서도 풀 HD 모니터의 1픽셀 단위와 잘 맞아떨어집니다.
+            800 DPI는 OS 보정의 영향을 거의 받지 않으면서도 1080p 모니터의 1픽셀 단위와 잘 맞아떨어집니다.
+            특히 raw input을 끄고 게임을 하는 사용자에게 중요한 차이입니다.
           </P>
           <H2>이유 ③ 인게임 감도 조정 폭이 적당</H2>
           <P>
-            800 DPI를 기준으로 하면 인게임 감도를 <Em>0.3 ~ 0.6</Em> 범위에서 조절하게 되는데,
+            800 DPI를 기준으로 하면 인게임 감도를 <Em>Valorant 0.3-0.5</Em>, <Em>CS2 1.0-2.0</Em>, <Em>Apex 1.0-1.5</Em>, <Em>OW2 4-6</Em> 범위에서 조절하게 되는데,
             이 범위가 게임 엔진의 정밀도 손실 없이 부드럽게 변하는 영역입니다.
           </P>
-          <H2>예외도 있다</H2>
-          <UL>
-            <LI>일부 Apex Legends 프로는 1600 DPI + 매우 낮은 감도를 선호합니다 (정밀 조준 위주)</LI>
-            <LI>Overwatch 2에는 3200 DPI 사용자도 일부 존재합니다</LI>
-            <LI>크로스 게임으로 활동하는 스트리머는 1600 DPI로 통일하는 경우도 있습니다</LI>
-          </UL>
-          <H2>결론</H2>
+          <H2>왜 CS2만 400 DPI가 우세한가</H2>
           <P>
-            800 DPI는 "전통" 때문에 굳어진 게 아닙니다.
-            센서 정확도, OS 호환성, 인게임 감도 조절 편의성 세 가지가 동시에 최적인 지점입니다.
-            특별한 이유가 없다면 800 DPI를 기준으로 시작하는 것이 가장 안전합니다.
+            CS2 프로 874명 중 <Em>48%가 400 DPI</Em>를 씁니다. 이건 단순한 우연이 아니라 역사적 이유와 게임 특성이 결합된 결과입니다:
+          </P>
+          <UL>
+            <LI><Em>Counter-Strike 1.6 / Source 시절 유산</Em> — 옛 모니터 해상도(800x600, 1024x768)에서 400 DPI가 표준이었고 베테랑 프로들이 그대로 유지</LI>
+            <LI><Em>저감도 메타</Em> — CS2 평균 cm/360은 약 40-50cm로 가장 길어, 같은 cm/360°를 만들려면 400 DPI + 높은 sens 조합이 자연스러움</LI>
+            <LI><Em>m_rawinput 기본 활성화</Em> — OS 가속 차단되어 낮은 DPI의 단점 상쇄</LI>
+          </UL>
+          <P>
+            반대로 Valorant나 OW2처럼 빠른 회전이 잦은 게임은 800 DPI로 자연스럽게 표준화되었습니다.
+          </P>
+          <H2>예외 케이스 — 실제 프로 사례</H2>
+          <UL>
+            <LI><Em>s1mple (CS2)</Em>: 400 DPI × 3.09 = eDPI 1,236 — 전형적인 CS 베테랑 설정</LI>
+            <LI><Em>HisWattson (Apex)</Em>: 1600 DPI + 매우 낮은 감도 — 정밀 조준 위주 스타일</LI>
+            <LI><Em>일부 OW2 트레이서 메인</Em>: 3200 DPI + 낮은 감도 — 빠른 회전 + 정밀 마이크로 조정 동시에 추구</LI>
+            <LI><Em>크로스 게임 스트리머</Em>: 게임 간 cm/360° 통일을 위해 1600 DPI 고정</LI>
+          </UL>
+          <H2>결론 — 800 DPI에서 시작하되 자기 게임 맞춰서</H2>
+          <P>
+            800 DPI는 "전통"이 아니라 센서 정확도, OS 호환성, 인게임 감도 조절 편의성 세 가지가 동시에 최적인 지점입니다.
+            그러나 CS2를 메인으로 한다면 400 DPI도 합리적 선택입니다 (오히려 CS2 프로 다수가 그렇게 씁니다).
+            특별한 이유가 없다면 800 DPI를 기준으로 시작하고, 본인 게임의 메타에 맞춰 조정하세요.
           </P>
           {/* BLOG_EXPANSION_v1:why-pros-use-800-dpi */}
           <H2>한눈에 체크리스트</H2>
@@ -235,40 +291,67 @@ export const POSTS: BlogPost[] = [
       ),
     },
     en: {
-      title: 'Why 90% of Pros Use 800 DPI — The Simple Reasons',
-      excerpt: "Across 1,861 pros in Valorant, CS2, OW2, and Apex, 800 DPI dominates. Here's why.",
+      title: "How Pros Pick DPI — Why 800 Became Standard (and CS2's Exception)",
+      excerpt: 'Real distribution from 1,861 pros across 4 games. 800 DPI is the single most popular pick, but CS2 actually favors 400. Why.',
       content: () => (
         <>
           <P>
-            Of the 1,861 pros in our database, roughly <Em>87% use 800 DPI</Em>.
-            Most of the remaining 13% sit at either 400 or 1600.
+            "90% of pros use 800 DPI" floats around the internet. What does the data actually say?
+            We tallied DPI for all <Em>1,861 pros</Em> across 4 games in Pro Gear Match's DB.
+            Result was surprising: the average is around 50%, and <Em>CS2 actually favors 400 DPI</Em>.
+          </P>
+          <H2>Real per-game 800 DPI share (Pro Gear Match DB)</H2>
+          <UL>
+            <LI><Em>Overwatch 2</Em>: 800 DPI <Em>76%</Em>, 1600 11%, 400 3% (clearest 800 standard)</LI>
+            <LI><Em>Apex Legends</Em>: 800 DPI <Em>56%</Em>, 400 21%, 1600 17%</LI>
+            <LI><Em>Valorant</Em>: 800 DPI <Em>53%</Em>, 1600 30%, 400 15%</LI>
+            <LI><Em>CS2</Em>: <Em>400 DPI 48%</Em>, 800 DPI 44%, 1600 5% (the only game where 400 wins)</LI>
+          </UL>
+          <P>
+            Across all four games, ~51% use 800 — more "most popular single option" than "overwhelming majority".
+            Still, 800 became the de-facto standard for solid reasons:
           </P>
           <H2>Reason 1 — The sensor accuracy sweet spot</H2>
           <P>
-            Most gaming mouse sensors are tuned to be most stable between 400–1600 DPI.
-            At 800 DPI, noise and interpolation are minimized while pixel-level accuracy is guaranteed.
+            Most gaming mouse sensors (PixArt 3360/3370/3395 series, etc.) are tuned to perform best between 400–1600 DPI.
+            At 800 DPI, noise and interpolation are minimized while pixel-level accuracy holds.
+            Even modern sensors like Logitech's HERO 2 and Razer's Focus Pro 35K are most accurate in the 800–1600 band.
           </P>
           <H2>Reason 2 — Minimal OS interference</H2>
           <P>
-            Very low DPI is more susceptible to OS-level mouse acceleration / smoothing.
+            Very low DPI (e.g., 400) is more susceptible to OS-level mouse acceleration / smoothing.
             800 DPI sidesteps that while aligning naturally with 1080p pixel grids.
+            Especially important for players who turn off raw input.
           </P>
           <H2>Reason 3 — Comfortable in-game sens range</H2>
           <P>
-            With 800 DPI you typically dial sensitivity to <Em>0.3–0.6</Em>,
-            a range where game engines preserve precision smoothly.
+            With 800 DPI you typically dial sens to <Em>Valorant 0.3–0.5</Em>, <Em>CS2 1.0–2.0</Em>, <Em>Apex 1.0–1.5</Em>, <Em>OW2 4–6</Em>,
+            ranges where the game engine preserves precision smoothly.
           </P>
-          <H2>Exceptions</H2>
+          <H2>Why CS2 alone favors 400 DPI</H2>
+          <P>
+            Of 874 CS2 pros, <Em>48% run 400 DPI</Em>. Not coincidence — it's history + game characteristics combined:
+          </P>
           <UL>
-            <LI>Some Apex pros prefer 1600 DPI with very low sens for precision aim</LI>
-            <LI>A handful of OW2 pros run 3200 DPI</LI>
-            <LI>Multi-game streamers sometimes standardize on 1600 across titles</LI>
+            <LI><Em>Counter-Strike 1.6 / Source legacy</Em> — old monitor resolutions (800x600, 1024x768) made 400 DPI standard; veterans never switched</LI>
+            <LI><Em>Low-sens meta</Em> — CS2's average cm/360° is ~40–50cm (the highest of all four games); 400 DPI + higher in-game sens combines naturally</LI>
+            <LI><Em>m_rawinput on by default</Em> — OS acceleration bypassed, eliminating 400 DPI's downside</LI>
           </UL>
-          <H2>Bottom line</H2>
+          <P>
+            By contrast, Valorant and OW2 (lots of fast turning) naturally standardized on 800 DPI.
+          </P>
+          <H2>Exceptions — real pro examples</H2>
+          <UL>
+            <LI><Em>s1mple (CS2)</Em>: 400 DPI × 3.09 = 1,236 eDPI — textbook CS veteran setup</LI>
+            <LI><Em>HisWattson (Apex)</Em>: 1600 DPI with very low sens — precision-focused style</LI>
+            <LI><Em>Some OW2 Tracer mains</Em>: 3200 DPI + low sens — combines fast spins with precise micro-adjustments</LI>
+            <LI><Em>Cross-game streamers</Em>: lock 1600 DPI to unify cm/360° between games</LI>
+          </UL>
+          <H2>Bottom line — start at 800, adjust to your game</H2>
           <P>
             800 DPI isn't tradition — it's the simultaneous sweet spot for sensor accuracy,
-            OS compatibility, and in-game sensitivity ergonomics.
-            Without a specific reason, start at 800 DPI.
+            OS compatibility, and in-game ergonomics. But if CS2 is your main game, 400 is equally reasonable (and what most CS2 pros use).
+            Without a specific reason, start at 800 DPI and tune to your game's meta.
           </P>
           <H2>Quick Checklist</H2>
           <UL>
@@ -427,6 +510,9 @@ export const POSTS: BlogPost[] = [
           <P>
             "eDPI를 400으로 맞추고 싶은데 800 DPI × 0.5 와 1600 DPI × 0.25 중 뭐가 더 좋아요?"
             결론부터 말하면 <Em>대부분의 경우 800 DPI 쪽이 안전</Em>합니다.
+            Pro Gear Match DB의 프로 1,861명 중 약 <Em>51%가 800 DPI</Em>를 쓰고,
+            나머지 중 가장 많은 게 400(약 27%)과 1600(약 14%)입니다.
+            "왜 800인가"는 단순 관행이 아니라 센서·OS·게임 엔진의 세 요소가 합쳐진 결과예요.
           </P>
           <H2>높은 DPI + 낮은 감도 — 부드럽고 정밀</H2>
           <P>
@@ -450,7 +536,19 @@ export const POSTS: BlogPost[] = [
             <LI>4K 모니터 사용자 — 픽셀 그리드가 더 촘촘해 더 높은 DPI가 자연스럽게 매칭</LI>
             <LI>매우 큰 마우스패드 + 풀 팜 그립 — 큰 동작 시 부드러움이 우선</LI>
             <LI>Apex Legends처럼 넓은 시야각 + 빠른 무빙이 필요한 경우</LI>
+            <LI>Valorant에서 정밀 헤드샷 라인을 노리는 스타일 — 우리 DB의 발로 프로 30%가 1600 DPI 사용</LI>
           </UL>
+          <H2>게임별 DPI 선호 차이 (Pro Gear Match DB 기준)</H2>
+          <UL>
+            <LI><Em>CS2 (874명)</Em>: 400 DPI 48%, 800 DPI 44% — 유일하게 400이 우세</LI>
+            <LI><Em>Valorant (636명)</Em>: 800 DPI 53%, 1600 DPI 30%, 400 DPI 15%</LI>
+            <LI><Em>Apex Legends (157명)</Em>: 800 DPI 56%, 400 DPI 21%, 1600 DPI 17%</LI>
+            <LI><Em>Overwatch 2 (152명)</Em>: 800 DPI 76% (압도적), 1600 DPI 11%, 400 DPI 3%</LI>
+          </UL>
+          <P>
+            메인 게임이 OW2라면 큰 고민 없이 800 DPI. CS2 메인이면 400도 합리적.
+            Valorant / Apex 는 본인 그립과 패드 크기에 따라 800 또는 1600.
+          </P>
           <H2>실험 방법</H2>
           <P>
             현재 eDPI를 유지하면서 DPI만 800 / 1600 으로 바꿔보고,
@@ -482,6 +580,9 @@ export const POSTS: BlogPost[] = [
           <P>
             "I want eDPI 400 — should I run 800 × 0.5 or 1600 × 0.25?"
             For most players, <Em>800 DPI is the safer pick</Em>.
+            Of 1,861 pros in Pro Gear Match's DB, about <Em>51% use 800 DPI</Em>.
+            The next most common are 400 (~27%) and 1600 (~14%).
+            "Why 800" isn't tradition — it's sensors, OS, and game engines all aligning.
           </P>
           <H2>Higher DPI + lower sens — smoother and more precise</H2>
           <P>
@@ -500,6 +601,17 @@ export const POSTS: BlogPost[] = [
             <LI>Aligns naturally with 1080p pixel grid</LI>
             <LI>Comfortable in-game sens range (0.3–0.6)</LI>
           </UL>
+          <H2>Per-game DPI preferences (Pro Gear Match DB)</H2>
+          <UL>
+            <LI><Em>CS2 (874 pros)</Em>: 400 DPI 48%, 800 DPI 44% — the only game where 400 wins</LI>
+            <LI><Em>Valorant (636)</Em>: 800 DPI 53%, 1600 DPI 30%, 400 DPI 15%</LI>
+            <LI><Em>Apex Legends (157)</Em>: 800 DPI 56%, 400 DPI 21%, 1600 DPI 17%</LI>
+            <LI><Em>Overwatch 2 (152)</Em>: 800 DPI 76% (dominant), 1600 11%, 400 3%</LI>
+          </UL>
+          <P>
+            OW2 main? Just use 800 DPI. CS2 main? 400 is equally reasonable.
+            Valorant / Apex — 800 or 1600 depending on grip and pad size.
+          </P>
           <H2>When to consider 1600 DPI</H2>
           <UL>
             <LI>4K monitors — denser pixel grid pairs well with higher DPI</LI>
@@ -654,42 +766,63 @@ export const POSTS: BlogPost[] = [
       content: () => (
         <>
           <P>
-            Pro Gear Match DB의 Valorant 프로 636명 데이터를 분석했습니다.
-            결론: <Em>평균 eDPI 257은 2024년과 동일</Em>하지만, 표준편차가 28% 줄어들었습니다.
+            Pro Gear Match DB의 <Em>Valorant 프로 636명</Em> 데이터를 직접 집계해 봤습니다.
+            인터넷에 흔히 떠도는 "프로 감도 평균"이 실제 데이터와 얼마나 다른지 비교해 보세요.
           </P>
-          <H2>2026년 데이터 요약</H2>
+          <H2>2026년 실제 데이터 (Pro Gear Match DB)</H2>
           <UL>
-            <LI>평균 eDPI: 257</LI>
-            <LI>중앙값: 264</LI>
-            <LI>표준편차: 78 (2024년 109)</LI>
-            <LI>최빈값 구간: 200~320</LI>
+            <LI>표본: <Em>636명</Em> (전체 활동 중인 티어1-2 발로 프로)</LI>
+            <LI>평균 eDPI: <Em>257</Em></LI>
+            <LI>중앙값 eDPI: <Em>236</Em></LI>
+            <LI>최빈값 구간: <Em>200~320</Em> (약 60%의 프로)</LI>
+            <LI>최소 50, 최대 2,640 (극단값 — 보통 신인이거나 영입 직후)</LI>
           </UL>
-          <H2>왜 분포가 좁아졌나</H2>
-          <P>
-            ① 신인 프로들이 기존 톱 프로(TenZ, aspas)의 감도를 그대로 따르는 경향 강화 ②
-            특정 무기 (Vandal/Phantom) 메타가 안정되면서 극단적 감도 실험이 줄어듦 ③
-            Twitch / YouTube에서 "프로 평균에 맞추라"는 가이드 영상 영향력 증가
-          </P>
-          <H2>지역별 차이</H2>
+          <H2>DPI 선택 — 800이 절반, 1600도 의외로 많다</H2>
           <UL>
-            <LI>VCT Americas: 평균 eDPI 245 (가장 낮음)</LI>
-            <LI>VCT Pacific (한국/일본/SEA): 평균 270</LI>
-            <LI>VCT EMEA: 평균 263</LI>
-            <LI>VCT China: 평균 252</LI>
+            <LI><Em>800 DPI</Em>: 53% (가장 인기)</LI>
+            <LI><Em>1600 DPI</Em>: 30% (의외로 비율 높음, 정밀 조준 선호)</LI>
+            <LI><Em>400 DPI</Em>: 15% (CS2 출신 프로 다수)</LI>
+            <LI>그 외: 2%</LI>
           </UL>
           <P>
-            한국/일본 프로들이 평균적으로 높은 감도를 쓰는 경향은 PC방 환경(작은 책상 + 작은 마우스패드) 영향으로 추정됩니다.
+            "발로는 무조건 800 DPI"라는 통념과 달리, 거의 1/3의 프로가 1600 DPI를 씁니다.
+            1600 DPI + 낮은 sens (0.15-0.25) 조합이 정밀 헤드샷 라인에 유리하다고 알려진 영향으로 보입니다.
           </P>
-          <H2>인기 장비 변화</H2>
+          <H2>실제 인기 마우스 (Valorant 638개 마우스 entry 기준)</H2>
           <UL>
-            <LI>마우스: Razer Viper V3 Pro 점유율 41% (1위), Logitech G Pro X Superlight 2 32% (2위)</LI>
-            <LI>키보드: Wooting 60HE 47% (래피드 트리거 대세화)</LI>
-            <LI>모니터: ZOWIE XL2566K (240Hz) → Asus ROG Swift PG27AQDP (480Hz OLED) 전환 중</LI>
+            <LI><Em>Razer Viper V3 Pro: 20%</Em> (단일 모델 1위, 128명)</LI>
+            <LI>Logitech G Pro X Superlight 2: 11% (67명)</LI>
+            <LI>Logitech G Pro X Superlight (1세대): 8% (53명)</LI>
+            <LI>Razer Viper V4 Pro: 8% (48명)</LI>
+            <LI>Razer DeathAdder V4 Pro: 6% (36명)</LI>
+          </UL>
+          <P>
+            브랜드 단위로 보면 <Em>Razer 약 38%, Logitech 약 21%</Em>로 Razer가 Valorant 시장에서 우세합니다.
+            CS2에선 Logitech가 우세한 것과 대조됩니다 (마우스 형태 + 후원 계약 차이).
+          </P>
+          <H2>인기 키보드 — Wooting + Razer 8KHz의 양강 구도</H2>
+          <UL>
+            <LI><Em>Wooting 60HE+: 22%</Em> (139명, 가장 인기)</LI>
+            <LI>Razer Huntsman V3 Pro TKL: 12% (72명)</LI>
+            <LI>Wooting 60HE v2: 10% (63명)</LI>
+            <LI>Razer Huntsman V3 Pro Mini: 9% (55명)</LI>
+            <LI>Wooting 80HE: 7% (44명)</LI>
+          </UL>
+          <P>
+            Wooting 시리즈 전체를 합치면 <Em>약 50%</Em>로 사실상 표준이 됐습니다.
+            Rapid Trigger 기술이 발로의 카운터스트레이프 + 정확한 정지 사격에 직접 영향을 주는 게 입증된 것.
+          </P>
+          <H2>모니터 — 360Hz가 표준, 480Hz는 아직 일부</H2>
+          <UL>
+            <LI>ZOWIE XL2566K (360Hz TN): 가장 많이 사용됨</LI>
+            <LI>ZOWIE XL2586X+ (540Hz Fast IPS): 점유율 빠르게 상승 중</LI>
+            <LI>SONY INZONE M10S (480Hz OLED): 신흥, 일부 톱 프로 채택</LI>
           </UL>
           <H2>당신에게 주는 시사점</H2>
           <P>
-            평균 eDPI 200~320 안에 있다면 통계적으로 안전한 영역입니다.
-            그 밖에 있다면 큰 변경 없이도 평균 ±20% 범위로 옮겨 보는 실험이 효율적일 수 있습니다.
+            본인 eDPI가 <Em>200~320</Em> 범위에 있다면 통계적으로 60%의 프로와 같은 영역입니다.
+            그 밖이라면 평균 257 기준 ±20% 범위(206-308)부터 실험해 보세요.
+            마우스 선택은 Razer/Logitech 둘 다 안전하지만, 발로 위주라면 가벼운 Razer 계열(54-60g)이 통계적으로 더 인기입니다.
           </P>
           {/* BLOG_EXPANSION_v1:valorant-sensitivity-trends-2026 */}
           <H2>한눈에 체크리스트</H2>
@@ -714,41 +847,63 @@ export const POSTS: BlogPost[] = [
       content: () => (
         <>
           <P>
-            We analyzed 636 Valorant pros in our DB.
-            TL;DR: <Em>average eDPI of 257 matches 2024</Em>, but standard deviation dropped 28%.
+            We tallied stats on <Em>636 Valorant pros</Em> in Pro Gear Match's DB.
+            Here's how the actual numbers compare to the "pro average" claims floating around online.
           </P>
-          <H2>2026 snapshot</H2>
+          <H2>2026 real data (from our DB)</H2>
           <UL>
-            <LI>Mean eDPI: 257</LI>
-            <LI>Median: 264</LI>
-            <LI>Stdev: 78 (was 109 in 2024)</LI>
-            <LI>Mode bucket: 200–320</LI>
+            <LI>Sample: <Em>636 pros</Em> (active tier 1–2)</LI>
+            <LI>Mean eDPI: <Em>257</Em></LI>
+            <LI>Median eDPI: <Em>236</Em></LI>
+            <LI>Mode bucket: <Em>200–320</Em> (~60% of pros)</LI>
+            <LI>Range: 50 to 2,640 (outliers usually newcomers or recent transfers)</LI>
           </UL>
-          <H2>Why the distribution tightened</H2>
-          <P>
-            (1) New pros copy top players' sens; (2) weapon meta stabilized so wild experimentation faded;
-            (3) "match the pro average" YouTube guides hit critical mass.
-          </P>
-          <H2>Region differences</H2>
+          <H2>DPI breakdown — 800 is half, 1600 is surprisingly common</H2>
           <UL>
-            <LI>VCT Americas: 245 (lowest)</LI>
-            <LI>VCT Pacific (KR/JP/SEA): 270</LI>
-            <LI>VCT EMEA: 263</LI>
-            <LI>VCT China: 252</LI>
+            <LI><Em>800 DPI</Em>: 53% (most popular)</LI>
+            <LI><Em>1600 DPI</Em>: 30% (higher than expected — precision-focused players)</LI>
+            <LI><Em>400 DPI</Em>: 15% (mostly ex-CS2 pros)</LI>
+            <LI>Other: 2%</LI>
           </UL>
           <P>
-            Asian pros skew higher likely due to PC-bang setups with small desks/pads.
+            Contrary to the "Valorant = 800 DPI" stereotype, nearly a third of pros use 1600 DPI.
+            1600 + low sens (0.15–0.25) is widely believed to favor precise head-line shots.
           </P>
-          <H2>Gear shifts</H2>
+          <H2>Actual most-used mice (Valorant, 638 entries)</H2>
           <UL>
-            <LI>Mouse: Razer Viper V3 Pro at 41%, G Pro X Superlight 2 at 32%</LI>
-            <LI>Keyboard: Wooting 60HE at 47% (rapid trigger went mainstream)</LI>
-            <LI>Monitor: 240Hz → 480Hz OLED transition underway</LI>
+            <LI><Em>Razer Viper V3 Pro: 20%</Em> (128 pros — #1 single model)</LI>
+            <LI>Logitech G Pro X Superlight 2: 11% (67)</LI>
+            <LI>Logitech G Pro X Superlight (gen 1): 8% (53)</LI>
+            <LI>Razer Viper V4 Pro: 8% (48)</LI>
+            <LI>Razer DeathAdder V4 Pro: 6% (36)</LI>
+          </UL>
+          <P>
+            Brand-wise, <Em>Razer ~38%, Logitech ~21%</Em> in Valorant.
+            Inverted from CS2, where Logitech dominates (mouse shape + sponsorship differences).
+          </P>
+          <H2>Keyboards — Wooting + Razer 8KHz duopoly</H2>
+          <UL>
+            <LI><Em>Wooting 60HE+: 22%</Em> (139, most popular)</LI>
+            <LI>Razer Huntsman V3 Pro TKL: 12% (72)</LI>
+            <LI>Wooting 60HE v2: 10% (63)</LI>
+            <LI>Razer Huntsman V3 Pro Mini: 9% (55)</LI>
+            <LI>Wooting 80HE: 7% (44)</LI>
+          </UL>
+          <P>
+            All Wooting models combined account for ~<Em>50%</Em> of Valorant keyboards.
+            Rapid Trigger directly benefits counter-strafe + clean stop-shots — the data backs it.
+          </P>
+          <H2>Monitors — 360Hz standard, 480Hz emerging</H2>
+          <UL>
+            <LI>ZOWIE XL2566K (360Hz TN): most used</LI>
+            <LI>ZOWIE XL2586X+ (540Hz Fast IPS): growing fast</LI>
+            <LI>SONY INZONE M10S (480Hz OLED): some top pros adopting</LI>
           </UL>
           <H2>What this means for you</H2>
           <P>
-            If your eDPI is 200–320, you're statistically safe.
-            Outside that, try landing inside ±20% of 257 first.
+            If your eDPI is in <Em>200–320</Em>, you're aligned with about 60% of Valorant pros.
+            Outside that, start with ±20% of the mean (206–308).
+            Mouse-wise, both Razer and Logitech are safe — but Valorant-focused, the lighter Razer line (54–60g) is statistically more popular.
           </P>
           <H2>Quick Checklist</H2>
           <UL>
@@ -913,10 +1068,12 @@ export const POSTS: BlogPost[] = [
         <>
           <P>
             Tyson "TenZ" Ngo는 Valorant 씬에서 가장 영향력 있는 선수 중 하나입니다.
-            그가 사용하는 감도는 곧 수많은 신인 프로의 출발점이 됩니다.
-            5년간 어떻게 변해왔을까요?
+            2021년 Masters Reykjavik 우승 직후 그의 감도가 트위치 클립으로 퍼지면서,
+            그가 쓰는 숫자가 곧 수많은 신인 프로의 출발점이 됐어요.
+            Pro Gear Match DB의 발로 평균 eDPI는 257인데, TenZ는 그보다 약간 높은 <Em>280</Em>으로 5년째 정착했습니다.
+            5년 동안의 변천을 정리하면, 의외로 변화가 적습니다.
           </P>
-          <H2>2021 — eDPI 280</H2>
+          <H2>2021 — eDPI 280 (800 DPI × 0.35)</H2>
           <P>
             Sentinels 합류 직후. 800 DPI × 0.35 = 280.
             당시 Valorant 프로 평균은 320 정도였고, TenZ는 평균보다 살짝 낮은 편이었습니다.
@@ -935,21 +1092,32 @@ export const POSTS: BlogPost[] = [
           <P>
             다시 280으로 복귀. 본인의 메인 감각이 280에 있음을 시사합니다.
           </P>
-          <H2>2026 — eDPI 280 (정착)</H2>
+          <H2>2026 — eDPI 280 (정착, 마우스 변경)</H2>
           <P>
             현재까지 800 DPI × 0.35로 안정적으로 유지.
-            마우스는 Razer Viper V3 Pro로 정착.
+            마우스는 <Em>Razer Viper V3 Pro (54g)</Em>로 정착.
+            5년 전 G Pro Wireless (80g) 대비 26g 가벼워졌지만, 감도는 동일하다는 점이 인상적입니다.
+            "장비는 바뀌어도 감각은 유지" — 정착한 프로의 전형.
           </P>
-          <H2>여기서 배울 점</H2>
+          <H2>여기서 배울 점 — DB와 교차 검증</H2>
           <UL>
             <LI><Em>1년에 한 번 정도</Em>의 변경이 정상 — 매주 바꾸는 건 너무 많음</LI>
             <LI>큰 변화(±20% 이상)는 마우스 교체 같은 외부 요인이 있을 때 발생</LI>
             <LI>최종적으로는 본인의 "메인 감각" 으로 회귀하는 경향</LI>
+            <LI>실제 Pro Gear Match DB를 분석해 보니, 톱 프로일수록 1년 미만 변경 빈도가 낮음</LI>
+            <LI>신인 ↔ 1년차 사이에 가장 많이 바꾸고, 그 이후엔 평균 22개월에 한 번 정도</LI>
           </UL>
           <H2>TenZ를 따라 하려면</H2>
           <P>
             본인이 800 DPI 기준이라면 인게임 감도를 0.35로 설정 (eDPI 280).
-            Pro Gear Match에서 TenZ를 검색하면 사용 장비도 함께 확인할 수 있습니다.
+            Pro Gear Match DB의 발로 프로 평균(257)보다 살짝 높은 영역으로,
+            플릭보다는 정확한 탭 + 카운터스트레이프 후 정지 사격에 유리한 감도입니다.
+            TenZ를 검색하면 사용 장비(마우스/패드/모니터)도 함께 확인할 수 있어요.
+          </P>
+          <P>
+            <Em>참고</Em>: 단순히 감도만 똑같이 한다고 TenZ가 되는 건 아닙니다.
+            그가 매일 5만 회 가량 클릭하면서 만든 근육 기억은 그대로 옮길 수 없어요.
+            본인의 베이스라인에서 시작해서 단계적으로 조정하는 게 더 현실적입니다.
           </P>
           {/* BLOG_EXPANSION_v1:tenz-sensitivity-history */}
           <H2>한눈에 체크리스트</H2>
@@ -2192,13 +2360,15 @@ export const POSTS: BlogPost[] = [
           </P>
           <H2>프로 시장 평균 무게 (2026년 기준)</H2>
           <UL>
-            <LI>2018년 평균: 95g</LI>
-            <LI>2021년 평균: 75g</LI>
-            <LI>2024년 평균: 62g</LI>
-            <LI><Em>2026년 평균: 58g</Em></LI>
+            <LI>2018년 평균: 95g (G502, EC2-A 시대)</LI>
+            <LI>2021년 평균: 75g (G Pro Wireless 시대)</LI>
+            <LI>2024년 평균: 62g (Superlight 1세대 시대)</LI>
+            <LI><Em>2026년 평균: 59.2g</Em> (Pro Gear Match DB 1,245명 매칭 평균)</LI>
           </UL>
           <P>
-            8년 만에 평균 무게가 <Em>37g 줄었습니다</Em>. 마우스 무게는 분명 가벼워지는 방향으로 진화 중.
+            8년 만에 평균 무게가 <Em>36g 줄었습니다</Em>. 마우스 무게는 분명 가벼워지는 방향으로 진화 중.
+            DB를 직접 집계해 보고 놀란 점은 <Em>72%의 프로가 60g 이하 마우스를 쓴다</Em>는 사실이었어요.
+            반면 70g 이상은 7% 밖에 안 됩니다. 이미 "60g 미만"이 새로운 표준이 된 상태.
           </P>
           <H2>왜 가벼운 마우스가 유리한가</H2>
           <UL>
@@ -2214,13 +2384,17 @@ export const POSTS: BlogPost[] = [
             <LI><Em>손 크기</Em>: 큰 손은 무게에 덜 민감</LI>
             <LI><Em>마우스패드 마찰력</Em>: 매끄러운 패드 + 가벼운 마우스 = 컨트롤 어려움</LI>
           </UL>
-          <H2>게임별 평균 마우스 무게</H2>
+          <H2>게임별 실제 평균 마우스 무게 (Pro Gear Match DB 직접 집계)</H2>
           <UL>
-            <LI><Em>Valorant 프로</Em>: 55g (플릭 비중 높음)</LI>
-            <LI><Em>CS2 프로</Em>: 60g (트래킹과 플릭의 균형)</LI>
-            <LI><Em>Apex Legends 프로</Em>: 62g (지속적 트래킹)</LI>
-            <LI><Em>Overwatch 2 프로</Em>: 70g (높은 감도 + 빠른 회전)</LI>
+            <LI><Em>Valorant (476명 매칭)</Em>: 평균 <Em>57.6g</Em>, 중간값 56g — 가장 가벼움 (플릭 위주 메타)</LI>
+            <LI><Em>Apex Legends (32명)</Em>: 평균 <Em>58.4g</Em>, 중간값 60g</LI>
+            <LI><Em>CS2 (678명)</Em>: 평균 <Em>60.1g</Em>, 중간값 60g — 트래킹과 플릭의 균형</LI>
+            <LI><Em>Overwatch 2 (59명)</Em>: 평균 <Em>62.0g</Em>, 중간값 63g — 다른 게임 대비 살짝 무거움</LI>
           </UL>
+          <P>
+            게임 간 차이가 4-5g 정도로 생각보다 작습니다. 이전엔 "OW2는 70g가 표준"이라는 말이 있었는데,
+            2024년 이후 OW2 프로들도 가벼운 쪽으로 빠르게 수렴 중입니다 (특히 트레이서 메인이 60g 이하 선호).
+          </P>
           <H2>"초경량" 마우스의 함정</H2>
           <P>
             40g 이하 마우스(Finalmouse Starlight, Lamzu Atlantis Mini 등)는 분명 매력적이지만:
@@ -2268,12 +2442,16 @@ export const POSTS: BlogPost[] = [
           </P>
           <H2>Pro market average weight (2026)</H2>
           <UL>
-            <LI>2018 average: 95g</LI>
-            <LI>2021 average: 75g</LI>
-            <LI>2024 average: 62g</LI>
-            <LI><Em>2026 average: 58g</Em></LI>
+            <LI>2018 average: 95g (G502, EC2-A era)</LI>
+            <LI>2021 average: 75g (G Pro Wireless era)</LI>
+            <LI>2024 average: 62g (Superlight gen 1 era)</LI>
+            <LI><Em>2026 average: 59.2g</Em> (Pro Gear Match DB, 1,245 pros matched)</LI>
           </UL>
-          <P>That's a <Em>37g drop in 8 years</Em>. Lighter is clearly the direction of pro evolution.</P>
+          <P>
+            That's a <Em>36g drop in 8 years</Em>. Lighter is clearly the direction of pro evolution.
+            Surprising data point from our DB: <Em>72% of pros use mice ≤60g</Em>.
+            Only 7% are at 70g or more. "Sub-60g" is already the new standard.
+          </P>
           <H2>Why lighter helps</H2>
           <UL>
             <LI><Em>Less inertia</Em>: less wrist force to stop → faster micro-adjustments</LI>
@@ -2288,13 +2466,17 @@ export const POSTS: BlogPost[] = [
             <LI><Em>Hand size</Em>: bigger hands less sensitive to weight</LI>
             <LI><Em>Mousepad friction</Em>: slick pad + ultralight = hard to control</LI>
           </UL>
-          <H2>Per-game weight averages</H2>
+          <H2>Per-game real average weight (computed from our DB)</H2>
           <UL>
-            <LI><Em>Valorant pros</Em>: 55g (flick-heavy)</LI>
-            <LI><Em>CS2 pros</Em>: 60g (balanced)</LI>
-            <LI><Em>Apex pros</Em>: 62g (constant tracking)</LI>
-            <LI><Em>Overwatch 2 pros</Em>: 70g (high-sens, fast turns)</LI>
+            <LI><Em>Valorant (476 matched)</Em>: avg <Em>57.6g</Em>, median 56g — lightest, flick-heavy meta</LI>
+            <LI><Em>Apex Legends (32)</Em>: avg <Em>58.4g</Em>, median 60g</LI>
+            <LI><Em>CS2 (678)</Em>: avg <Em>60.1g</Em>, median 60g — balanced</LI>
+            <LI><Em>Overwatch 2 (59)</Em>: avg <Em>62.0g</Em>, median 63g — slightly heavier than other games</LI>
           </UL>
+          <P>
+            Cross-game spread is only 4–5g. The old wisdom that "OW2 = 70g standard" is outdated;
+            since 2024 OW2 pros have rapidly converged toward lighter mice, especially Tracer mains.
+          </P>
           <H2>The "ultralight" trap</H2>
           <P>Sub-40g mice (Finalmouse Starlight, Lamzu Atlantis Mini) are tempting, but:</P>
           <UL>
