@@ -2025,7 +2025,7 @@ export default function App() {
             >
               {(() => {
                 const m = matches![selectedMatchIdx];
-                const proCode = (PLAYER_NATIONALITIES[m.name] || '').toLowerCase();
+                const proCode = (m.nationality || PLAYER_NATIONALITIES[m.name] || '').toLowerCase();
                 const userEdpi = settings.dpi * settings.sensitivity;
                 const proEdpi = m.settings.edpi;
                 const edpiDelta = Math.abs(userEdpi - proEdpi);
@@ -2241,7 +2241,7 @@ export default function App() {
                           </div>
                           <div className={`flex gap-2 overflow-x-auto pgm-scroll ${theme === 'light' ? 'pgm-scroll-light' : ''} pb-2`}>
                             {matches!.map((sim, i) => {
-                              const simCode = (PLAYER_NATIONALITIES[sim.name] || '').toLowerCase();
+                              const simCode = (sim.nationality || PLAYER_NATIONALITIES[sim.name] || '').toLowerCase();
                               const simEdpi = sim.settings.edpi;
                               const simDelta = Math.abs(userEdpi - simEdpi);
                               const simRel = Math.min(simDelta / Math.max(userEdpi, simEdpi, 1), 1);
@@ -2343,15 +2343,18 @@ export default function App() {
                         <div>
                           <h3 className="font-black uppercase tracking-tighter text-sm flex items-center gap-1.5 min-w-0">
                             <span className="truncate">{m.name}</span>
-                            {PLAYER_NATIONALITIES[m.name] && (
-                              <img
-                                src={`https://flagcdn.com/20x15/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png`}
-                                srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png 2x`}
-                                width="20" height="15"
-                                alt={PLAYER_NATIONALITIES[m.name]}
-                                className="inline-block align-middle rounded-none flex-shrink-0"
-                              />
-                            )}
+                            {(() => {
+                              const nat = m.nationality || PLAYER_NATIONALITIES[m.name];
+                              return nat ? (
+                                <img
+                                  src={`https://flagcdn.com/20x15/${nat.toLowerCase()}.png`}
+                                  srcSet={`https://flagcdn.com/40x30/${nat.toLowerCase()}.png 2x`}
+                                  width="20" height="15"
+                                  alt={nat}
+                                  className="inline-block align-middle rounded-none flex-shrink-0"
+                                />
+                              ) : null;
+                            })()}
                           </h3>
                           <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[9px] uppercase tracking-widest truncate`}>{m.team}</p>
                         </div>
@@ -2412,15 +2415,19 @@ export default function App() {
                         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-2">
                           <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none flex items-center gap-3 flex-wrap">
                             {matches[selectedMatchIdx].name}
-                            {PLAYER_NATIONALITIES[matches[selectedMatchIdx].name] && (
-                              <img
-                                src={`https://flagcdn.com/32x24/${PLAYER_NATIONALITIES[matches[selectedMatchIdx].name].toLowerCase()}.png`}
-                                srcSet={`https://flagcdn.com/64x48/${PLAYER_NATIONALITIES[matches[selectedMatchIdx].name].toLowerCase()}.png 2x`}
-                                width="32" height="24"
-                                alt={PLAYER_NATIONALITIES[matches[selectedMatchIdx].name]}
-                                className="inline-block align-middle rounded-none shadow-sm"
-                              />
-                            )}
+                            {(() => {
+                              const m2 = matches[selectedMatchIdx];
+                              const nat = m2.nationality || PLAYER_NATIONALITIES[m2.name];
+                              return nat ? (
+                                <img
+                                  src={`https://flagcdn.com/32x24/${nat.toLowerCase()}.png`}
+                                  srcSet={`https://flagcdn.com/64x48/${nat.toLowerCase()}.png 2x`}
+                                  width="32" height="24"
+                                  alt={nat}
+                                  className="inline-block align-middle rounded-none shadow-sm"
+                                />
+                              ) : null;
+                            })()}
                           </h2>
                           <a 
                             href={matches[selectedMatchIdx].profileUrl} 
@@ -2667,15 +2674,18 @@ export default function App() {
                         <div>
                           <h3 className="font-black uppercase tracking-tighter text-sm flex items-center gap-1.5 min-w-0">
                             <span className="truncate">{m.name}</span>
-                            {PLAYER_NATIONALITIES[m.name] && (
-                              <img
-                                src={`https://flagcdn.com/20x15/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png`}
-                                srcSet={`https://flagcdn.com/40x30/${PLAYER_NATIONALITIES[m.name].toLowerCase()}.png 2x`}
-                                width="20" height="15"
-                                alt={PLAYER_NATIONALITIES[m.name]}
-                                className="inline-block align-middle rounded-none flex-shrink-0"
-                              />
-                            )}
+                            {(() => {
+                              const nat = m.nationality || PLAYER_NATIONALITIES[m.name];
+                              return nat ? (
+                                <img
+                                  src={`https://flagcdn.com/20x15/${nat.toLowerCase()}.png`}
+                                  srcSet={`https://flagcdn.com/40x30/${nat.toLowerCase()}.png 2x`}
+                                  width="20" height="15"
+                                  alt={nat}
+                                  className="inline-block align-middle rounded-none flex-shrink-0"
+                                />
+                              ) : null;
+                            })()}
                           </h3>
                           <p className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} font-mono text-[9px] uppercase tracking-widest truncate`}>{m.team}</p>
                         </div>

@@ -39,7 +39,7 @@ for (const docSnap of allSnap.docs) {
     id: docSnap.id,
     name: data.name || '',
     team: data.team || '',
-    country: data.country || '',
+    nationality: data.nationality || data.country || '',
     game,
     settings: data.settings || {},
     gear: data.gear || {},
