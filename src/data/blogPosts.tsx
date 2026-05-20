@@ -1505,13 +1505,17 @@ export const POSTS: BlogPost[] = [
             <Em>3D 무빙</Em> + 거리별 무기 + 트래킹 + 360도 시야 전환이 동시에 필요합니다.
             그래서 다른 FPS의 감도 가이드를 그대로 가져오면 안 됩니다.
           </P>
-          <H2>Apex 프로 평균 (PGM DB 기준)</H2>
+          <H2>Apex 프로 실측 데이터 (Pro Gear Match DB, 144명)</H2>
           <UL>
-            <LI>평균 DPI: 1100 (Valorant 평균 800보다 높음)</LI>
-            <LI>평균 인게임 감도: 1.5</LI>
-            <LI>평균 ADS 감도 배율: 1.0 (1:1)</LI>
-            <LI>평균 cm/360°: 약 28cm (Valorant 38cm보다 짧음)</LI>
+            <LI><Em>DPI 분포</Em>: 800 DPI <Em>56%</Em>, 400 DPI 21%, 1600 DPI 17% — 다른 게임과 비슷한 800 표준</LI>
+            <LI><Em>인기 인게임 감도값</Em>: 1.2 (18명), 1.5 (12명), 1.4 (9명), 1.1 (7명)</LI>
+            <LI><Em>평균 eDPI: 1,180</Em>, 중간값: 1,040</LI>
+            <LI>Valorant 평균(257)보다 4배 이상, CS2(866)보다도 높음</LI>
           </UL>
+          <P>
+            "Apex는 1100 DPI" 같은 글이 가끔 보이는데, 실제로는 DPI는 정수값(800/400/1600)이고 인게임 sens로 조절합니다.
+            대부분 프로(56%)가 다른 게임과 동일하게 800 DPI를 쓰고, 그 위에서 1.2-1.8 범위의 sens로 eDPI 1,000 근방에 맞춥니다.
+          </P>
           <H2>왜 Apex는 더 빠른 감도?</H2>
           <UL>
             <LI><Em>3차원 무빙</Em>: 점프 + 슬라이드 + 그라플링 중 시점 전환 필요</LI>
@@ -1545,6 +1549,17 @@ export const POSTS: BlogPost[] = [
             <LI><Em>중감도 (25~35cm)</Em>: Bloodhound, Bangalore — 균형형</LI>
             <LI><Em>고감도 (15~25cm)</Em>: Octane, Pathfinder, Valkyrie — 무빙 중심</LI>
           </UL>
+          <H2>Apex 인기 장비 (PGM DB 기준)</H2>
+          <UL>
+            <LI><Em>마우스</Em>: G Pro X Superlight 시리즈 합산 약 25%, Razer Viper V3 Pro도 인기 — 가벼운 마우스 선호</LI>
+            <LI><Em>모니터</Em>: <Em>SONY INZONE M10S (480Hz OLED) 20%</Em> — Apex 프로의 가장 인기 모니터, 다른 게임과 차별점</LI>
+            <LI><Em>키보드</Em>: Wooting 60HE+ 17%, Wooting 80HE 9% — Wooting 합산 30% 이상</LI>
+            <LI>마우스패드: 데이터 부족 (프로필 미공개 많음), G640 / Artisan Hayate 계열이 자주 보임</LI>
+          </UL>
+          <P>
+            DB 정리하다가 의외였던 점: Apex 프로의 INZONE M10S(OLED 480Hz) 채택률이 다른 게임보다 압도적으로 높습니다.
+            Apex의 잦은 빠른 무빙 + 색감 풍부한 환경에서 OLED 응답속도와 색재현이 유리한 것으로 추정됩니다.
+          </P>
           <H2>마우스패드 권장</H2>
           <P>
             Apex는 큰 무빙이 잦으므로 <Em>최소 90×40cm 사이즈 + 스피드형 또는 밸런스형</Em> 패드 권장.
@@ -1554,6 +1569,7 @@ export const POSTS: BlogPost[] = [
           <P>
             Apex는 감도가 더 빨라야 하고, ADS 배율을 거리별로 따로 잡는 게 핵심입니다.
             기본 1:1로 시작 후 본인이 약한 거리에서만 조정하세요.
+            "1100 DPI" 같은 정수 아닌 값은 표기상의 오류이고, 실제는 <Em>800 DPI × 1.2-1.5</Em>가 가장 흔합니다.
           </P>
           {/* BLOG_EXPANSION_v1:apex-sensitivity-guide */}
           <H2>한눈에 체크리스트</H2>
@@ -1582,13 +1598,17 @@ export const POSTS: BlogPost[] = [
             <Em>3D movement</Em> + ranged weapons + tracking + 360° turns happen at once.
             Don't copy other-FPS guides verbatim.
           </P>
-          <H2>Apex pro averages (PGM DB)</H2>
+          <H2>Apex pro data (Pro Gear Match DB, 144 pros)</H2>
           <UL>
-            <LI>Avg DPI: 1100 (vs 800 in Valorant)</LI>
-            <LI>Avg in-game sens: 1.5</LI>
-            <LI>Avg ADS multiplier: 1.0 (1:1)</LI>
-            <LI>Avg cm/360°: ~28cm (vs 38cm in Valorant)</LI>
+            <LI><Em>DPI distribution</Em>: 800 DPI <Em>56%</Em>, 400 DPI 21%, 1600 DPI 17% — same 800 baseline as other games</LI>
+            <LI><Em>Most common in-game sens</Em>: 1.2 (18), 1.5 (12), 1.4 (9), 1.1 (7)</LI>
+            <LI><Em>Mean eDPI: 1,180</Em>, median 1,040</LI>
+            <LI>4× Valorant's mean (257), also higher than CS2 (866)</LI>
           </UL>
+          <P>
+            You'll occasionally see "Apex = 1100 DPI" — DPI is always an integer (800/400/1600) and sens does the tuning.
+            Most pros (56%) run 800 DPI like every other game, then push sens to 1.2–1.8 for an eDPI near 1,000.
+          </P>
           <H2>Why faster sens?</H2>
           <UL>
             <LI><Em>3D movement</Em>: jumps, slides, grapples</LI>
@@ -1622,6 +1642,17 @@ export const POSTS: BlogPost[] = [
             <LI><Em>Mid (25–35cm)</Em>: Bloodhound, Bangalore</LI>
             <LI><Em>High (15–25cm)</Em>: Octane, Pathfinder, Valkyrie</LI>
           </UL>
+          <H2>Apex gear leaders (PGM DB)</H2>
+          <UL>
+            <LI><Em>Mouse</Em>: G Pro X Superlight family ~25% combined, Razer Viper V3 Pro popular — lightweight preferred</LI>
+            <LI><Em>Monitor</Em>: <Em>SONY INZONE M10S (480Hz OLED) 20%</Em> — Apex pros' top pick, unusual vs other games</LI>
+            <LI><Em>Keyboard</Em>: Wooting 60HE+ 17%, Wooting 80HE 9% — ~30% combined Wooting</LI>
+            <LI>Mousepad: data sparse (many profiles missing it); G640 and Artisan Hayate variants common</LI>
+          </UL>
+          <P>
+            One pattern that surprised us: Apex pros adopt SONY INZONE M10S (OLED 480Hz) much more heavily than CS2 or Valorant pros.
+            OLED response and color reproduction probably help with Apex's fast movement + visually rich environments.
+          </P>
           <H2>Pad recommendation</H2>
           <P>
             Big sweeps demand <Em>90×40cm+, speed or balanced</Em>.
@@ -1630,6 +1661,7 @@ export const POSTS: BlogPost[] = [
           <H2>TL;DR</H2>
           <P>
             Faster sens, per-scope ADS tuning. Start 1:1, adjust where you're weakest.
+            "1100 DPI" is a misnomer — the actual common combo is <Em>800 DPI × 1.2–1.5</Em>.
           </P>
           <H2>Quick Checklist</H2>
           <UL>
@@ -1848,12 +1880,27 @@ export const POSTS: BlogPost[] = [
             Counter-Strike 1.6 시절부터의 유산입니다.
             많은 베테랑 프로가 이 값에 익숙해져 있어 변경이 어려웠고, CS:GO와 CS2도 호환성을 위해 유지했습니다.
           </P>
-          <H2>CS2 프로 평균</H2>
+          <H2>CS2 프로 실측 평균 (Pro Gear Match DB, 874명)</H2>
           <UL>
-            <LI>DPI: 800 (95%가 800)</LI>
-            <LI>인게임 감도: 1.2</LI>
-            <LI>eDPI: 960</LI>
-            <LI>cm/360°: 약 30cm</LI>
+            <LI><Em>DPI 분포</Em>: 400 DPI <Em>48%</Em>, 800 DPI 44%, 1600 DPI 5% (4개 게임 중 유일하게 400이 우세)</LI>
+            <LI><Em>인기 감도값</Em>: 2.0 (78명), 1.0 (72명), 1.25 (45명), 1.1 (37명) — 여러 조합이 같은 eDPI로 수렴</LI>
+            <LI><Em>평균 eDPI: 866</Em>, 중간값: 800</LI>
+            <LI><Em>평균 cm/360°: 51.7cm</Em>, 중간값: 52cm</LI>
+          </UL>
+          <P>
+            "CS2 cm/360 30cm"라는 글이 자주 보이는데, 실제 데이터는 그 두 배 가까이입니다.
+            <Em>60% 이상의 프로가 40-60cm/360° 범위</Em>이고, 30cm 이하는 단 3%뿐.
+            CS2가 "저감도 게임"으로 불리는 이유가 이 cm/360° 분포에서 보입니다 — 발로 평균(35cm)이나 OW2 평균(20-25cm)과 비교하면 명확하죠.
+          </P>
+          <H2>왜 400 DPI가 800 DPI보다 인기인가</H2>
+          <P>
+            다른 모든 게임은 800 DPI가 표준인데 CS2만 400 DPI가 우세합니다. 이유:
+          </P>
+          <UL>
+            <LI><Em>Counter-Strike 1.6 / Source 유산</Em> — 옛 800x600 / 1024x768 모니터 시대의 표준이 그대로 유지</LI>
+            <LI><Em>m_rawinput 기본 활성</Em> — OS 가속 자동 차단되어 400 DPI의 단점(보정 영향) 사라짐</LI>
+            <LI><Em>높은 sens × 낮은 DPI = 부드러운 큰 동작</Em> — CS2 같은 저감도 메타에 자연스럽게 맞음</LI>
+            <LI>s1mple, NiKo, ZywOo, donk 등 톱 클래스 다수가 400 DPI 사용</LI>
           </UL>
           <H2>Valorant에서 CS2로 옮기기</H2>
           <P>
@@ -1863,6 +1910,7 @@ export const POSTS: BlogPost[] = [
           <UL>
             <LI>Valorant 감도 × 3.18 = CS2 감도 (DPI 동일 기준)</LI>
             <LI>예: Valorant 0.4 → CS2 1.27</LI>
+            <LI><Em>참고</Em>: 우리 DB 발로 평균(eDPI 257)을 CS2로 환산하면 약 817, CS2 중간값(800)과 거의 일치 — 대부분 프로가 cm/360° 기준으로 동기화하기 때문</LI>
           </UL>
           <H2>CS2에서 Valorant로 옮기기</H2>
           <UL>
@@ -1886,10 +1934,22 @@ export const POSTS: BlogPost[] = [
             기본값 1.0이면 줌 안에서도 같은 cm/360°가 유지됩니다.
             대부분의 프로가 1.0을 유지합니다.
           </P>
+          <H2>CS2 인기 장비 — Wooting 80HE가 60HE+를 이긴 게임</H2>
+          <UL>
+            <LI><Em>마우스</Em>: G Pro X Superlight 2 21%, Razer Viper V3 Pro 12%, DeathAdder V4 Pro 11% — Logitech 우세 (발로의 반대)</LI>
+            <LI><Em>키보드</Em>: <Em>Wooting 80HE 24%</Em>, Razer Huntsman V3 Pro TKL 14% — 80HE가 60HE보다 인기 (TKL 선호)</LI>
+            <LI><Em>모니터</Em>: ZOWIE XL2566K (360Hz) 23%, ZOWIE XL2546K (240Hz) 23% — Zowie 압도</LI>
+            <LI><Em>마우스패드</Em>: SteelSeries QcK Heavy 15% — 컨트롤 표면 + 두꺼운 패드 선호</LI>
+          </UL>
+          <P>
+            DB를 정리하다가 발견한 흥미로운 점: 발로는 60HE+ (60% 레이아웃)가 1위, CS2는 80HE (TKL)가 1위입니다.
+            CS2 무빙은 카운터스트레이프 + 무기 빠른 전환(1, 2, 3 키)이 많아서, F-row와 화살표 키를 자주 쓰는 80HE가 유리한 듯합니다.
+          </P>
           <H2>요약</H2>
           <UL>
             <LI>CS2 감도 = DPI × 인게임 감도 × m_yaw(0.022)</LI>
-            <LI>800 DPI × 1.0~1.5 가 안전한 출발점</LI>
+            <LI>실측: <Em>400 DPI × 2.0 또는 800 DPI × 1.0</Em> 이 가장 인기 (둘 다 eDPI 800)</LI>
+            <LI>cm/360° 40-60cm가 안전 범위 (60% 프로의 위치)</LI>
             <LI>Valorant ↔ CS2 변환은 약 3.18배</LI>
             <LI>m_rawinput 1 / m_customaccel 0 필수</LI>
           </UL>
@@ -1935,17 +1995,33 @@ export const POSTS: BlogPost[] = [
           <P>
             Legacy from CS 1.6. Veterans were used to it; CS:GO and CS2 kept it for compatibility.
           </P>
-          <H2>CS2 pro averages</H2>
+          <H2>Real CS2 pro averages (Pro Gear Match DB, 874 pros)</H2>
           <UL>
-            <LI>DPI: 800 (95% run 800)</LI>
-            <LI>In-game sens: 1.2</LI>
-            <LI>eDPI: 960</LI>
-            <LI>cm/360°: ~30cm</LI>
+            <LI><Em>DPI distribution</Em>: 400 DPI <Em>48%</Em>, 800 DPI 44%, 1600 DPI 5% (the only game where 400 wins)</LI>
+            <LI><Em>Most common sens</Em>: 2.0 (78), 1.0 (72), 1.25 (45), 1.1 (37) — multiple combos converge on eDPI 800</LI>
+            <LI><Em>Mean eDPI: 866</Em>, median: 800</LI>
+            <LI><Em>Mean cm/360°: 51.7cm</Em>, median: 52cm</LI>
+          </UL>
+          <P>
+            You'll often see "CS2 cm/360 30cm" online — the real number is nearly double.
+            Over <Em>60% of pros sit in the 40-60cm/360° band</Em>; only 3% are under 30cm.
+            CS2's "low-sens game" reputation is born out by the data — compare to Valorant's ~35cm or OW2's 20-25cm.
+          </P>
+          <H2>Why 400 DPI beats 800 DPI in CS2</H2>
+          <P>
+            Every other game's pros prefer 800 DPI. Only CS2 inverts it. Reasons:
+          </P>
+          <UL>
+            <LI><Em>CS 1.6 / Source legacy</Em> — 800x600 / 1024x768 monitor era set 400 as standard; veterans never changed</LI>
+            <LI><Em>m_rawinput on by default</Em> — OS smoothing bypassed, removing 400 DPI's downside</LI>
+            <LI><Em>High sens × low DPI = smooth big sweeps</Em> — fits CS2's low-sens meta naturally</LI>
+            <LI>s1mple, NiKo, ZywOo, donk — many top-tier pros run 400 DPI</LI>
           </UL>
           <H2>Valorant → CS2</H2>
           <UL>
             <LI>Valorant sens × 3.18 = CS2 sens (same DPI)</LI>
             <LI>Example: 0.4 → 1.27</LI>
+            <LI><Em>Note</Em>: Our Valorant mean (eDPI 257) converts to ~817 in CS2, almost exactly the CS2 median (800) — most pros sync via cm/360° between games</LI>
           </UL>
           <H2>CS2 → Valorant</H2>
           <UL>
@@ -1965,10 +2041,22 @@ export const POSTS: BlogPost[] = [
             AWP/Scout zoom uses <Em>zoom_sensitivity_ratio</Em>.
             Default 1.0 keeps cm/360° identical inside the scope. Most pros leave it at 1.0.
           </P>
+          <H2>CS2 gear leaders — Wooting 80HE beats 60HE+ here</H2>
+          <UL>
+            <LI><Em>Mouse</Em>: G Pro X Superlight 2 21%, Razer Viper V3 Pro 12%, DeathAdder V4 Pro 11% — Logitech leads (opposite of Valorant)</LI>
+            <LI><Em>Keyboard</Em>: <Em>Wooting 80HE 24%</Em>, Razer Huntsman V3 Pro TKL 14% — 80HE preferred over 60HE (TKL bias)</LI>
+            <LI><Em>Monitor</Em>: ZOWIE XL2566K (360Hz) 23%, XL2546K (240Hz) 23% — Zowie dominates</LI>
+            <LI><Em>Mousepad</Em>: SteelSeries QcK Heavy 15% — control surface + thick padding preferred</LI>
+          </UL>
+          <P>
+            Interesting pattern from the data: Valorant pros prefer the 60% 60HE+, but CS2 pros prefer the TKL 80HE.
+            CS2's counter-strafe + weapon hotkey (1/2/3) routines reward easy F-row and arrow-key access — the 80HE fits.
+          </P>
           <H2>TL;DR</H2>
           <UL>
             <LI>CS2 sens = DPI × in-game × m_yaw(0.022)</LI>
-            <LI>Start at 800 × 1.0–1.5</LI>
+            <LI>Real popular combos: <Em>400 × 2.0 or 800 × 1.0</Em> (both eDPI 800)</LI>
+            <LI>cm/360° 40-60cm is the safe range (60% of pros)</LI>
             <LI>Valorant ↔ CS2 ratio ≈ 3.18</LI>
             <LI>m_rawinput 1 / m_customaccel 0 required</LI>
           </UL>
